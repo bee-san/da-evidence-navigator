@@ -600,6 +600,42 @@ await step('compare text readers: Tesseract scores an example letter, offline', 
   await audit('compare results');
 });
 
+await step('letter checker (AI demo): same page, checked by GPT-6 Sol through api/check-ai', async () => {
+  await go('index.html');
+  let posted;
+  const answer = (r) => {
+    if (!r.url().endsWith('/api/check-ai')) return r.continue();
+    posted = JSON.parse(r.postData());
+    r.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      category: 'sch1-para11', category_name: 'Letter or report from an appropriate health professional', label: 'Incomplete', tested_against_examples: false,
+      detected: { client: 'Jane Doe', client_source: 'found in the text' },
+      criteria: [
+        { id: 'GP1', label: 'Written by an appropriate health professional', status: 'missing', note: 'No profession is given.', evidence: [], ref: 'guidance 2.52', ask_for: 'Ask for their profession.' },
+        { id: 'GP4', label: 'Professional judgement', status: 'missing', note: 'The judgement is hedged.', evidence: ['I can confirm that I have examined Jane Doe and in my reasonable professional judgement, the condition that the applicant has might be consistent with domestic abuse.'], ref: 'guidance 2.55', ask_for: 'Ask for a firm judgement.' },
+      ],
+      warnings: ['Checked by an AI model (gpt-6-sol) reading the LAA guidance, not by fixed rules.'],
+    }) });
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await go('letter-checker-ai.html?sample=p11-bad-5');
+    assert.match(await text('#input-view'), /sends the letter’s text to OpenAI/);
+    await page.click('#letter-form button[type=submit]');
+    await until(() => !document.getElementById('result').hidden, 5000);
+    assert.equal(posted.category, '', 'the AI works out the type');
+    assert.match(posted.text, /might be consistent/);
+    assert.equal(await text('.govuk-notification-banner__heading'), 'This letter is missing something it needs');
+    assert.match(await text('#result'), /GPT-6 Sol worked out the type from the letter/);
+    assert.ok(await page.$('.app-markup .app-mark--missing'), 'the sentence the AI quoted is highlighted');
+    assert.equal(await page.$('#opinion'), null, 'no separate AI second opinion on the AI page');
+    await audit('AI demo result');
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+});
+
 await step('letter checker: reads a photo of a letter on the device', async () => {
   await go('letter-checker.html');
   // Draw the rejected example as an image, the way a phone photo would arrive.

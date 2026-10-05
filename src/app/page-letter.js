@@ -14,6 +14,9 @@ const result = document.getElementById('result');
 const file = document.getElementById('file');
 const fileStatus = document.getElementById('file-status');
 const inputView = document.getElementById('input-view');
+// letter-checker-ai.html is the same page, but GPT-6 Sol checks the letter (api/check-ai.js)
+// instead of the rules in src/app/checker/.
+const AI = inputView.dataset.engine === 'ai';
 const examples = [...SAMPLES, ...SYNTHETIC];
 
 type.insertAdjacentHTML('beforeend', categoryOptions());
@@ -80,19 +83,20 @@ function setError(msg) {
   if (msg) letter.focus();
 }
 
-// Runs the check and shows the review in place of the form.
-function review(text, category, guessed, options = {}) {
-  let r;
-  try {
-    r = check(text, category, options);
-  } catch (err) {
-    return setError(err.message);
-  }
-  setError('');
-  inputView.hidden = true;
-  result.hidden = false;
-  result.innerHTML = `${reviewHtml(text, r, { guessed })}
-<details class="govuk-details app-no-print" id="opinion">
+// Asks GPT-6 Sol to check the letter. Returns a result in the same shape as check().
+async function checkWithAi(text, category) {
+  const res = await fetch('api/check-ai', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    credentials: 'omit',
+    body: JSON.stringify({ text, category }),
+  });
+  const r = await res.json().catch(() => ({}));
+  if (!res.ok || !r.criteria) throw new Error(r.error || (res.status === 404 ? 'The AI check needs the site’s server (api/check-ai.js), for example on Vercel.' : 'The AI check did not work. Try again.'));
+  return r;
+}
+
+const SECOND_OPINION = () => `<details class="govuk-details app-no-print" id="opinion">
   <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Get a second opinion from an AI model (optional)</span></summary>
   <div class="govuk-details__text">
     <p class="govuk-body">A small AI model can read the key sentences and say whether each one sounds definite or uncertain. It is a general model, not trained on legal aid letters. In our tests it spotted ${MEASURED.hedgedCaught} of ${MEASURED.hedged} letters with uncertain wording, and did not wrongly flag any of ${MEASURED.firm} letters with firm wording. The check above spotted all of them.</p>
@@ -108,8 +112,37 @@ function review(text, category, guessed, options = {}) {
     <div id="model-result"></div>
   </div>
 </details>
-<div class="govuk-inset-text">This is a screening check. It matches wording, so it can be wrong in both directions. It does not decide whether you get legal aid.</div>`;
-  wireModel(text, r);
+`;
+
+// Runs the check and shows the review in place of the form.
+async function review(text, category, guessed, options = {}) {
+  let r;
+  const button = document.querySelector('#letter-form button[type=submit], #recheck-form button[type=submit]');
+  try {
+    if (AI) {
+      if (button) { button.disabled = true; button.textContent = 'Checking with GPT-6 Sol…'; }
+      fileStatus.textContent = 'Checking with GPT-6 Sol. This can take up to a minute.';
+      r = await checkWithAi(text, category);
+      fileStatus.textContent = '';
+    } else {
+      r = check(text, category, options);
+    }
+  } catch (err) {
+    if (AI) { editLetter(); fileStatus.textContent = ''; }
+    return setError(err.message);
+  } finally {
+    const reset = document.querySelector('#letter-form button[type=submit]');
+    if (reset) { reset.disabled = false; reset.textContent = 'Check the letter'; }
+  }
+  setError('');
+  inputView.hidden = true;
+  result.hidden = false;
+  result.innerHTML = `${reviewHtml(text, r, { guessed, ai: AI })}
+${AI ? '' : SECOND_OPINION()}
+<div class="govuk-inset-text">${AI
+    ? 'This is a demo. An AI model checked this letter against the LAA guidance, and it can be wrong. It does not decide whether you get legal aid.'
+    : 'This is a screening check. It matches wording, so it can be wrong in both directions. It does not decide whether you get legal aid.'}</div>`;
+  if (!AI) wireModel(text, r);
   wireReview(text);
   window.scrollTo(0, 0);
   result.focus();
@@ -128,6 +161,7 @@ function wireReview(text) {
   document.getElementById('edit-letter').addEventListener('click', editLetter);
   const recheckType = document.getElementById('recheck-type');
   const showFields = () => {
+    if (AI) return; // the AI finds names in the letter itself
     const cat = getCategory(recheckType.value);
     document.getElementById('other-group').hidden = !cat.inputs.includes('other_party');
     document.getElementById('child-group').hidden = !cat.inputs.includes('child');
@@ -153,8 +187,8 @@ document.getElementById('letter-form').addEventListener('submit', (e) => {
   if (!text) return setError('Paste the text of the letter');
   const typeGroup = document.getElementById('type-group');
   const picked = !typeGroup.hidden && type.value;
-  const category = chosenType || picked || guessCategory(text);
-  if (!category) {
+  const category = chosenType || picked || (AI ? '' : guessCategory(text));
+  if (!category && !AI) {
     setError('');
     typeGroup.hidden = false;
     type.focus();

@@ -1,12 +1,16 @@
-<!-- title: Check a letter -->
+<!-- title: Check a letter with AI (demo) -->
 <!-- nav: letter-checker -->
 <!-- script: app/page-letter.js -->
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
-    <div id="input-view">
-      <h1 class="govuk-heading-l">Check a letter</h1>
-      <p class="govuk-body">Take a photo of a letter you have been given, or paste its text. We will check it against each thing the Legal Aid Agency needs that type of evidence to show, and tell you what to ask for if something is missing.</p>
-      <p class="govuk-body">The photo and the check stay on your device. The letter is not sent anywhere or saved.</p>
+    <div id="input-view" data-engine="ai">
+      <span class="govuk-caption-l">Demo</span>
+      <h1 class="govuk-heading-l">Check a letter with AI</h1>
+      <p class="govuk-body">This works like <a class="govuk-link" href="letter-checker.html">Check a letter</a>, but instead of fixed rules, an AI model (OpenAI’s GPT-6 Sol) reads the letter against the Legal Aid Agency’s evidence guidance and checks each requirement.</p>
+      <div class="govuk-warning-text">
+        <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+        <strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>This demo sends the letter’s text to OpenAI. Use an example letter, or a letter you are happy to share – a real letter will have names on it.</strong>
+      </div>
 
       <div id="camera"></div>
       <p class="govuk-body govuk-!-font-weight-bold" id="file-status" aria-live="polite" data-wipe></p>
@@ -53,6 +57,6 @@
 
 
 
-    <p class="govuk-body-s govuk-!-margin-top-6">For testing: <a class="govuk-link" href="ocr-compare.html">compare text readers</a>, or <a class="govuk-link" href="letter-checker-ai.html">try the AI version of this checker (demo)</a>.</p>
+    <p class="govuk-body-s govuk-!-margin-top-6"><a class="govuk-link" href="letter-checker.html">Use the rules-based checker instead</a>, which keeps the letter on your device.</p>
   </div>
 </div>

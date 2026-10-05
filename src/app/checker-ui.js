@@ -67,6 +67,16 @@ function markWords(sentence) {
 const RANK = { [Status.MISSING]: 3, [Status.UNCLEAR]: 2, [Status.PASS]: 1 };
 const MARK_NAMES = { [Status.PASS]: 'meets', [Status.UNCLEAR]: 'needs checking for', [Status.MISSING]: 'is the problem for' };
 
+// Whether a quoted piece of evidence is (or contains, or is part of) this sentence. Quotes from
+// the AI version may differ in spacing or quote marks, so compare loosely.
+const loose = (s) => s.toLowerCase().replace(/[‘’“”"']/g, "'").replace(/\s+/g, ' ').trim();
+function sameSentence(evidence, sentence) {
+  if (evidence === sentence || evidence.startsWith(`${sentence} `)) return true;
+  const e = loose(evidence);
+  const u = loose(sentence);
+  return u.length >= 20 && (e.includes(u) || (e.length >= 20 && u.includes(e)));
+}
+
 // The letter, sentence by sentence, with the sentences each requirement relied on marked by status.
 // Shown in place of the letter text, with a button to go back and edit it.
 export function markupHtml(text, r) {
@@ -76,7 +86,7 @@ export function markupHtml(text, r) {
     if (!RANK[c.status]) continue;
     for (const e of c.evidence) {
       for (const u of doc.units) {
-        if (e === u.text || e.startsWith(`${u.text} `)) {
+        if (sameSentence(e, u.text)) {
           const cur = bySentence.get(u.index) || { status: null, ids: [] };
           if (!cur.status || RANK[c.status] > RANK[cur.status]) cur.status = c.status;
           cur.ids.push(c.label);
@@ -131,22 +141,22 @@ function scoreHtml(r) {
 }
 
 // Fields to check again as a different type, or with names the letter must contain. Collapsed.
-function recheckHtml(r, guessed) {
+function recheckHtml(r, guessed, ai = false) {
   const cat = CATEGORIES.find((c) => c.id === r.category);
   const field = (id, label, hint, hidden = false) => `<div class="govuk-form-group" id="${id}-group"${hidden ? ' hidden' : ''}>
   <label class="govuk-label" for="${id}">${label}</label>${hint ? `<div class="govuk-hint" id="${id}-hint">${hint}</div>` : ''}
   <input class="govuk-input govuk-!-width-two-thirds" id="${id}" type="text" autocomplete="off" spellcheck="false"${hint ? ` aria-describedby="${id}-hint"` : ''}>
 </div>`;
   return `<details class="govuk-details" id="recheck"${guessed ? '' : ' open'}>
-  <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Not the right type of evidence, or a name was missed?</span></summary>
+  <summary class="govuk-details__summary"><span class="govuk-details__summary-text">${ai ? 'Not the right type of evidence?' : 'Not the right type of evidence, or a name was missed?'}</span></summary>
   <div class="govuk-details__text">
     <form id="recheck-form" novalidate>
       <div class="govuk-form-group">
         <label class="govuk-label" for="recheck-type">Type of evidence</label>
         <select class="govuk-select" id="recheck-type">${categoryOptions(cat?.id)}</select>
       </div>
-      ${field('client', 'Name of the person applying for legal aid', 'Leave blank and we will look for it in the letter.')}
-      ${field('other', 'Name of the person who abused you or the child', '')}
+      ${field('client', 'Name of the person applying for legal aid', 'Leave blank and we will look for it in the letter.', ai)}
+      ${field('other', 'Name of the person who abused you or the child', '', ai)}
       ${field('child', 'Name of the child', '', true)}
       ${field('appdate', 'Date of the legal aid application', 'For example, 5 October 2026. Used to check the evidence came first.', true)}
       <button type="submit" class="govuk-button govuk-!-margin-bottom-0" data-module="govuk-button">Check again</button>
@@ -155,7 +165,7 @@ function recheckHtml(r, guessed) {
 </details>`;
 }
 
-export function reviewHtml(text, r, { guessed = false } = {}) {
+export function reviewHtml(text, r, { guessed = false, ai = false } = {}) {
   const o = OUTCOMES[r.label];
   const cat = CATEGORIES.find((c) => c.id === r.category);
   const rows = r.criteria.filter((c) => c.status !== Status.NOT_APPLICABLE);
@@ -178,7 +188,7 @@ export function reviewHtml(text, r, { guessed = false } = {}) {
 ${scoreHtml(r)}
 ${markupHtml(text, r)}
 <h2 class="govuk-heading-m">${escapeHtml(cat ? `${paraLabel(cat)}: ${cat.name}` : r.category_name)}</h2>
-<p class="govuk-body-s">Checked as evidence under Schedule ${cat?.schedule ?? ''} of the Civil Legal Aid (Procedure) Regulations 2012.${guessed ? ' We worked out the type from the letter.' : ''}</p>
+<p class="govuk-body-s">Checked as evidence under Schedule ${cat?.schedule ?? ''} of the Civil Legal Aid (Procedure) Regulations 2012.${guessed ? ` ${ai ? 'GPT-6 Sol' : 'We'} worked out the type from the letter.` : ''}</p>
 ${found.length ? `<ul class="govuk-list govuk-body-s">${found.map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}
 <dl class="govuk-summary-list app-check-result">
 ${rows.map((c) => `  <div class="govuk-summary-list__row">
@@ -194,6 +204,6 @@ ${rows.map((c) => `  <div class="govuk-summary-list__row">
 </dl>
 ${asks.length ? `<h2 class="govuk-heading-m">What to ask the writer for</h2>
 <ul class="govuk-list govuk-list--bullet">${asks.map((a) => `<li>${escapeHtml(a)}</li>`).join('')}</ul>` : ''}
-${recheckHtml(r, guessed)}
+${recheckHtml(r, guessed, ai)}
 <div class="govuk-inset-text"><ul class="govuk-list govuk-body-s govuk-!-margin-bottom-0">${r.warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join('')}</ul></div>`;
 }

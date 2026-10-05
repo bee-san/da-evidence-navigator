@@ -1,0 +1,2025 @@
+ The Legal Aid, Sentencing and
+ Punishment of Offenders Act (LASPO)
+ 2012 - Evidence Requirements for Private
+ Family Law Matters
+
+
+
+ Version     Issue date          Last review date     Owned by
+               th                 th
+ 15          15 June 2026        7 July 2025          Service Development
+
+
+Version History
+ Version Date                    Reason
+ 1           April 2013          Legal Aid, Sentencing and Punishment of Offenders Act 2012
+                                 introduced
+ 2           October 2013        Operational review
+ 3           22 April 2014       Regulatory review
+ 4           18 June 2014        Updates to reflect new rehabilitation guidance.
+ 5           17 July 2015        Regulatory review
+ 6           21 April 2016       Regulatory review
+ 7           16 May 2016         Regulatory review
+
+                                                                                        1
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+ 8           8th January 2018    Regulatory review
+ 9           9th April 2020      COVID-19 Operational Review - temporary changes to be
+                                 reviewed again in 3 months
+ 10          15th May 2020       Regulatory review
+ 11          1st March 2023      Regulatory review
+ 12          27th November       Regulatory review – Amending Schedule 1 to include para 6A:
+             2024                Domestic Abuse Protection Notice’s (DAPNs) as a form of
+                                 evidence of Domestic Violence under the Domestic Abuse
+                                 Protection Notice’s and Domestic Abuse Protection Orders pilot.
+
+
+ 13          21st May 2025       Regulatory review- Regulation 33 and Schedule 1 amended to:
+
+                                    •   Align terminology with the Domestic Abuse Act 2021, i.e.
+                                        from “domestic violence” to “domestic abuse”. Changes
+                                        made to terminology in para 21, from “Financial Abuse”
+                                        to “Economic Abuse”.
+
+                                    •    Amend para 20 to include “leave to enter” alongside
+                                        “leave to remain” and align with the Immigration Rules
+                                        Appendix Victim of Domestic Abuse.
+
+                                    •   Amend guidance to reflect that under para 22, evidence
+                                        from overseas appropriate health professionals will be
+                                        accepted.
+
+                                    • References to Covid-19 have been removed.
+              th
+ 14          7 July 2025          Amendment made to para 12, Schedule 1 of the guidance to
+                                  reflect that under para 22, evidence from overseas appropriate
+                                  health professionals will be accepted.
+
+ 15          15th June 2026       Minor amendments made to correct typos in document.
+
+                                  Changes made to table at para 2.52 to clarify the registered
+                                  bodies for Social Workers in England and Wales.
+
+
+
+
+                                                                                           2
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+ 1.   Introduction
+
+ 2.   Schedule 1 Supporting Documents: Domestic Abuse- Where your client is
+      seeking legal aid in respect of one of the proceedings listed in paragraph 12 of
+      Part 1, Schedule 1 of LASPO
+      Schedule 1(para 1) Arrest for a relevant domestic abuse offence
+
+
+      Schedule 1 (para 2) A relevant police caution for a domestic abuse offence
+
+      Schedule 1 (para 3) Relevant ongoing criminal proceedings
+
+      Schedule 1 (para 4) A relevant conviction for a domestic abuse offence
+
+      Schedule 1 (para 5) Bind overs connected with a domestic abuse offence
+
+      Schedule 1 (para 6) Domestic Violence Protection Notice
+
+      Schedule 1 (para 6A) Domestic Abuse Protection Notice
+
+      Schedule 1 (para 7) A relevant protective injunction
+
+      Schedule 1 (para 8) Undertaking
+
+      Schedule 1 (para 9) Finding of fact
+
+      Schedule 1 (para 10) Expert report produced as evidence for court/tribunal
+
+      Schedule 1 (para 11) Letter or report from an appropriate health professional
+
+      Schedule 1 (para 12) An appropriate health professional referral to a domestic abuse
+      support service
+
+      Schedule 1 (para 13) Multi-agency risk assessment conference (or other local
+      safeguarding forum)
+
+      Schedule 1 (para 14) Letter from an independent domestic violence advisor/advocate
+
+      Schedule 1 (para 15) Letter from an independent sexual violence advisor/advocate
+
+      Schedule 1 (para 16) Letter from local authority or housing association
+
+      Schedule 1 (para 17) Letter from organisation providing domestic abuse support
+      services
+
+      Schedule 1 (para 18) Letter from organisation providing domestic abuse support
+      services - refusal of admission to a refuge
+
+      Schedule 1 (para 19) Letter from public authority
+
+
+                                                                                             3
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+     Schedule 1 (para 20) Leave to enter or leave to remain in the UK as a victim of
+     domestic abuse
+     Schedule 1 (para 21) Economic abuse
+ 3   Schedule 2 - Supporting Documents: Protection of Children- Where your client is
+     seeking legal aid in respect of one of the proceedings listed in paragraph 13 of
+     Part 1, Schedule 1 of LASPO
+
+
+     Schedule 2(para 1) Arrest for a child abuse offence
+
+     Schedule 2 (para 2) Relevant police caution for a child abuse offence
+
+     Schedule 2 (para 3) Relevant ongoing criminal proceedings for a child abuse offence
+
+     Schedule 2 (para 4) Relevant conviction for a child abuse offence
+
+     Schedule 2 (para 5) Relevant protective injunction
+
+     Schedule 2 (para 6) Finding of fact
+
+     Schedule 2 (para 7) Social services letter
+
+     Schedule 2 (para 8) Social services letter - child protection plan
+
+     Schedule 2 (para 9) Application for a protective injunction together with an application
+     for a prohibited steps order
+
+
+
+
+                                                                                                4
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+1. Introduction
+
+1.1    The Legal Aid Sentencing and Punishment of Offenders Act 2012 (“LASPO”) has
+       been in force since 1 April 2013 and governs the provision of legal aid across England
+       and Wales. Under LASPO legal aid for most children and finance matters in private
+       family law cases will only be available where a client has specified evidence in
+       relation to domestic abuse or child protection.
+
+1.2    The evidence that is required for an application for legal aid in these matters is
+       prescribed in the Civil Legal Aid (Procedure) Regulations 2012 (“the Regulations”) as
+       amended.
+
+1.3    Regulation 33 deals with evidence requirements relating to domestic abuse and
+       Regulation 34 with evidence requirements relating to child protection. The amended
+       Regulations can be found here.
+
+1.4    Schedule 1 to the Regulations sets out the evidence requirements in relation to
+       domestic abuse and Schedule 2 sets out the evidence requirements relating to child
+       protection.
+
+1.5    The evidence requirements are prescribed in the Regulations and there is no
+       discretion for the Legal Aid Agency to accept other evidence, (save in limited
+       circumstances in the case of economic abuse), nor for the requirement for evidence to
+       be waived.
+
+1.6    Any application for legal aid (Controlled or Licensed work) for the private law children
+       and finance matters set out in paragraphs 12 and 13 of Part 1, Schedule 1 of LASPO
+       must satisfy one of the prescribed evidence requirements.
+
+1.7    To make a Controlled Work determination and open a matter start, a client must have
+       one of these prescribed forms of evidence set out in Schedule 1 or 2, as appropriate.
+       The relevant box on the CW1 form will need to be ticked and the original
+       documentation must be retained on file. Where the evidence is in relation to abuse of
+       an economic nature, providers will be able to accept evidence which they are satisfied
+       demonstrates that the client has been a victim of domestic abuse in the form of
+       economic abuse – see Schedule 1 (para 21) and this guidance.
+
+1.8    Where the client’s initial instructions concern issues falling within both paragraph 11
+       and paragraph 12 or 13 of Part 1, Schedule 1 of LASPO, evidence is not required to
+       open a matter start dealing with issues of domestic abuse (paragraph 11). However
+       Controlled Work may not be provided in relation to issues under paragraph 12 or 13
+       as part of that matter unless and until the prescribed evidence has been obtained, and
+       claims will be assessed accordingly. Schedule 1 (para 21) of the Regulations (as
+       amended) does not prescribe a specific type of evidence that an individual is required
+       to supply to demonstrate that they are at risk of or have been a victim of economic
+       abuse.
+
+1.9    The evidence should be obtained and provided before the determination for legal aid
+       is made. A matter start may not be opened to assist a client in obtaining the
+       prescribed evidence and legal aid is not available to cover any costs of obtaining the
+
+                                                                                                  5
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+       evidence. Legal aid is only available for matters that are within scope, therefore it is
+       not available until the point at which prescribed evidence is provided.
+
+1.10   To make a Licensed Work determination, a provider must provide the Legal Aid
+       Agency with one of these prescribed forms of evidence as part of the legal aid
+       application. A provider must also indicate which piece of evidence they are providing.
+
+1.11   The evidence document must be retained on the file and can be called for at any time
+       and the Legal Aid Agency may take steps to verify that the evidence meets prescribed
+       requirements.
+
+1.12   Schedule 1 (para 21) of the Regulations does not prescribe a specific type of evidence
+       that an individual is required to provide to demonstrate that they are or have been a
+       victim of economic abuse. If the Director of Legal Aid Casework (“DLAC”) is satisfied,
+       on the evidence provided, that it is likely that the client is or has been a victim of
+       domestic abuse in the form of economic abuse, the DLAC may determine that the
+       evidence criteria are met. The DLAC will consider these applications on a case by
+       case basis. See below for further details as to the types of evidence that demonstrate
+       economic abuse.
+
+1.13   Where the applicant is unable to provide documentary evidence of the kind set out in
+       this guidance to support their account of economic abuse, the DLAC may take into
+       account whether there is a compelling reason for this and other evidence, for
+       example, an account of the alleged abuse, that is provided. The DLAC would need to
+       consider whether they are satisfied that the evidence provided demonstrates that they
+       are a victim of domestic abuse in the form of economic abuse. The attendance note or
+       application form must set out in full the reason why the provider considered this to be
+       the case.
+
+1.14   This guidance provides further details on the information the evidence must contain to
+       satisfy the requirements in the Regulations. This guidance is not, unless otherwise
+       stated, an exhaustive list of all the kinds of evidence that may satisfy the
+       requirements. This guidance is reviewed on a regular basis. The most recent
+       amendments to the guidance have been made in relation to the provision of legal aid
+       for certain domestic abuse related matters to reflect changes in wider legislation
+       relating to victims of domestic abuse, including the enactment of the Domestic Abuse
+       Act 2021 (DA Act) and several updates to Home Office Immigration Rules. These
+       amendments have been introduced via the following Statutory Instrument: The Legal
+       Aid, Sentencing and Punishment of Offenders Act 2012 (Legal Aid: Domestic Abuse)
+       (Miscellaneous Amendments) Order 2025. The LAA will continue to monitor and
+       review this guidance document during this period.
+
+1.15   You should read LASPO, the Regulations and this guidance to establish
+       whether the piece of evidence you have would meet prescribed requirements.
+
+1.16   Documentation submitted as evidence can be lengthy for example reports from
+       social services or experts, particularly if there are several reports. You must
+       identify which parts of the report/s you are relying on as evidence to enable the
+       application to be appropriately dealt with.
+
+
+
+
+                                                                                                  6
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+2.     Regulation 33 Supporting Documents: Domestic Abuse - Where your
+       client is seeking legal aid in respect of one of the proceedings listed in
+       paragraph 12 of Part 1, Schedule 1, LASPO
+
+2.1    If a client provides one of the prescribed forms of evidence set out in this Regulation
+       then legal aid for certain children and finance issues set out in paragraph 12, Part 1,
+       Schedule 1 (including divorce) may be available if the appropriate means and merits
+       criteria are met.
+
+2.2    The LASPO definition of domestic abuse is any incident, or pattern of incidents, of
+       controlling, coercive or threatening behaviour, violence or abuse (whether
+       psychological, physical, sexual, economic or emotional) between individuals who are
+       associated with each other; and for these purposes, such behaviour, violence or
+       abuse between individuals may consist of or include behaviour, violence or abuse
+       directed at another individual.
+
+2.3    The evidence must show, unless otherwise stated, that your client was, or is at risk of
+       being a victim of domestic abuse from another party to the proceedings (“B”) in the
+       case. For some forms of evidence, the evidence may identify another person with
+       whom B is or was in a family relationship as being or at risk of being a victim of
+       domestic violence from B. The definition of a family relationship is set out in s62 of
+       the Family Law Act 1996 and includes:
+
+        (a) they are or have been married to each other;
+        (aa) they are or have been civil partners of each other;
+        (b) they are cohabitants or former cohabitants;
+        (c) they live or have lived in the same household, otherwise than merely by reason
+            of one of them being the other's employee, tenant, lodger or boarder;
+        (d) they are relatives;
+        (e) they have agreed to marry one another (whether or not that agreement has been
+            terminated);
+        (ea) they have or have had an intimate personal relationship with each other which
+          is or was of significant duration;
+        (eza) they have entered into a civil partnership agreement (as defined by section 73
+           of the Civil Partnership Act 2004) (whether or not that agreement has been
+           terminated);
+        (f) in relation to any child, they are both [parents or persons with parental
+            responsibility for the child]; or
+        (g) they are parties to the same family proceedings (other than proceedings under
+            this Part).
+
+
+  2.4 The table below out sets which pieces of evidence must be in relation to the applicant
+      for legal aid and which pieces of evidence may be in relation to another person with
+      whom B is or was in a family relationship:
+
+
+
+
+                                                                                                 7
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+                                  Type of evidence                                        Evidence in
+                                                                                           relation to
+                                                                                         another person
+  Schedule 1(para 1) Arrest for a relevant domestic abuse offence                               Y
+  Schedule 1 (para 2) Relevant police caution for a domestic abuse offence                      Y
+  Schedule 1 (para 3) Relevant ongoing criminal proceedings                                     Y
+  Schedule 1 (para 4) A relevant conviction for a domestic abuse offence                        Y
+  Schedule 1 (para 5) Bind overs connected with a domestic abusee offence                       Y
+  Schedule 1 (para 6) Domestic Violence Protection Notice                                       Y
+  Schedule 1 (para 6A) Domestic Abuse Protection Notice                                         Y
+  Schedule 1 (para 7) Relevant protective injunction                                            Y
+  Schedule 1 (para 8) Undertaking                                                               Y
+  Schedule 1 (para 9) Finding of fact                                                           Y
+  Schedule 1 (para 10) Expert report produced as evidence for court/tribunal                    Y
+  Schedule 1 (para 11) Letter or report from an appropriate health professional                 N
+  Schedule 1 (para 12) An appropriate health professional referral to a domestic                N
+  abuse support service
+  Schedule 1 (para 13) Multi agency risk assessment conference (or other local                      N
+  safeguarding forum)
+  Schedule 1 (para 14) Letter from an independent domestic violence                                 N
+  advisor/advocate
+  Schedule 1 (para 15) Letter from an independent sexual violence                                   N
+  advisor/advocate
+  Schedule 1 (para 16) Letter from local authority or housing association                           Y
+  Schedule 1 (para 17) Letter from organisation providing domestic abuse                            N
+  support services
+  Schedule 1 (para 18) Domestic abuse support organisation - refusal of                             Y
+  admission to a refuge
+  Schedule 1 (para 19) Letter from public authority                                                 Y
+  Schedule 1 (para 20) Leave to enter or leave to remain in the UK as a victim                      N
+  of Domestic abuse
+  Schedule 1 (para 21) Economic abuse                                                               N
+
+2.5    Note the following:
+
+         • A Licensed Work application will be rejected if the evidence does not satisfy the
+           requirements prescribed in the regulations, on the basis that the case is out of
+           scope of legal aid.
+         • A Licensed Work application will be rejected if no evidence prescribed in the
+           regulations is submitted with the application.
+         • A Controlled Work claim where the evidential requirements were not met will be nil
+           assessed on the basis that the case is out of scope for legal aid.
+         • A Controlled Work claim will be nil assessed where the evidence was obtained
+           subsequent to the determination being made.
+
+2.6.     The DLAC can withdraw legal aid funding under Regulation 42 (k) (i) – (viii) where
+         they are satisfied that the individual was not a victim, or at risk of being a victim of
+                                                                                                        8
+ The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+ for Private Family Law Matters
+       domestic abuse. In these circumstances funding will be removed from the point the
+       decision to remove funding is made. Funding will not be withdrawn where the
+       individual is able to produce another piece of valid evidence that demonstrates that
+       they are, or at risk of being, a victim of domestic abuse.
+
+2.7.   The paragraphs below provide more information on the types of documents that will
+       be accepted as evidence. They state where the list of acceptable forms of evidence is
+       an exhaustive list. Checklists are provided to assist you to ensure you address all the
+       required elements of the evidence.
+
+
+Schedule 1 (para 1) Arrest for a relevant domestic abuse offence
+
+Schedule 1 (1) “Evidence that B has been arrested for a relevant domestic abuse
+offence.”
+
+2.8    The evidence should name the person (B), who must be the other party in the case,
+       as either currently under investigation or charged with the offence at the point of
+       submission of the application and must be in relation to a domestic abuse offence.
+       A list of the domestic abuse offences can be found here:
+       https://www.gov.uk/government/publications/domestic-violence-and-child-abuse-
+       offences
+
+2.9    The evidence may be that B was arrested for a domestic abuse offence against your
+       client or another person with whom B is or was in a family relationship. Evidence that
+       B is on bail for a domestic abuse offence will be accepted.
+
+2.10   As set out in paragraph 2.6 of this guidance, Regulation 42(k) of the 2012 Civil Legal
+       Aid (Procedure) Regulations has been amended to expand the circumstances in
+       which the DLAC can withdraw legal aid funding. Under Regulation 42 (k) (v) the DLAC
+       may withdraw a determination for civil legal aid where representations are received
+       showing that:
+
+       no charge is brought for the domestic abuse offence and the Director is satisfied that
+       no such charge will be brought.
+
+2.11   Funding will not be withdrawn where the individual is able to produce another piece of
+       valid evidence that demonstrates that they are or were at risk of being a victim of
+       domestic abuse.
+
+Arrest overseas
+
+2.12   If the evidence relates to an arrest outside the United Kingdom then the evidence may
+       be a letter from the relevant law enforcement agency in the country where the arrest
+       occurred. This will usually be on letter headed paper, however, we will accept the
+       evidence via email from the relevant law enforcement agency. The Legal Aid Agency
+       may take steps to verify this evidence.
+
+2.13   The evidence must be in English and if it needs to be translated both a copy of the
+       original document and the translation need to be provided and retained on the file.
+
+
+
+                                                                                                9
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+Evidence Checklist:
+Document could be one of the following (examples) but must contain all required information
+below:
+   o A copy of the bail sheet from the police
+   o Formal written or email confirmation from the police or CPS (or equivalent) or
+       Witness Care Unit or from a pnn.police.uk email address
+   o An email from a legal aid provider stating that they have spoken to the police and
+       received confirmation that B has been arrested for a relevant domestic abuse
+       offence. The email should include the name of the police station and the name of the
+       individual, as well as the required information set out below.
+   o Newspaper clippings about the arrest
+
+Required information:
+  o Respondent named as perpetrator
+  o Name of victim who is or was in a family relationship with the perpetrator
+  o Relevant domestic abuse offence
+  o Respondent has been arrested for a domestic abuse offence
+
+Schedule 1 (para 2) Police caution
+
+Schedule 1 (2) “A relevant police caution for a domestic abuse offence.”
+
+2.14   The police caution must include the name of the person cautioned (B) who must be
+       the other party in the case. The evidence may be that B was cautioned for a domestic
+       abuse offence against your client or another person with whom B is or was in a family
+       relationship.
+
+2.15   The evidence must also reflect that B was cautioned for a relevant domestic abuse
+       offence. A list of the domestic abuse offences can be found here:
+       https://www.gov.uk/government/publications/domestic-violence-and-child-abuse-
+       offences. A police report where your client telephoned the police to complain about
+       their ex-partner and the police took no action would not be sufficient to meet the
+       evidence requirements. Some cautions for sexual offences do not specifically name
+       the victim, but for all other offences it should identify the victim of domestic abuse.
+
+Police caution overseas
+
+2.16   If the evidence relates to a police caution received outside the United Kingdom then
+       the evidence may be a letter from the relevant law enforcement agency in the country
+       where the caution was received. This will usually be on letter headed paper, however,
+       we will accept the evidence via email from the relevant law enforcement agency. The
+       Legal Aid Agency may take steps to verify this evidence.
+
+2.17   The evidence must be in English and if it needs to be translated both a copy of the
+       original document and the translation need to be provided and retained on the file.
+
+Evidence Checklist:
+Document could be one of the following (examples) but must contain all required information
+below:
+
+o A copy of the caution sheet from the police
+
+                                                                                                 10
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+o Formal written or email confirmation from the police or CPS (or equivalent) or Witness
+  Care Unit or from a pnn.police.uk email address.
+o An email from a legal aid provider stating that they have spoken to the police and
+  received confirmation that B has been cautioned by the police for a relevant domestic
+  abuse offence. The email should include the name of the police station and the name of
+  the individual, as well as the required information set out below.
+NB Evidence from overseas may be submitted.
+
+Required information:
+o Name of victim (where named) who is or was in a family relationship with the person
+  cautioned
+o Respondent named as the person cautioned
+o Relevant domestic abuse offence
+
+Schedule 1 (para 3) Ongoing criminal proceedings
+
+Schedule 1(3) “Evidence of relevant criminal proceedings for a domestic abuse
+offence which have not concluded.”
+
+2.18   The evidence should name the person charged with the offence (B) who must be the
+       other party in the case.
+
+2.19   It must also show that B has been charged with a domestic abuse offence against
+       your client or another person with whom B is or was in a family relationship. This
+       criterion is not satisfied unless B has been formally charged although the proceedings
+       may not have been listed for hearing.
+
+2.20   The proceedings must also be in relation to a relevant domestic offence. A list of the
+       domestic abuse offences can be found here:
+       https://www.gov.uk/government/publications/domestic-violence-and-child-abuse-
+       offences
+
+2.21   Some sexual offences do not specifically name the victim, but for all other offences
+       the evidence should identify the victim of domestic abuse.
+
+2.22    As set out in paragraph 2.6 of this guidance, Regulation 42(k) of the 2012 Civil Legal
+       Aid (Procedure) Regulations has been amended to expand the circumstances in
+       which the DLAC can withdraw legal aid funding. Under Regulation 42 (k) (ii) the DLAC
+       may withdraw a determination for civil legal aid where representations are received
+       showing that:
+
+       the criminal proceedings concluded without a conviction.
+
+2.23   Funding will not be withdrawn where the individual is able to produce another piece of valid
+       evidence that demonstrates that they are or were at risk of being a victim of domestic
+       abuse.
+
+
+
+
+Ongoing proceedings overseas
+
+                                                                                              11
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+2.24   If the evidence relates to a criminal proceeding outside the United Kingdom then the
+       evidence may be a letter from the relevant law enforcement agency in the country
+       where the offence is being tried. This will usually be on letter headed paper, however,
+       we will accept the evidence via email from the relevant law enforcement agency. The
+       Legal Aid Agency may take steps to verify this evidence.
+
+2.25   The evidence must be in English and if it needs to be translated both a copy of the
+       original document and the translation need to be provided and retained on the file.
+
+
+Evidence checklist
+Document could be one of the following (examples) but must contain all required information
+below:
+o A copy of the charge sheet from the police
+o A document (including an e-mail) from the court confirming that the case has been listed.
+The LAA may take steps to verify this evidence.
+o Formal written or email confirmation from the police or CPS (or equivalent) or Witness
+   Care Unit or from a pnn.police.uk email address.
+o An email from a legal aid provider stating that they have spoken to the police and received
+   confirmation that B has been charged with a relevant domestic abuse offence. The email
+   should include the name of the police station and the name of the individual, as well as
+   the required information set out below
+o Newspaper clippings about the case
+
+NB. Evidence from overseas may be submitted.
+
+Required information
+o Respondent named as perpetrator
+o Name of victim (where named) who is or was in a family relationship with the perpetrator
+o Relevant domestic abuse offence
+
+Schedule 1 para (4) A relevant conviction for a domestic abuse offence
+
+Schedule 1(4) “A relevant conviction for a domestic abuse offence.”
+
+2.26   The evidence should name the person charged (B) with the offence and they must be
+       the other party in the case. The evidence may be that B was convicted for a domestic
+       abuse offence against your client or another person with whom B is or was in a family
+       relationship.
+
+2.27   If the offence was committed within the United Kingdom, it must also show that a
+       relevant domestic abuse offence was committed. A list of the domestic abuse
+       offences can be found here: https://www.gov.uk/government/publications/domestic-
+       violence-and-child-abuse-offences
+
+2.28   Some sexual offences do not specifically name the victim; for all other offences, it
+       should identify the victim of domestic abuse.
+
+
+Offences committed overseas
+
+
+                                                                                              12
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+2.29   If the evidence relates to an offence outside the United Kingdom then the evidence
+       may be a letter from the relevant law enforcement agency in the country where the
+       offence was tried. This will usually be on letter-headed paper however, we will accept
+       the evidence via email from the relevant law enforcement agency. The Legal Aid
+       Agency may take steps to verify this evidence.
+
+2.30   The evidence must be in English, and if it needs to be translated both a copy of the
+       original document and the translation needs to be provided and retained on the file.
+
+
+Evidence checklist
+Document could be one of the following (examples) but must contain all required
+information below:
+o      Memorandum of Conviction (Magistrates Court)
+o      Certificate of Conviction (Crown Court)
+o      Formal written or email confirmation from the Police or CPS (or equivalent) or
+       Witness Care Unit or from a pnn.police.uk email address.
+o      An email from a legal aid provider stating that they have spoken to the police and
+       received confirmation that B has been convicted of a relevant domestic abuse
+       offence. The email should include the name of the police station and the name of
+       the individual, as well as the required information set out below.
+o      Newspaper clippings about the case
+
+NB Evidence from overseas may be submitted.
+
+Required information:
+o Respondent named as the person convicted
+o Name of victim (where named) who is or was in a family relationship with the perpetrator
+o Relevant domestic abuse offence
+
+
+
+Schedule 1 (para 5) Bind overs
+
+Schedule 1 (5) “Evidence of a court order binding over B in connection with a
+domestic abuse offence.”
+
+2.31   A bind over is where a court exercises its power to bind a defendant over as an
+       alternative to, or following, a prosecution for, a criminal offence for a domestic abuse
+       offence. The evidence should name the person charged (B) with the offence and they
+       must be the other party in the case. The evidence may be that B was bound over for a
+       domestic abuse offence against your client or another person with whom B is or was
+       in a family relationship.
+
+2.32   If a bind over is accepted by B as an alternative to prosecution then the CPS will not
+       pursue prosecution. The victim should be informed of this outcome and appropriate
+       measures should have been put in place to safeguard the victim and any children.
+
+2.33   The bind over will contain details of the offence to which it relates, which must be on
+       the list of domestic abuse offences which can be found here: A list of domestic abuse
+       offences can be found here:
+
+                                                                                              13
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+       https://www.gov.uk/government/publications/domestic-violence-and-child-abuse-
+       offences
+
+  Evidence checklist
+ Document could be one of the following examples but must contain all required
+ information below:
+   o Formal document from Court
+   o Formal written or email confirmation from the Police or CPS (or equivalent) or
+       Witness Care Unit or from a pnn.police.uk email address
+
+ Required information:
+  o Respondent named as the person bound
+      over
+  o Name of victim (where named) who is or was in a family relationship with the
+      perpetrator
+  o Relevant domestic abuse offence
+
+Schedule 1(para 6) Domestic violence protection notice (DVPN)
+
+Schedule 1 (6) “A domestic violence protection notice issued under section 24 of the
+Crime and Security 2010 against B.”
+
+2.34   A domestic violence protection notice (“DVPN”) is an emergency non-molestation and
+       eviction notice and issued to the perpetrator by the police and contain a prohibition
+       usually barring the perpetrator from the victim’s home and/or from contacting the
+       victim to protect victims or persons at risk of domestic abuse. A DVPN will come into
+       effect from the time the notice is served to the perpetrator (B) who must be the other
+       party to the case. The evidence may be that B was issued with a DVPN in relation to
+       your client or another person with whom B is or was in a family relationship. Where a
+       domestic violence protection order is subsequently made this would be considered a
+       protective injunction and considered under Schedule 1 (para 7).
+
+Evidence checklist
+Document should be:
+o Formal written or email confirmation from the police or CPS (or equivalent) or Witness
+   Care Unit or from a pnn.police.uk email address
+o A copy of the DVPN from the police
+o Court document detailing a DVPN
+
+Required information:
+o Name of the protected party who is or was in a family relationship with the perpetrator
+o Respondent named as the person against whom the DVPN was made
+
+
+
+
+                                                                                            14
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+Schedule 1(para 6A) Domestic abuse protection notice (DAPN)
+
+Schedule 1 paragraph 6A. “A domestic abuse protection notice given under section 22
+of the Domestic Abuse Act 2021 against B.”
+
+2.35 A Domestic Abuse Protection Notice (DAPN) is a notice given by the police under Part
+     3 of the Domestic Abuse Act 2021 Act prohibiting a perpetrator from being abusive
+     towards a person aged 16 or over to whom they are personally connected. A DAPN is
+     intended to provide immediate protection from all forms of domestic abuse, not just
+     from physical violence or the threat of physical violence. This may include sexual
+     abuse, violent or threatening behaviour, controlling or coercive behaviour, economic
+     abuse, and psychological or emotional abuse. DAPNs may be given by police in forces
+     in England and Wales, the British Transport Police or the Ministry of Defence Police.
+
+2.36   It should be noted that DAPNs form part of a pilot initiative that commenced on 27th
+       November 2024. This means that these notices will only be given by the police forces
+       in the specified pilot areas (Greater Manchester, the London Boroughs of Bromley,
+       Croydon and Sutton, Cleveland and North Wales). DAPNs can also be issued by the
+       British Transport Police within those specified pilot areas.
+
+2.37   A DAPN will come into effect from the time the notice is served to the perpetrator (B)
+       who must be the other party to the case. The evidence may be that B was issued with
+       a DAPN in relation to your client or another person with whom B is or was in a family
+       relationship. Where a domestic abuse protection order is subsequently made this
+       would be considered a protective injunction and considered under Schedule 1 (para
+       7).
+
+         Evidence checklist
+         Document should be:
+         o Formal written or email confirmation from the police or CPS (or equivalent) or
+         Witness Care Unit or from a pnn.police.uk email address.
+        o A copy of the DAPN from the police (including those issued by the British Transport
+          Police).
+         o Court document detailing a DAPN.
+
+         Required information:
+         o Name of the protected party who is or was in a family relationship with the
+           perpetrator.
+         o Respondent named as the person against whom the DAPN was made.
+
+Schedule 1 (para 7) Protective injunctions
+
+Schedule 1(7) “A relevant protective injunction”
+
+2.38   This form of evidence must be in relation to a relevant protective injunction and can
+       usually only be satisfied by a Court document detailing the relevant protective
+       injunction. The evidence must name the person against whom the injunction was
+       made (B) who must be the other party in the case and name the protected party who
+       must be your client or another person who is or was in a family relationship B.
+       However, if for, example, the relevant protective injunction is a restraining order
+       obtained following criminal proceedings this evidence might also be satisfied by a
+       document from the police.
+                                                                                             15
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+2.39    A protective injunction means an order made by the court –
+
+        (a) In respect of persons who are in a family relationship with each other containing
+            any of the following provisions –
+
+               (i)        Protecting a person from harm, intimidation, threats or harassment;
+               (ii)       Protecting a person from being forced into a marriage or from any
+                          attempt to be forced into a marriage;
+               (iii)      Prohibiting a person from contacting, or communicating with, another;
+               (iv)       Concerning entry or access to, or the use or occupation of, property;
+
+        (b) For the protection from female genital mutilation under paragraph 1 or 18 of
+            Schedule 2 to the Female Genital Mutilation Act 2003; or
+
+        (c) In respect of a violent/abusive offender within the meaning of section 98 of the
+            Criminal Justice and Immigration Act 2008
+
+2.40   Where you are making an application for a relevant protective injunction on behalf of
+       your client, then the order must be obtained before you are able to rely on this
+       evidence and are able to assist your client with their children or economic issues
+       although this may be on the same day.
+
+2.41   As set out in paragraph 2.6 of this guidance, Regulation 42(k) of the 2012 Civil Legal
+       Aid (Procedure) Regulations has been amended to expand the circumstances in which
+       the DLAC can withdraw legal aid funding. Under Regulation 42 (k) (iii) the DLAC may
+       withdraw a determination for civil legal aid where representations are received showing
+       that:
+
+               •       the protective order was obtained without notice to the respondent, and
+               •       the protective order has subsequently been set aside by the court.
+
+2.42   Funding will not be withdrawn where the individual is able to produce another piece of
+       valid evidence that demonstrates that they are or were at risk of being a victim of
+       domestic abuse.
+
+Evidence checklist
+Document must be:
+o Court document detailing a relevant protective injunction
+o A document from the Police CPS (or equivalent) or Witness Care Unit showing that a
+  relevant protective injunction has been made
+
+Required information
+o Name of the protected party who is or was in a family relationship with the perpetrator
+o Respondent named as the person against whom the protective injunction was made
+
+Schedule 1 (para 8) Undertaking
+
+Schedule 1(8) “An undertaking given in England and Wales under section 46 or 63E of
+the Family Law Act 1996 (or given in Scotland or Northern Ireland in place of a
+protective injunction) by B provided that a cross-undertaking relating to domestic
+abuse was not given by A”
+
+                                                                                                 16
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+2.43    The undertaking must be given in England and Wales under section 46 or 63E of the
+        Family Law Act 1996 (or given in Scotland or Northern Ireland in place of a protective
+        injunction). The undertaking must be given by B who is the other party to the case. The
+        undertaking may be in relation to your client or another person with whom B is or was
+        in a family relationship.
+
+2.44     There must not have been any relevant cross-undertaking related to domestic abuse
+         given. Cross undertakings for example in relation to a child’s education would not be
+         relevant.
+
+Evidence checklist
+Document could be (examples):
+o General Form of Undertaking (currently N117)
+o Any other Court document
+
+Required information:
+   o Respondent provided the undertaking
+   o Name of person given the undertaking who is or was in a family relationship with the
+      perpetrator
+   o Undertaking is under appropriate section/Act- England and Wales under section 46
+      or 63E of the Family Law Act 1996(1) (or given in Scotland or Northern Ireland in
+      place of a protective injunction).
+   o A relevant cross undertaking has not been given by your client.
+
+Schedule 1(para 9) Fact finding
+
+Schedule 1 (9) “A copy of a finding of fact, made in proceedings in the United
+Kingdom, that there has been domestic abuse by B.”
+
+2.45     This evidence will be in the form of a judgement or Court document (including a
+         Tribunal if relevant). The finding of fact may be in relation to your client or to another
+         person with whom B is, or was, in a family relationship.
+
+2.46 Paragraphs 16-20 of Practice Direction 12J – ‘Child Arrangements and Contact Orders:
+     Domestic Abuse and Harm’ sets out the directions that a Court should take with regards to a
+     fact-finding hearing. This Practice Direction can be found here:
+     https://www.justice.gov.uk/courts/procedure-rules/family/practice_directions/pd_part_12j
+
+2.47     There must have been a specific finding of fact made. Where this is the only evidence
+         provided, the finding must have been made prior to the application for legal aid and
+         could have been made at any time prior to the application. However, findings made
+         after the application for legal aid will be accepted as additional proof of domestic
+         abuse where this may be required.
+
+2.48     Allegations that are made within an undefended divorce petition, even if not refuted or
+         where a decree nisi is granted based on unreasonable behaviour, would not meet the
+         evidential requirements as there has been no formal finding of fact.
+
+       Evidence checklist
+       Document must be (exhaustive):
+       o Court document
+
+                                                                                                  17
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+       Required information:
+       o Name of victim who is or was in a family relationship with the perpetrator
+       o Respondent named as perpetrator
+
+Schedule 1 (para 10) Expert report produced as evidence for court or tribunal
+
+Schedule 1 (10) “An expert report produced as evidence in proceedings in the United
+Kingdom for the benefit of a court or tribunal confirming that a person with whom B is
+or was in a family relationship, was assessed as being, or at risk of being, a victim of
+domestic abuse by B.”
+
+2.49     This evidence must be in the form of an expert report produced as evidence for the
+         court or tribunal proceedings in the United Kingdom, confirming that your client or
+         another person with whom B is or was in a family relationship has been assessed as
+         being, or at risk of being a victim of domestic abuse by B.
+
+2.50     As specified in Schedule 1(22), an “expert report” means a report by a person
+         qualified to give expert advice on all or most of the matters that are subject of the
+         report. This will include a report from Children and Family Court Advisory and Support
+         Service (Cafcass or Cafcass Cymru).
+
+2.51     For the purposes of this evidence requirement the expert report may include:
+
+         •     Statement / facts given to the expert to help them form their opinion in the
+               report;
+         •     Summary of the expert’s findings; and
+         •     Declaration by the expert.
+
+Evidence checklist
+Document must be (exhaustive):
+o An expert report produced as evidence in proceedings in the United Kingdom for the
+benefit of a court or tribunal confirming that an individual who is or was in a family
+relationship with the perpetrator, was assessed as being, or at risk of being, a victim of
+domestic abuse
+
+Required information:
+o The name of the perpetrator
+o Name of the victim who is or was in a family relationship with the perpetrator
+o Name of expert and relevant experience and qualifications
+o Confirmation that individual is or was at risk of being a victim of domestic abuse.
+
+
+
+
+Schedule 1 (para 11) Letter or report from an Appropriate Health Professional
+
+Schedule 1 (11) “A letter or report from an appropriate health professional confirming
+that that professional, or another appropriate health professional – (a) has examined
+A in person, by telephone or by video conferencing; and
+
+
+
+                                                                                              18
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+(b) in the reasonable professional judgement of the author or the appropriate
+examining health professional A has, or has had, injuries or a condition consistent
+with being a victim of domestic abuse.”
+
+2.52 Schedule 1(22) sets out the definition of an ‘appropriate health professional’. The table
+     below sets out which professionals will meet this definition in England and Wales. NB.
+     Where the appropriate health professional is based overseas, the individual must be
+     registered and licensed to practise in that country.
+
+         Appropriate              Registered Body
+         Health
+         Professional
+         A medical                Licensed to practise     http://www.gmc-
+         practitioner             by the General           uk.org/doctors/register/LRM
+                                  Medical Council          P.asp
+         A nurse including        Registered          to   http://www.nmc-
+         public health            practise in the United   uk.org/Search-the-register/
+         nurses, health           Kingdom by the
+         visitors (HV),           Nursing and
+         school nurses            Midwifery
+         (SN), occupational       Council
+         health nurses,
+         family nurses,
+         substance misuse
+         nurses, mental
+         health nurses
+         A midwife
+         A dentist                Registered to            https://www.gdc-uk.org/
+         including clinical       practise by the
+         dental                   General Dental
+         technicians,             Council
+         dental
+         hygienists,
+         dental nurses,
+         dental
+         technicians,
+         dental
+         therapists,
+         and
+         orthodontic
+         therapists.
+
+         A paramedic              Registered          to http://www.hpc-uk.org/check/
+         A Practitioner           practise in the United
+         psychologist             Kingdom by the
+         A Radiographer           Health and Care
+                                  Professions Council
+         A Social Worker          Social Work England https://www.socialworkengland.org.uk/
+
+                                  Social Care Wales        https://socialcare.wales/
+
+
+
+                                                                                                 19
+ The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+ for Private Family Law Matters
+2.53   A medical practitioner will include all doctors, for example, a General Practitioner
+       (GP), a doctor working in the Accident and Emergency department of a hospital or a
+       psychiatrist.
+
+2.54   The appropriate health professional(s) providing the evidence must have been
+       registered when they undertook the examination and when they provided the written
+       confirmation. The Legal Aid Agency may take steps to verify registration was in place
+       at the relevant time(s).
+
+2.55   The letter must confirm that an appropriate health professional has examined the
+       client in person and that either that professional, or the appropriate health
+       professional providing the written confirmation (if different), was satisfied that the
+       client had injuries or a condition identified during that examination consistent with
+       those of a victim of domestic abuse. A different health professional may provide the
+       written confirmation if they have access to the client’s medical records and the health
+       professional who undertook the written examination is unavailable. A client may also
+       be examined over the telephone or be seen by video conference.
+
+2.56   There are two parts to this evidence and both parts must be met for the evidence to
+       be satisfied. It is not necessary for the specific form of words to be used but the
+       meaning must be clear from the letter or report.
+
+2.57   The evidence does not need to name the perpetrator.
+
+2.58   You may find it useful to use the template letters which can be found on the
+       www.gov.uk website here: https://www.gov.uk/government/collections/sample-
+       letters-to-get-evidence-of-domestic-violence
+
+A letter or report from an Appropriate Health Professional overseas
+
+2.59   Under Schedule 1, Paragraph 11, the LAA can accept evidence in the form of a letter
+       or report provided by an appropriate health professional who is based outside of the
+       United Kingdom. This will usually be on letter headed paper and set out the
+       professional body that they are registered with, however, we will accept the evidence
+       via email from an appropriate health professional who is based overseas. The Legal
+       Aid Agency may take steps to verify this evidence.
+
+2.60   The evidence must meet all the requirements set out at paragraphs 2.54 to 2.57. It
+       must also be in English, and if it needs to be translated both a copy of the original
+       document and the translation need to be provided and retained on the file.
+
+
+
+
+                                                                                               20
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+ Evidence checklist
+ Document must be (exhaustive):
+ o A letter from an appropriate health professional; or
+ o An email; including either:
+         •       General Medical Council (GMC) reference number; or
+         •       Nursing and Midwifery Council (NMC) Pin number
+         •       A Dentist General Council (DGC) registration number
+         •       Health and Care Professions Council registration number
+    NB appropriate health professionals based overseas are required to provide the
+    same information for the professional body that they are registered with.
+ Required information:
+ o Your client is named as victim and was examined either in person, via telephone or
+ video conference.
+ o The injuries or condition were consistent with those of a victim of domestic abuse
+
+
+Schedule 1 (para 12) An Appropriate Health Professional referral to a domestic abuse
+support service
+
+Schedule 1 (12) “A letter or report from-
+(a) the appropriate health professional who made the referral described below;
+(b) an appropriate health professional who has access to the medical records of A; or
+(c) the person to whom the referral described below was made;
+confirming that there was a referral by an appropriate health professional of A to a
+person who provides specialist support or assistance for victims of, or those at risk of
+domestic abuse.”
+
+2.61 The victim must be referred to a domestic abuse support service by an appropriate
+     health professional. The meaning of appropriate health professional is the same as set
+     out in paragraph 2.52 above.
+
+2.62 The letter or report must be provided by the appropriate health professional that made
+     the referral, the person to whom the referral was made (e.g. the domestic abuse support
+     organisation) or a health professional that has access to the medical records of the
+     client.
+
+2.63 The evidence must demonstrate that the referral was made to an organisation that
+       provides specialist domestic abuse support and assistance for victims of, or those at risk
+       of, domestic abuse.
+ A letter or report for a referral from an Appropriate Health Professional overseas
+
+2.64 Under Schedule 1, Paragraph 12, the LAA can accept evidence in the form of a letter or
+     report provided by an appropriate health professional who is based outside of the United
+     Kingdom. This will usually be on letter headed paper and set out the professional body
+     that they are registered with, however, we will accept the evidence via email from an
+     appropriate health professional who is based overseas. The Legal Aid Agency may take
+     steps to verify this evidence.
+
+2.65 The evidence must meet all the requirements set out at paragraphs 2.61 to 2.63. It must
+     also be in English, and if it needs to be translated both a copy of the original document
+     and the translation need to be provided and retained on the file.
+
+                                                                                               21
+ The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+ for Private Family Law Matters
+Evidence checklist
+Document must be:
+o Letter or report from domestic abuse support service; or
+o Email from domestic abuses support service, identifying which domestic abuse
+  support service it is from; or
+o Letter or report from an appropriate health professional on letterhead; or
+o Email from an appropriate health professional identifying which organisation it is from
+
+   NB appropriate health professionals based overseas are required to provide the same
+   information for the professional body that they are registered with.
+
+Required information:
+o Your client is named as victim
+o Referral is from an appropriate health professional
+o Referral is to organisation that provides specialist support or assistance for victims of,
+  or those at risk of, domestic abuse
+
+
+Schedule 1 (para 13) Multi agency risk assessment conference (or other suitable local
+safeguarding forum)
+
+Schedule 1 (13) “A letter from any person who is a member of a multi- agency risk
+assessment conference (or other suitable local safeguarding forum) confirming that A,
+or a person with whom A is in a family relationship, is or has been at risk of harm from
+domestic abuse by B.”
+
+2.66   This evidence must be from any person who is either a member of a multi-agency risk
+       assessment conference (MARAC) or another suitable local safeguarding forum. There
+       is no specific definition of a local safeguarding forum but it should consist of more than
+       one agency/organisation. The evidence must set out that your client or a person with
+       whom your client is in a family relationship such as their child is or has been at risk of
+       domestic abuse from B who must be the other party in the case.
+
+2.67   Examples of bodies that might be part of other suitable local safeguarding forums and
+       from which a letter would be accepted are:
+
+            •   Police
+            •   Probation Service
+            •   Prison Service
+            •   Health
+            •   Housing
+            •   Education
+            •   Social Services
+            •   Domestic abuse adviser/advocate such as an independent domestic violence
+                advocate/advisor, a domestic abuse prevention advocate or domestic abuse
+                children’s advocate
+            •   Women support service
+            •   Victim support service
+            •   Male support service
+            •   Drug and alcohol services
+            •   Cafcass or Cafcass Cymru
+                                                                                         22
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+        Please note that this is not an exhaustive list.
+
+Evidence checklist
+Document must be:
+o Letter from any person who is either a member of MARAC or other suitable local
+  safeguarding forum or
+o Report from any person who is either a member of MARAC or other suitable local
+  safeguarding forum or
+o Email from any person who is a member of MARAC or other suitable local
+  safeguarding forum identifying which organisation it is from
+o Minutes of MARAC or other suitable local safeguarding forum
+
+Required information:
+o Name of victim who must be your client or a person with whom your client is in a
+  family relationship
+o Respondent named as perpetrator
+
+
+Schedule 1 (para 14) Letter from an independent domestic violence advisor
+
+Schedule 1 (14) “A letter from an independent domestic violence advisor confirming
+that they are providing or have provided support to A.”
+
+2.68   This evidence must be from an individual who is an independent domestic violence
+       advisor/advocate (IDVA) and must confirm that they are providing or have provided
+       support to your client. The letter must name your client as the victim.
+
+Evidence checklist
+Document must be:
+o Confirmation from an IDVA that they are providing or have provided support to A.
+   Email from an IDVA that they have or are providing support to your client.
+
+Required information:
+o Your client is named as victim
+
+
+Schedule 1 (para 15) Letter from an independent sexual violence advisor
+
+Schedule 1 (15) “A letter from an independent sexual violence advisor confirming that
+they are providing or have provided support to A relating to sexual violence by B.”
+
+2.69 This evidence must be from an individual who is an independent sexual violence
+     advisor/advocate (ISVA) and must confirm that they are providing or have provided
+     support to your client relating to sexual violence by B. Where possible, the letter must
+     name your client as the victim.
+
+
+
+
+                                                                                            23
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+ Evidence checklist
+ Document must be:
+ o Confirmation from an ISVA that they have or are providing or have provided support
+   to your client A relating to sexual violence by B.
+ o Email from an ISVA that they have or are providing support to your
+   client.
+
+ Required information:
+    Your client is named as victim (where possible)
+ o Respondent named as perpetrator
+
+Schedule 1 (para 16) Letter from a local authority or housing association
+
+Schedule 1) (16) “A letter from an officer employed by a local authority or housing
+association (or their equivalent in Scotland or Northern Ireland) for the purpose of
+supporting tenants containing-
+(1)    a statement to the effect that, in their reasonable professional judgement, a
+person with whom B is or has been in a family relationship is, or is at risk of being, a
+victim of domestic abuse by B;
+(2)    a description of the specific matters relied upon to support that judgement; and
+(3) a description of the support they provided to the victim of domestic abuse or the
+person at risk of domestic abuse by B.”
+
+2.70 This evidence must be in the form of a letter from an officer employed by either a local
+     authority or a housing association in England or Wales (or their equivalent on Scotland
+     and Northern Ireland) as defined in Schedule 1(para 22).
+
+2.71 The evidence must include a statement from the officer confirming that in their
+     reasonable professional judgement your client or an individual with whom B is or was
+     in a family relationship, is or has been at risk of being a victim of domestic abuse by B.
+
+2.72 The letter must also include a description of:
+
+       o the specific matters the officer has relied upon to support their judgement; and
+       o the support that they have provided to the individual who is or is at risk of being a
+         victim of domestic abuse.
+
+2.73    The letter must be from the relevant local authority or housing association as defined
+        in Schedule 1 (para 22) or from an official email address. The support that is provided
+        may be a decision reached, for example, to allocate the individual as priority need for
+        social housing because they were or are at risk of domestic abuse or to exempt them
+        from local connection rules.
+
+
+
+
+                                                                                                 24
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+ Evidence checklist
+ Document must be:
+ o      A letter or from an official email address from either an officer employed by a
+        local authority or a housing association in England and Wales as defined in
+        (or their equivalent in Scotland and Northern Ireland). The Legal Aid Agency
+        may take steps to verify this evidence.
+ Required information:
+ o     Name of victim who is or was in a family relationship with the perpetrator
+ o     Respondent named as perpetrator
+ o     Name of officer and their department
+ o    A statement from the officer that in their reasonable professional judgement the
+      individual named as the victim, is or is at risk of being a victim of domestic
+      abuse
+ o    A description of specific matters the officer relied on to support their judgement
+ o    A description of the support or the decision reached that the officer provided to
+      the individual named as the victim
+
+
+Schedule 1 (para 17) Letter from organisation providing domestic abuse support
+services
+
+Schedule 1(17)
+(1)     A letter from an organisation providing domestic abuse
+support services.
+(2)     The letter must confirm that it –
+(a) is situated in the United Kingdom;
+(b) that the organisation has been operating for an uninterrupted period of six
+    months or more; and
+(c) provided A with support in relation to A’s needs as a victim, or person at risk, of
+    domestic abuse
+(3) The letter must contain –
+(a) a statement to the effect that, in the reasonable professional judgement of the
+    author the letter, A is, or is at risk of being, a victim of domestic abuse;
+(b) a description of specific matters relied upon to support that judgement;
+(c) a description of the support provided to A; and
+(d) a statement of the reasons why A needed that support.
+
+2.74   The regulations set out several requirements that the letter must meet to be accepted
+       as evidence. If all the requirements are not met then the application will be refused.
+       These requirements also cover a letter from a Refuge that a client has been admitted
+       for the purposes of providing accommodation to a victim of domestic abuse.
+
+2.75   The letter must be from an organisation providing domestic abuse support services
+       situated in the United Kingdom and must have been in operation for an uninterrupted
+       period of 6 months or more. It is the organisation that must have been in operation for
+       6 months or more, not the individual support service as an organisation may offer a
+       range of different services at different times.
+
+2.76   The evidence must include a statement from the author confirming that in their
+       reasonable professional judgement, your client was or is at risk of being a victim of
+       domestic abuse. It must also include:
+
+                                                                                               25
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+         •     a description of both the specific matters the author has relied upon to support
+               their judgement; and
+         •     the support that they have provided to the individual who either is, or is at risk
+               of being a victim of domestic abuse; and
+         •     a statement of reasons as to why your client needed the support from
+               organisation or charity.
+
+2.77    The letter must include the name of the victim. You may find it useful to use the
+        template letters which can be found on the www.gov.uk website here:
+        https://www.gov.uk/government/collections/sample-letters-to-get-evidence-of-
+        domestic-violence
+
+ Evidence checklist
+ Document must be:
+ o A letter or an e-mail from an organisation that provides domestic abuse support
+    services confirming that they have provided support to your client and that they are
+    or are at risk of domestic abuse. The e-mail must be from the organisations official
+    e-mail address.
+
+ Required information:
+ o Your client is named as victim
+ o Name of organisation
+ o A statement from the author of the letter confirming that in their reasonable
+   professional judgement the individual named as the victim, is or is at risk of being a
+   victim of domestic abuse.
+ o A description of specific matters the author relied on to support their judgement
+ o A description of the support that the author provided to the individual named as the
+    victim
+
+
+Schedule 1 (para 18) Domestic abuse support organisation refusal of admission to a
+refuge
+
+Schedule 1 (18) “A letter or report from an organisation providing domestic abuse
+support services in the United Kingdom confirming that-
+(1) a person with whom B is or was in a family relationship was refused admission to a
+    refuge;
+(2) the date on which they were refused admission to the refuge; and
+(3) they sought admission to the refuge because of allegations of domestic abuse by
+    B.”
+
+2.78   The evidence must clearly identify the name and details of the domestic abuse support
+       organisation. There is no requirement under this regulation to meet the criteria set out
+       in Schedule 1(para 17) in relation to the domestic abuse support organisation. The
+       Legal Aid Agency may take steps to verify the validity of the domestic abuse support
+       organisation.
+
+ 2.79 A refuge is defined for the purposes of the regulations and this guidance as:
+
+        (a) a refuge established for the purpose of providing accommodation for victims of, or
+        those at risk of, domestic abuse; or
+
+
+                                                                                               26
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+       (b) a residential home established and maintained by a public body for any other
+       purpose that also provides accommodation to the victims of, or those at risk of,
+       domestic abuse.
+
+2.80    The evidence must state the date that either your client, or another individual who is
+        or was in a family relationship with B who must be the other party to the case, sought
+        refuge but was refused entry.
+
+2.81    The evidence must state that either your client or an individual who is or was in a
+        family relationship with B sought admission to a refuge because of allegations of
+        domestic abuse by B.
+
+2.82    There are many different reasons why a person may have been refused admission
+        such as their immigration status, or they have complex mental health needs that
+        cannot be met by the refuge or the refuge is situated too close to the perpetrator’s
+        work address.
+
+Evidence checklist
+Document must be:
+o A letter or report from refuge or domestic abuse support organisation. NB.
+o Email from refuge or domestic abuse support organisation, identifying which
+  domestic abuse support organisation it is from.
+
+Required information:
+o Name of perpetrator
+o Name of victim who is or was in a family relationship with the perpetrator
+o The individual sought admission to the refuge due to allegations of domestic abuse
+   by the perpetrator
+o The date admission to the refuge refused
+
+
+Schedule 1 (para 19) Letter from a public authority
+
+Schedule 1 (19) “A letter from a public authority confirming that a person with whom B
+is or was in a family relationship, was assessed as being, or at risk of being, a victim
+of domestic abuse by B (or a copy of that assessment)”.
+
+2.83 The letter or email evidence must clearly identify the name and details of the public
+      authority. It should confirm that either your client or an individual who was or is in a
+      family relationship with the perpetrator was assessed as being or at risk of being a
+      victim of domestic abuse.
+
+2.84 The evidence should also include the name of the individual who is, or at risk of being
+      a victim of domestic abuse and the name of the perpetrator.
+
+2.85   A copy of the assessment by the public authority will be sufficient evidence such as a
+       child and family assessment completed by children’s services. It may not be a formal
+       assessment, for example it could be a pre-proceedings letter before care proceedings
+       are instituted. For the purposes of this Regulation a public authority is given the same
+
+
+
+                                                                                                 27
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+          meaning as that in section 6 of the Human Rights Act 19981 (see Schedule 1 (para
+          22)).
+
+       Evidence checklist
+       Document must be:
+       o A letter or, an email, or a copy of a report from a public authority confirming that an
+         individual who is or was in a family relationship with the perpetrator was assessed as
+         being, or at risk of being a victim of domestic abuse by the perpetrator.
+
+       Required information:
+       o Victim was in a family relationship with the perpetrator
+       o Respondent named as perpetrator
+       o Name of public authority
+
+
+
+
+Schedule 1 (para 20) Leave to enter or leave to remain in the UK as a victim of
+domestic abuse
+Schedule 1 (20) “A letter from the Secretary of State for the Home Department
+confirming that A has been granted leave to enter or leave to remain in the United
+Kingdom as a victim of domestic abuse.”
+
+2.86      This evidence must be a letter from the Home Office and specify that the individual
+          (who is your client) has either been granted leave to enter or leave to remain in the
+          United Kingdom as a victim of domestic abuse, on or prior to the date the application
+          for legal aid was made.
+
+       Evidence checklist
+        Document must be:
+       o A letter from the Secretary of State for the Home Department confirming that the
+         individual has been granted leave to enter or leave to remain in the United Kingdom
+         as a victim of domestic abuse.
+
+       Required information:
+       o Your client is named as victim.
+       o The individual was granted leave to enter or leave to remain in the United Kingdom
+         as a victim of domestic abuse on or prior to the date the application for legal aid was
+         made.
+
+
+
+Schedule 1 (para 21) Economic Abuse
+
+Schedule 1 (21) “Evidence which the Director is satisfied demonstrates that A has
+been, or is at risk of being, the victim of domestic abuse by B in the form of abuse
+which relates to economic matters.”
+
+2.87     The DLAC may grant applications for civil legal aid where evidence is provided by the
+         client, which the DLAC is satisfied demonstrates that the individual has been, or is at
+
+
+1
+    http://www.legislation.gov.uk/ukpga/1998/42/section/6
+                                                                                               28
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+        risk of, being the victim of domestic abuse in the form of abuse which relates to
+        economic matters (as set out in Schedule 1 (21) of the Regulations).
+
+ 2.88   Economic abuse is defined under S.1(4) of the Domestic Abuse Act 2021 as:
+         “ …any behaviour that has a substantial adverse effect on B’s ability to —
+         (a) acquire, use or maintain money or other property, or
+         (b) obtain goods or services.”
+
+ 2.89    Economic abuse will usually occur in conjunction with physical or psychological abuse
+         but it may also be a stand-alone form of abuse. Economic abuse usually involves a
+         pattern of behaviour although a single incident may be sufficient to amount to
+         economic abuse. It is important to note that economic abuse may take place or
+         continue after the victim of abuse has separated from the perpetrator Economic abuse
+         is different, both in purpose and effect, from the steps that may be taken within a
+         partnership to set a reasonable limit on expenditure or when there is a dispute
+         between parties about finances following or during relationship breakdown.
+
+ 2.90       The evidence provided should reflect that the behaviour referred to constitutes
+            domestic abuse i.e., it should be done with the intention to gain power and control
+            over the victim.
+
+2.91    The regulations do not prescribe a specific type of evidence that an individual must
+         provide to demonstrate that they are a victim of economic abuse. The statutory
+         guidance framework, “Controlling or Coercive Behaviour: Statutory Guidance
+         Framework (27th July 2023)”published by the Home Office sets out examples of how
+         economic abuse can take place, for example:
+
+  Controlling/restrictive behaviour-
+        • Controlling the family income;
+
+        •     Refusing to contribute to household income or household management, or costs
+              pertaining to shared parental responsibility;
+
+        •     Not allowing a victim to spend any money unless ‘permitted’;
+
+        •     Forcing the victim to account for all expenditure;
+
+        •     Excluding the victim from financial decisions;
+
+        •     Preventing the victim from having access to a bank account in their sole name and/or
+              having all accounts in the perpetrator’s name;
+
+        •     Preventing a victim from claiming welfare and/or disability benefits, controlling claims for
+              welfare benefits, claiming child benefit when the child resides with the victim, or forcing
+              someone to commit benefit fraud or misappropriating such benefits;
+
+        •     Running up bills and debts such as credit/store cards in a victim’s name, including
+              without them knowing, or coercing the victim to allow them to run up bills/take out credit
+              cards/loans/overdrafts in their name;
+
+        •     Gambling with a victim’s money without them knowing or coercing them into providing
+              money for gambling;
+
+
+                                                                                                  29
+  The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+  for Private Family Law Matters
+      •   Forcing the victim to take out contracts (such as for phones or other devices), or taking
+          out contracts in the victim’s name without their consent;
+
+      •   Refusing to make agreed or required payments, for example mortgage repayments or
+          child maintenance payments.
+
+Sabotage-
+  • Fraudulently or coercively leading a victim to make financial decisions that are not in their
+     best interests;
+
+  •   Deliberately prolonging family and/or civil court proceedings, or conducting proceedings
+      unreasonably with the intention of increasing legal fees;
+
+  •   Interfering with or preventing a victim from regularising their immigration status so that they
+      are economically dependent on the perpetrator;
+
+  •   Not allowing a victim to set up personal identification (e.g. applying for a National Insurance
+      number) which may preclude them from being able to achieve financial independence;
+
+  •   Sending money to the victim’s account so it affects their eligibility for claiming benefits;
+
+  •   Interfering with a victim’s education, training, employment and career;
+
+  •   Damaging the victim’s property;
+
+  •   Coercing the victim into signing over property or assets;
+
+  •   Misusing joint financial products to have a negative effect on the victim’s credit score and
+      preventing financial disassociation;
+
+  •   Preventing the victim from having a credit history;
+
+  •   Forging signatures on contracts;
+
+  •   Giving money intended as child maintenance to the children rather than the victim, to
+      undermine parental authority;
+
+  •   Fraudulently putting companies in the victim’s name so that they are held liable for financial
+      fillings and paying corporation tax;
+
+  •   Deliberately frustrating the sale of shared assets, or the closure of joint accounts or
+      mortgages;
+
+  •   Hiding assets, particularly during the financial settlement of a divorce; and;
+
+  •   Fraudulent registration of a Lasting Power of Attorney.
+
+Post-separation economic abuse-
+
+  •   Deliberately and unreasonably prolonging proceedings, for example by failing to provide
+      information or disclosure requested by the court with the intention of increasing legal fees;
+
+  •   No longer paying the mortgage without reason, despite previously paying;
+
+  •   Unreasonably preventing the implementation of a financial order made by the court, for
+      example by refusing to allow viewings for the sale of a jointly owned property;
+
+                                                                                                30
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+      •   Misuse of joint bank accounts;
+
+      •   Non-payment of agreed and/or required child maintenance, paying maintenance irregularly,
+          or insisting maintenance payments will only be made if access is given to the children;
+
+      •   Making unnecessary applications in court proceedings; and
+
+      •   Demanding money in exchange for allowing time with children.
+
+ NB. The above examples are not an exhaustive list
+
+2.92       A single piece of evidence on its own may, or may not be sufficient, however different
+           pieces of evidence taken together could be sufficient to lead to the conclusion of
+           economic abuse.
+
+2.93      In some cases of economic abuse, a victim may not have access to any corroborating
+          forms of documentary evidence. Where there is limited or no corroborating evidence
+          available then your client should provide a narrative statement that sets out the
+          instances when the economic abuse commenced, the nature of the economic abuse,
+          the duration of the economic abuse, the impact on the client and an explanation as to
+          why no other documentary evidence is available. This will need to satisfy the DLAC
+          that the applicant has been a victim of economic abuse.
+  Evidence checklist
+ There is not an exhaustive list of evidence that an individual might provide to demonstrate economic
+ abuse. Types of evidence, if available, could be in one or more of the following forms:
+ o        Copies of the victims and perpetrator’s bank statements and/or cancelled cheques, relevant
+ letters from banks;
+ o        Credit card accounts, loan documents, contractual documents and statements;
+ o         Business financial statements, employee benefit records including insurance, stock options
+           and bonuses;
+ o        Letter from a domestic abuse support organisation;
+ o        Money order receipts;
+ o        Documentation about any public assistance received;
+ o        Emails, text messages, diary kept by the victim; and
+ o         Letter from employers or an education or training institute.
+ o         Benefits or welfare history
+ o        Application for Universal Credit Split Payment
+ o        Evidence from foodbank
+ o        Exemption from child maintenance service fees
+ o        Rejection of benefits correspondence
+ o        Letter from Mortgage provider
+ o        Letter from Solicitor
+
+ 3. Schedule 2 - Supporting Documents: Protection of Children- Where your client
+    is seeking legal aid in respect of one of the proceedings listed in paragraph 13
+    of Part 1, Schedule 1 of LASPO
+
+3.1       If a client provides one of the prescribed forms of evidence set out in this Regulation
+          then legal aid for certain children issues (relating to the protection of a child from
+          another party) for orders which are set out in paragraph 13, Part 1, Schedule 1 of
+          LASPO may be available if the appropriate means and merits criteria are met. Anyone
+
+
+                                                                                               31
+ The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+ for Private Family Law Matters
+       with the care of a child may seek to protect them, for example a grandmother with care
+       of a child who seeks to prevent the child’s father from having contact.
+
+3.2    The LASPO definition of “abuse” means physical or mental abuse, including sexual
+       abuse, and abuse in the form of violence, neglect, maltreatment and exploitation.
+
+3.3    Matters are only in scope under para 13 where the services sought are specifically for
+       the purpose of protecting the child.
+
+3.4    It is very important that you note the following:
+
+             •   A Licensed Work application will be rejected if the evidence does not satisfy
+                 the requirements prescribed in the regulations, on the basis that the case is
+                 out of scope of legal aid.
+             •   A Licensed Work application will be rejected if no evidence prescribed in the
+                 regulations is submitted with the application.
+             •   A Controlled Work claim where the evidential requirements were not met will
+                 be nil assessed on the basis that the case is out of scope for legal aid.
+             •   A Controlled Work claim will be nil assessed where it is clear that the
+                 evidence was obtained subsequent to the determination being made.
+
+3.5    The paragraphs below provide more information on the types of documents that will be
+       accepted as evidence. They state where the list of acceptable forms of evidence is an
+       exhaustive list.
+
+ Schedule 2 (para 1) Arrest for a child abuse offence
+
+ Schedule 2 (1) “evidence that B has been arrested for a child abuse offence”
+
+ 3.6   The evidence must name the person either currently under investigation or charged
+       with the offence at the point of submission of the application (who is identified as the
+       risk to the child), see Schedule 2 (para 10) (a). The arrest does not need to be in
+       respect of the child for whom protection is sought, it can be in respect of any child.
+
+ 3.7   This must be in relation to a child abuse offence. A list of the applicable child abuse
+       offences can be found here: https://www.gov.uk/government/publications/domestic-
+       violence-and-child-abuse-offences
+
+ Arrest overseas
+
+ 3.8    If the evidence relates to an arrest outside the United Kingdom then the evidence may
+        be a letter from the relevant law enforcement agency in the country where the arrest
+        occurred. This will usually be on letter headed paper, however, we will accept the
+        evidence via email from the relevant law enforcement agency. The Legal Aid Agency
+        may take steps to verify this evidence.
+
+ 3.9    The evidence must be in English and if it needs to be translated both a copy of the
+        original document and the translation need to be provided and retained on the file.
+
+
+
+
+                                                                                                  32
+ The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+ for Private Family Law Matters
+ Evidence checklist
+ Document could be one of the following (examples) but must contain all required
+ information below:
+     o A copy of the charge sheet from the police
+     o Formal written or email confirmation from the police or CPS (or equivalent) or
+        Witness Care Unit or from a pnn.police.uk email address. The Legal Aid
+        Agency may take steps to verify this evidence.
+     o An email from a legal aid provider stating that they have spoken to the police
+        and received confirmation that B has been arrested for a relevant child abuse
+        offence. The email should include the name of the police station and the name
+        of the individual, as well as the required information set out below. o
+ Required information:
+ o The perpetrator is named
+ o Child abuse offence
+
+Schedule 2 (para 2) A police caution
+
+Schedule 2 (2) “a relevant police caution for a child abuse offence”
+
+3.10 The caution does not need to be in respect of the child for whom protection is sought, it
+      can be in respect of any child. The evidence must set out the name of the person
+      cautioned in relation to the child abuse offence (B) who must be the person identified
+      as the risk to the child
+
+3.11    It must also reflect that the perpetrator was cautioned for an applicable offence. A
+        police report where your client telephoned the police to complain about their ex-
+        partner and the police took no action would not be sufficient to meet the evidence
+        requirements A list of relevant offences can be found here:
+        https://www.gov.uk/government/publications/domestic-violence-and-child-abuse-
+        offences
+Police caution overseas
+
+3.12   If the evidence relates to a police caution outside the United Kingdom then the
+       evidence may be a letter from the relevant law enforcement agency in the country
+       where the arrest occurred. This will usually be on letter headed paper, however, we
+       will accept the evidence via email from the relevant law enforcement agency. The
+       Legal Aid Agency may take steps to verify this evidence.
+
+3.13   The evidence must be in English and if it needs to be translated both a copy of the
+       original document and the translation need to be provided and retained on the file.
+
+
+
+
+                                                                                               33
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+Evidence Checklist
+ Document could be one of the following (examples) but must contain all required information
+ below:
+o Formal caution
+o Formal written or email confirmation from the police or CPS (or equivalent) or Witness Care
+  Unit or from a pnn.police.uk email address. The Legal Aid Agency may take steps to verify
+  this evidence.
+o An email from a legal aid provider stating that they have spoken to the police and received
+  confirmation that B has been cautioned by the police for a relevant child abuse offence. The
+  email should include the name of the police station and the name of the individual, as well
+  as the required information set out below.
+
+Required information:
+• Perpetrator named as the person cautioned
+• Child abuse offence
+
+Schedule 2 (para 3) Ongoing criminal proceedings
+
+Schedule 2 (3) “evidence of relevant criminal proceedings for a child abuse offence
+which have not concluded;”
+
+3.14    The offence does not need to be in respect of the child for whom protection is sought,
+        it can be in respect of any child. The evidence must name the alleged perpetrator (B)
+        who must be the person identified as the risk to the child.
+
+3.15   The evidence must show the perpetrator has been charged with a child abuse
+        offence, although the proceedings may not have been listed for hearing.
+
+
+3.16   The proceedings must also be in relation to an applicable child abuse offence. A list of
+       relevant offences can be found here:
+       https://www.gov.uk/government/publications/domestic-violence-and-child-abuse-
+       offences
+
+Ongoing proceedings overseas
+
+3.17   If the evidence relates to a criminal proceeding outside the United Kingdom then the
+        evidence may be a letter from the relevant law enforcement agency in the country
+        where the offence is being tried. This will usually be on letter headed paper however,
+       we will accept the evidence via email confirmation from the relevant law
+       enforcement agency. The Legal Aid Agency may take steps to verify this.
+
+3.18   The evidence must be in English and if it needs to be translated both a copy of the
+       original document and the translation need to be provided and retained on the
+       file/submitted with the application.
+
+Evidence checklist
+Document could be one of the following (examples) but must contain all required information
+below:
+o A copy of the charge sheet from the police
+o A document from the court confirming that the case has been listed
+
+                                                                                             34
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+o Formal written or email confirmation from police or CPS (or equivalent) or Witness Care
+  Unit or from a pnn.police.uk email address.
+o An email from a legal aid provider stating that they have spoken to the police and received
+  confirmation that B has been charged with a relevant child abuse offence. The
+   email should include the name of the police station and the name of the individual, as well
+   as the required information set out below.
+o Newspaper clippings regarding the case
+
+Required information:
+o perpetrator named
+o Child abuse offence
+
+Schedule 2 (para 4) A relevant conviction for a child abuse offence
+
+Schedule 2(4) “a relevant conviction for a child abuse offence;”
+
+3.19   The offence does not need to be in respect of the child for whom protection is sought:
+       it can be in respect of any child. The evidence must name the person convicted of a
+       relevant child abuse offence (B) who must be the person identified as the risk to the
+       child.
+
+3.20   It must also state that an applicable offence was committed. A list of relevant child
+       abuse offences can be found here:
+       https://www.gov.uk/government/publications/domestic-violence-and-child-abuse-
+       offences
+
+Offences committed overseas
+
+3.21   If the evidence relates to an offence outside the United Kingdom then the evidence
+       may be a letter from the relevant law enforcement agency in the country where the
+       offence was tried. This will usually be on letter headed paper, however, we will accept
+       the evidence via email confirmation from the relevant law enforcement agency. The
+       Legal Aid Agency may take steps to verify this.
+
+3.22   The evidence must be in English and if it needs to be translated both a copy of the
+       original document and the translation need to be provided and retained on the
+       file/submitted with the application.
+
+
+
+
+                                                                                               35
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+Evidence Checklist
+Document could be one of the following (examples) but must contain all required information
+below:
+o Memorandum of Conviction (Magistrates Court)
+o Certificate of Conviction (Crown Court)
+o Formal written or email confirmation from a police or CPS (or equivalent) or Witness Care
+   Unit email address
+o An email from a legal aid provider stating that they have spoken to the police and
+   received confirmation that B has been convicted of a relevant child abuse offence. The
+   email should include the name of the police station and the name of the individual, as
+   well as the required information set out below.
+o Newspaper clippings regarding the case
+
+Required information:
+o Perpetrator named as person convicted
+o Child abuse offence
+
+
+Schedule 2 (para 5) Protective injunction
+
+Schedule 2 (5) “a relevant protective injunction”
+
+3.23 This form of evidence can only be satisfied by a Court document detailing the relevant
+     protective injunction. This includes where an ex-parte order is granted.
+
+3.24 The protective injunction must be for the protection of the child who is or would be the
+     subject of the order to which the application relates – see Schedule 2 para 10 (b) (ii).
+     The evidence must also name the person against whom the injunction was made, who
+     must be the person identified as the risk to the child (and must not be your client) –
+     Schedule 2 para 10 (b) (i).
+
+3.25 Where you are making an application for a protective order on behalf of your client
+     then, to satisfy this requirement, the order must be obtained before you are able to
+     assist your client with children issues, this may be on the same day.
+
+Evidence checklist
+Document must be (exhaustive):
+o Court document detailing a relevant protective injunction
+
+Required information
+o Child named as party your client is seeking to protect (where named)
+o Respondent named as the person against whom the injunction was made
+
+Schedule 2 (para 6) Finding of fact
+
+Schedule 2 (6) “a copy of a finding of fact, made in proceedings in the United Kingdom
+of abuse of a child by B;”
+
+3.26 This evidence will be in the form of a judgement or court document (including a tribunal
+     if relevant) that a child was abused by B, who must be the person identified as the risk
+
+                                                                                            36
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+       to the child and not your client. The finding of fact does not need to be in respect of the
+       child for whom protection is sought, it can be in respect of any child.
+
+3.27   Paragraphs 16-20 of Practice Direction 12J – ‘Child Arrangements and Contact Orders:
+       Domestic Abuse and Harm’ sets out the directions that a Court should take with regards to a
+       fact-finding hearing. This Practice Direction can be found here:
+       https://www.justice.gov.uk/courts/procedure-rules/family/practice_directions/pd_part_12j
+
+3.28   There must have been a specific finding of fact by a court made prior to the date the
+       application for legal aid was made although the incident to which the finding relates
+       may have occurred at any stage.
+
+Evidence checklist
+Document must be (exhaustive):
+o Court document
+
+Required information
+o perpetrator named
+
+Schedule 2 (para 7) Social services letter
+
+Schedule 2 (7) “a letter from a social services department in England or Wales (or its
+equivalent in Scotland or Northern Ireland) confirming that the child was assessed as
+being, or at risk of being, a victim of child abuse by B (or a copy of that assessment);”
+
+3.29 This evidence must be from:
+
+       •    a Social Services Department in England or Wales;
+       •    a Local Authority in Scotland; or
+       •    a Health and Social Care Trust in Northern Ireland
+
+       and must be in the form of a letter an email from a Social Services (or equivalent in
+       Scotland or Northern Ireland) email address or be a copy of the assessment.
+
+3.30 The evidence must confirm there has been an assessment that the child was or is at
+     risk of being a victim of child abuse by B who must be the person identified as the
+     risk to the child.
+
+The documentation from social services can be lengthy, particularly if there are
+several reports; you must identify which part you are relying on as evidence to enable
+the application to be appropriately dealt with.
+
+
+
+
+                                                                                                37
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+Evidence checklist
+Documents must be:
+o A letter from a Social Services Department (or equivalent); or
+o An assessment report from a Social Services Department (or equivalent); or
+o An email from a Social Services Department (or equivalent) email address e.g. gov.uk or
+  hscni.net
+
+Required information:
+o Child named as party your client is seeking to protect
+o perpetrator named
+o Child was assessed as being, or at risk of being a victim of child abuse
+
+Schedule 2 (para 8) Social services child protection plan
+
+Schedule 2 (8) “a letter from a social services department in England or Wales (or its
+equivalent in Scotland or Northern Ireland) confirming that a child protection plan was
+put in place to protect the child from abuse or a risk of abuse by B (or a copy of that
+plan)”
+
+3.31 This evidence must be from:
+
+       •   a Social Services Department in England or Wales;
+       •   a Local Authority in Scotland; or
+       •   a Health and Social Care Trust in Northern Ireland
+
+3.32 The form of evidence could be a copy of the child protection plan or a letter mail from
+     the Local Authority stating that there was such a plan in place. A letter or email must
+     be from a Social Services (or equivalent in Scotland or Northern Ireland) address or
+     email address.
+
+3.33   The evidence must confirm that protection plan was put in place to protect the child,
+       who is the subject of the application, from abuse or risk of abuse by B who must be
+       the person identified as the risk to the child.
+
+The documentation from social services can be lengthy, particularly if there are
+several reports; you must identify which part you are relying on as evidence to enable
+the application to be appropriately dealt with.
+
+Evidence checklist
+Documents must be (exhaustive):
+o A copy of a Child Protection Plan from a Social Services Department (or equivalent)
+o A letter from a Social Services Department (or equivalent) confirming a plan was in place
+o An email from a Social Services Department (or equivalent) email address e.g. gov.uk or
+hscni.net confirming a plan was in place.
+
+Required information:
+o Child named as party your client is seeking to protect
+o perpetrator named
+
+
+
+
+                                                                                               38
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+Schedule 2 (para 9) Application for a protective injunction with an application for a
+prohibited steps order
+
+Schedule2 (9) “an application for an injunction described in paragraph (5) of this
+Schedule made with an application for a prohibited steps order against B under
+section 8 of the Children Act 1989(a) which has not, at the date of the application for
+civil legal services, been decided by the court”
+
+3.34 This form of evidence requires two documents:
+
+      •   a copy of the application for a protective injunction AND
+      •   a copy of the application for a prohibited steps order under section 8 of the
+          Children Act 1989.
+
+3.35 Both applications must be made and must be seeking to protect the child from the other
+     party (i.e. not your client). Both applications must remain undetermined by the Court on
+     the date that the legal aid application is made.
+
+Protective injunction evidence
+
+3.36 The evidence must name the child who your client must be seeking to protect. The
+     evidence must also name the person against whom the injunction is requested and who
+     must be the other party in the case (and must not be your client). The protective
+     injunction must be to protect the child from the respondent.
+
+Evidence checklist
+1. Protective injunction application
+Document must be (exhaustive):
+o Application made for relevant Order
+o Child named as the party your client is seeking to protect
+o Respondent named as the person against whom the injunction is requested
+
+AND
+2. Prohibited steps order (PSO) application
+Document must be (exhaustive):
+o Application made for Prohibited steps order
+o Respondent named as the person against whom the PSO application is made
+
+
+
+
+                                                                                          39
+The Legal Aid, Sentencing and Punishment of Offenders Act (LASPO) 2012 - Evidence Requirements
+for Private Family Law Matters
+
