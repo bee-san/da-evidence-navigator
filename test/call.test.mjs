@@ -7,6 +7,12 @@ const PAGE = '<script type="application/ld+json">{"@type":"Physician","name":"Ba
 let ip = 0;
 const post = (body) => POST(new Request('https://example.org/api/call', { method: 'POST', headers: { 'x-forwarded-for': `10.0.0.${++ip}` }, body: JSON.stringify(body) }));
 
+// Vercel builds with the real settings, so every test starts from none.
+const KEYS = ['ELEVENLABS_API_KEY', 'ELEVENLABS_AGENT_ID', 'ELEVENLABS_PHONE_NUMBER_ID', 'CALL_DEMO_NUMBER'];
+const saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]));
+test.beforeEach(() => { for (const k of KEYS) delete process.env[k]; });
+test.after(() => { for (const k of KEYS) if (saved[k] !== undefined) process.env[k] = saved[k]; });
+
 function withElevenLabs(t, demo = '') {
   Object.assign(process.env, { ELEVENLABS_API_KEY: 'k', ELEVENLABS_AGENT_ID: 'agent_1', ELEVENLABS_PHONE_NUMBER_ID: 'phnum_1' });
   if (demo) process.env.CALL_DEMO_NUMBER = demo;
@@ -16,7 +22,6 @@ function withElevenLabs(t, demo = '') {
     if (String(url).includes('nhs.uk')) return new Response(PAGE);
     return new Response('{"success":true,"conversation_id":"conv_abc"}');
   });
-  t.after(() => { for (const k of ['ELEVENLABS_API_KEY', 'ELEVENLABS_AGENT_ID', 'ELEVENLABS_PHONE_NUMBER_ID', 'CALL_DEMO_NUMBER']) delete process.env[k]; });
   return calls;
 }
 
