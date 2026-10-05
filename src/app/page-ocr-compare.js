@@ -13,7 +13,7 @@ const examples = [...SAMPLES, ...SYNTHETIC];
 
 document.getElementById('example').innerHTML = examples.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.label)}</option>`).join('');
 document.getElementById('engines').innerHTML = ENGINES.filter((e) => e.available()).map((e) => `<div class="govuk-checkboxes__item">
-  <input class="govuk-checkboxes__input" id="engine-${e.id}" name="engine" type="checkbox" value="${e.id}" checked aria-describedby="engine-${e.id}-hint">
+  <input class="govuk-checkboxes__input" id="engine-${e.id}" name="engine" type="checkbox" value="${e.id}"${e.off ? '' : ' checked'} aria-describedby="engine-${e.id}-hint">
   <label class="govuk-label govuk-checkboxes__label" for="engine-${e.id}">${escapeHtml(e.name)}</label>
   <div class="govuk-hint govuk-checkboxes__hint" id="engine-${e.id}-hint">${escapeHtml(e.source)} Download: ${escapeHtml(e.download)}.</div>
 </div>`).join('');
@@ -116,6 +116,7 @@ ${out.map((r) => `<details class="govuk-details"><summary class="govuk-details__
     } catch (err) {
       out.push({ name: engine.name, error: String(err?.message || err) });
     }
+    await engine.release?.().catch(() => {}); // free its memory before the next one
     render();
   }
   status.textContent = 'Done.';

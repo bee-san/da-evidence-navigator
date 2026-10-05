@@ -6,7 +6,7 @@
 // Each engine: { id, name, source, download, local, available(), read(img) }
 // where img is { canvas, file } and read returns the text.
 
-import { extractText } from './ocr.js';
+import { extractText, stopOcr } from './ocr.js';
 
 const ORT_VERSION = '1.30.0';
 const JSDELIVR = 'https://cdn.jsdelivr.net/npm';
@@ -33,8 +33,19 @@ function pixels(canvas) {
   return { width, height, data: new Uint8Array(canvas.getContext('2d').getImageData(0, 0, width, height).data.buffer) };
 }
 
-// Each engine is created once, then reused for later photos.
-const once = (make) => { let p; return () => (p ??= make().catch((e) => { p = undefined; throw e; })); };
+// Each engine is created when first used. release() frees it again, so the
+// page does not hold several engines and their models in memory at once.
+function once(make, destroy = () => {}) {
+  let p;
+  const get = () => (p ??= make().catch((e) => { p = undefined; throw e; }));
+  get.release = async () => {
+    if (!p) return;
+    const instance = await p.catch(() => null);
+    p = undefined;
+    if (instance) await destroy(instance);
+  };
+  return get;
+}
 
 // PaddleOCR dictionaries need the CTC blank first and a space last.
 function dictionary(text) {
@@ -59,14 +70,14 @@ const paddleocrJs = once(async () => {
     detection: { modelBuffer: det },
     recognition: { modelBuffer: rec, charactersDictionary: dictionary(dict) },
   });
-});
+}, (service) => service.destroy());
 
 const ppu = once(async () => {
   const { PaddleOcrService } = await import(`${JSDELIVR}/ppu-paddle-ocr@6.6.0/web/+esm`);
   const service = new PaddleOcrService();
   await service.initialize();
   return service;
-});
+}, (service) => service.destroy());
 
 // Guten OCR comes from esm.sh, which keeps its internal modules shared (the
 // jsDelivr build splits them, which breaks it), pinned to the ONNX Runtime it
@@ -113,6 +124,7 @@ export const ENGINES = [
     local: true,
     available: () => true,
     read: ({ file }) => extractText(file),
+    release: () => stopOcr(),
   },
   {
     id: 'paddleocr',
@@ -124,6 +136,7 @@ export const ENGINES = [
       const service = await paddleocrJs();
       return service.processRecognition(await service.recognize(pixels(canvas))).text;
     },
+    release: () => paddleocrJs.release(),
   },
   {
     id: 'ppu',
@@ -135,12 +148,14 @@ export const ENGINES = [
       const service = await ppu();
       return (await service.recognize(canvas, { flatten: true })).text;
     },
+    release: () => ppu.release(),
   },
   {
     id: 'guten',
     name: 'Guten OCR',
     source: '@gutenye/ocr-browser 1.4.9 with PP-OCRv4 models. Currently fails: the CDN builds of its OpenCV dependency are broken, so it needs bundling into this site to work.',
     download: 'About 16 MB from jsDelivr',
+    off: true,
     available: () => true,
     async read({ canvas }) {
       const ocr = await guten();
@@ -153,6 +168,7 @@ export const ENGINES = [
     name: 'Paddle.js OCR (Baidu)',
     source: '@paddlejs-models/ocr 1.2.4 – Baidu’s older WebGL version, last updated 2023.',
     download: 'About 10 MB from jsDelivr and Baidu’s servers',
+    off: true, // slow and heavy, and its Chinese model drops English spaces
     available: () => true,
     async read({ canvas }) {
       const ocr = await paddleJs();
