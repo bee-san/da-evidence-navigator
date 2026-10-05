@@ -37,7 +37,7 @@ export default {
   steps: {
     have: {
       title: 'Do you have a solicitor for your family case?',
-      hint: 'A solicitor is a type of lawyer. Your family case might be about your children, divorce, or protecting yourself from the person who abused you.',
+      hint: 'A solicitor is a type of lawyer. Your family case might be about your children, divorce, or protecting yourself or your children from a partner, ex-partner or family member who abused you.',
       options: [
         { label: 'Yes', next: 'legalAid' },
         { label: 'No', next: 'risk' },
@@ -88,7 +88,13 @@ ${NEXT}`,
 </div>
 <h2 class="govuk-heading-m">Talk to someone about legal aid</h2>
 ${CLA}
-<p class="govuk-body">You can also call the free 24-hour National Domestic Abuse Helpline on <strong>0808 2000 247</strong>.</p>
+<h2 class="govuk-heading-m">Talk to a domestic abuse helpline</h2>
+<p class="govuk-body">These are free and open 24 hours:</p>
+<ul class="govuk-list govuk-list--bullet">
+  <li>National Domestic Abuse Helpline: <strong>0808 2000 247</strong></li>
+  <li>Live Fear Free (Wales): <strong>0808 80 10 800</strong></li>
+</ul>
+<p class="govuk-body">Men can also call the Men's Advice Line on <strong>0808 801 0327</strong>.</p>
 <h2 class="govuk-heading-m">Search for a solicitor yourself</h2>
 ${finderForm()}
 ${WHAT_TO_SAY}`,
@@ -104,7 +110,7 @@ ${finderForm()}
 <h2 class="govuk-heading-m">What to say when you call</h2>
 ${WHAT_TO_SAY}
 ${NEXT}
-<h2 class="govuk-heading-m">If you would rather talk to someone</h2>
+<h2 class="govuk-heading-m">If you cannot find a solicitor, or would rather talk to someone</h2>
 ${CLA}`,
     },
   },

@@ -21,7 +21,9 @@ mkdirSync(out);
 cpSync('assets', `${out}/assets`, { recursive: true });
 cpSync('src/app', `${out}/app`, { recursive: true });
 
-const layout = readFileSync('src/layout.html', 'utf8');
+const fullLayout = readFileSync('src/layout.html', 'utf8');
+// Footer links marked data-menu-only go with the menu.
+const layout = SHOW_MENU ? fullLayout : fullLayout.split('\n').filter((l) => !l.includes('data-menu-only')).join('\n');
 const meta = (src, key) => (src.match(new RegExp(`<!-- ${key}: (.+?) -->`)) || [])[1];
 
 for (const file of readdirSync('src/pages')) {
