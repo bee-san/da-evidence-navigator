@@ -80,6 +80,7 @@ await step('home page has one button, which starts preparing evidence', async ()
   const buttons = await page.$$eval('main .govuk-button, header nav a', (b) => b.map((x) => x.textContent.trim()));
   assert.deepEqual(buttons, ['Start now']);
   assert.ok(await page.$('main a[href="https://find-legal-advice.justice.gov.uk/"]'), 'points to the GOV.UK solicitor finder');
+  assert.ok(await page.$('main a[href="letter-checker.html"]'), 'links to check a letter');
   await Promise.all([page.waitForNavigation(), page.click('.govuk-button--start')]);
   await until(() => document.querySelector('#flow h1'));
   assert.equal(await text('#flow h1'), 'Do you have a solicitor for your family case?');
