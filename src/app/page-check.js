@@ -38,6 +38,7 @@ form.addEventListener('submit', (e) => {
 function render(picked) {
   const letters = picked.filter((p) => ROUTES[p]);
   const other = picked.filter((p) => OTHER_ROUTES[p]);
+  if (picked.includes('financial')) other.push('financialDocs');
   let html = '<h1 class="govuk-heading-l">Evidence you may be able to get</h1>';
 
   if (picked.includes('none')) {
