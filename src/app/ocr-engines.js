@@ -1,10 +1,7 @@
 // Text readers (OCR) to compare on ocr-compare.html. Every engine runs in the
-// browser, so the photo never leaves the device. Tesseract is served from this
-// site; the others download their code and models from jsDelivr or Hugging Face
-// the first time they run.
-//
-// Each engine: { id, name, source, download, local, available(), read(img) }
-// where img is { canvas, file } and read returns the text.
+// browser, so the photo never leaves the device, except GPT-6 Sol, which sends it to OpenAI after a
+// separate consent. This site's own reader (PP-OCRv6 tiny, ocr.js) is served from the site; the others
+// download their code and models from jsDelivr, Hugging Face or esm.sh the first time they run.
 
 import { extractText, stopOcr } from './ocr.js';
 
@@ -59,8 +56,6 @@ function dictionary(text) {
 // paddleocr.js with a choice of PaddleOCR models, from smallest to largest.
 const HF_PPU = 'https://huggingface.co/snowfluke/ppu-paddle-ocr-models/resolve/main/';
 const PADDLE_MODELS = [
-  { id: 'paddleocr-v6t', name: 'paddleocr.js – PP-OCRv6 tiny', preset: 'PP-OCRv6_tiny', download: 'About 6 MB',
-    det: `${HF_PPU}detection/PP-OCRv6_tiny_det.onnx`, rec: `${HF_PPU}recognition/PP-OCRv6_tiny_rec.onnx`, dict: `${HF_PPU}recognition/ppocrv6_tiny_dict.txt` },
   { id: 'paddleocr-v6s', name: 'paddleocr.js – PP-OCRv6 small', preset: 'PP-OCRv6_small', download: 'About 31 MB',
     det: `${HF_PPU}detection/PP-OCRv6_small_det.onnx`, rec: `${HF_PPU}recognition/PP-OCRv6_small_rec.onnx`, dict: `${HF_PPU}recognition/ppocrv6_dict.txt` },
 ];
@@ -136,9 +131,9 @@ const paddleJs = once(async () => {
 
 export const ENGINES = [
   {
-    id: 'tesseract',
-    name: 'Tesseract.js (current)',
-    source: 'Tesseract 5, English model. Served from this site.',
+    id: 'current',
+    name: 'This site’s reader (PP-OCRv6 tiny)',
+    source: 'PaddleOCR PP-OCRv6 tiny on ONNX Runtime Web, served from this site – what Check a letter uses.',
     download: 'None – already on this site',
     local: true,
     available: () => true,
@@ -203,7 +198,7 @@ export const ENGINES = [
       const res = await fetch('api/ocr-openai', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        credentials: 'omit',
+        credentials: 'same-origin', // deployments are behind Vercel login, which covers api/*
         body: JSON.stringify({ image: small.toDataURL('image/jpeg', 0.85) }),
       });
       const r = await res.json().catch(() => ({}));
