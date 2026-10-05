@@ -13,7 +13,7 @@ const examples = [...SAMPLES, ...SYNTHETIC];
 
 document.getElementById('example').innerHTML = examples.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.label)}</option>`).join('');
 document.getElementById('engines').innerHTML = ENGINES.filter((e) => e.available()).map((e) => `<div class="govuk-checkboxes__item">
-  <input class="govuk-checkboxes__input" id="engine-${e.id}" name="engine" type="checkbox" value="${e.id}" checked aria-describedby="engine-${e.id}-hint">
+  <input class="govuk-checkboxes__input" id="engine-${e.id}" name="engine" type="checkbox" value="${e.id}"${e.off ? '' : ' checked'} aria-describedby="engine-${e.id}-hint">
   <label class="govuk-label govuk-checkboxes__label" for="engine-${e.id}">${escapeHtml(e.name)}</label>
   <div class="govuk-hint govuk-checkboxes__hint" id="engine-${e.id}-hint">${escapeHtml(e.source)} Download: ${escapeHtml(e.download)}.</div>
 </div>`).join('');
@@ -82,7 +82,8 @@ form.addEventListener('submit', async (e) => {
   const needsDownload = chosen.some((x) => !x.local);
   const problem = !chosen.length ? 'Choose at least one reader'
     : needsDownload && !form.consent.checked ? 'Tick the box to say you understand some readers download from other sites'
-      : form.source.value === 'photo' && !form.photo.files[0] ? 'Take or choose a photo' : '';
+      : chosen.some((x) => x.sendsPhoto) && !form['consent-upload'].checked ? 'Tick the box to say you understand GPT-6 Sol sends the photo to OpenAI'
+        : form.source.value === 'photo' && !form.photo.files[0] ? 'Take or choose a photo' : '';
   error.hidden = !problem;
   error.textContent = problem;
   if (problem) return;
@@ -116,6 +117,7 @@ ${out.map((r) => `<details class="govuk-details"><summary class="govuk-details__
     } catch (err) {
       out.push({ name: engine.name, error: String(err?.message || err) });
     }
+    await engine.release?.().catch(() => {}); // free its memory before the next one
     render();
   }
   status.textContent = 'Done.';
