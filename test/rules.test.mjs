@@ -47,6 +47,7 @@ test('AI answers are escaped', () => {
 });
 
 test('api/chat forwards a trimmed conversation to the AI Gateway', async (t) => {
+  delete process.env.OPENAI_API_KEY;
   process.env.AI_GATEWAY_API_KEY = 'test-key';
   let sent;
   t.mock.method(globalThis, 'fetch', async (url, init) => {
@@ -62,4 +63,18 @@ test('api/chat forwards a trimmed conversation to the AI Gateway', async (t) => 
   assert.equal(sent.body.messages.length, 13);
   assert.ok(sent.body.messages.slice(1).every((m) => m.content.length === 4000));
   assert.equal((await POST(new Request('http://x', { method: 'POST', body: '{}' }))).status, 400);
+});
+
+test('api/chat uses the OpenAI API when OPENAI_API_KEY is set', async (t) => {
+  process.env.OPENAI_API_KEY = 'sk-test';
+  t.after(() => { delete process.env.OPENAI_API_KEY; });
+  let sent;
+  t.mock.method(globalThis, 'fetch', async (url, init) => {
+    sent = { url, init, body: JSON.parse(init.body) };
+    return new Response(JSON.stringify({ choices: [{ message: { content: 'ok' } }] }));
+  });
+  await POST(new Request('http://x', { method: 'POST', body: JSON.stringify({ messages: [{ role: 'user', content: 'hi' }] }) }));
+  assert.equal(sent.url, 'https://api.openai.com/v1/chat/completions');
+  assert.equal(sent.init.headers.authorization, 'Bearer sk-test');
+  assert.equal(sent.body.model, 'gpt-5-mini');
 });

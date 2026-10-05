@@ -14,7 +14,7 @@ To get legal aid for a private family matter on the basis of domestic abuse, app
 - No analytics, cookies or storage. Entered text is cleared on exit. Only helper questions leave the browser.
 - GOV.UK **Exit this page** on every page (Shift ×3) and a [stay safe online](src/pages/safety.html) page adapted from Check if you can get legal aid.
 - Points to 999 (Silent Solution 55), the National Domestic Abuse Helpline and the Civil Legal Advice harm fast-track.
-- The helper sends questions to `api/chat.js`, a Vercel function that calls an OpenAI model (`openai/gpt-5-mini`, override with `CHAT_MODEL`) through the Vercel AI Gateway. Danger, privacy and pasted letters are always answered by the rules in the browser, which are also the fallback when the API is unavailable.
+- The helper sends questions to `api/chat.js`, a Vercel function that calls `gpt-5-mini` (override with `CHAT_MODEL`) with the OpenAI API when `OPENAI_API_KEY` is set, or through the Vercel AI Gateway with `AI_GATEWAY_API_KEY`. Danger, privacy and pasted letters are always answered by the rules in the browser, which are also the fallback when the API is unavailable.
 
 ## How the checks work
 
@@ -40,7 +40,7 @@ npx serve _site  # or any static server
 
 ## Deploy
 
-The site is hosted on Vercel, which deploys every push to `main`. `vercel.json` runs the tests, builds the static site into `_site/` and serves `api/chat.js` as a function. Set `AI_GATEWAY_API_KEY` in the project's environment variables. To deploy by hand:
+The site is hosted on Vercel, which deploys every push to `main`. `vercel.json` runs the tests, builds the static site into `_site/` and serves `api/chat.js` as a function. Set `OPENAI_API_KEY` (or `AI_GATEWAY_API_KEY`) in the project's environment variables. To deploy by hand:
 
 ```bash
 vercel deploy --prod
@@ -48,7 +48,7 @@ vercel deploy --prod
 
 Vercel Authentication protects every deployment, including production, so only members of the Vercel team can open it.
 
-The endpoint has no authentication and spends the project's AI Gateway credit; it caps each request at 12 messages of 4,000 characters.
+The endpoint spends the project's OpenAI or AI Gateway credit and sits behind Vercel Authentication; it caps each request at 12 messages of 4,000 characters.
 
 ## Credits
 

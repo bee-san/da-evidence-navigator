@@ -1,9 +1,11 @@
 // Vercel function behind the helper. Forwards the conversation to an OpenAI
-// model through the Vercel AI Gateway and returns plain text. Nothing is
-// logged or stored here.
+// model and returns plain text. Uses the OpenAI API when OPENAI_API_KEY is
+// set, otherwise the Vercel AI Gateway. Nothing is logged or stored here.
 
-const GATEWAY = 'https://ai-gateway.vercel.sh/v1/chat/completions';
-const MODEL = process.env.CHAT_MODEL || 'openai/gpt-5-mini';
+const PROVIDERS = {
+  openai: { url: 'https://api.openai.com/v1/chat/completions', env: 'OPENAI_API_KEY', model: 'gpt-5-mini' },
+  gateway: { url: 'https://ai-gateway.vercel.sh/v1/chat/completions', env: 'AI_GATEWAY_API_KEY', model: 'openai/gpt-5-mini' },
+};
 // The endpoint is public and spends the project's AI Gateway credit, so keep
 // each request to a short process question plus a little context.
 const MAX_MESSAGES = 12;
@@ -35,7 +37,8 @@ function clean(messages) {
 }
 
 export async function POST(request) {
-  const key = process.env.AI_GATEWAY_API_KEY;
+  const provider = process.env.OPENAI_API_KEY ? PROVIDERS.openai : PROVIDERS.gateway;
+  const key = process.env[provider.env];
   if (!key) return json({ error: 'not configured' }, 503);
 
   let messages;
@@ -46,10 +49,10 @@ export async function POST(request) {
   }
   if (!messages) return json({ error: 'bad request' }, 400);
 
-  const res = await fetch(GATEWAY, {
+  const res = await fetch(provider.url, {
     method: 'POST',
     headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ model: MODEL, messages: [{ role: 'system', content: SYSTEM }, ...messages] }),
+    body: JSON.stringify({ model: process.env.CHAT_MODEL || provider.model, messages: [{ role: 'system', content: SYSTEM }, ...messages] }),
   });
   if (!res.ok) return json({ error: 'upstream' }, 502);
   const text = (await res.json()).choices?.[0]?.message?.content?.trim();
