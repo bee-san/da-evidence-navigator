@@ -145,6 +145,7 @@ await step('find evidence: no police or court, GP letter, email written on the d
   await page.type('#profName', 'Dr Patel');
   await page.type('#profEmail', 'surgery@example.nhs.uk');
   await page.click('#contact-form button[type=submit]');
+  await until(() => document.querySelector('#email-body'), 5000);
   const body = await page.$eval('#email-body', (e) => e.value);
   assert.match(body, /^Dear Dr Patel,/);
   assert.match(body, /I can confirm that I have examined Jane Doe/);
@@ -163,6 +164,7 @@ await step('find evidence: police caution, sent straight to a solicitor', async 
   await page.click('#replyTo-solicitor');
   await page.type('#solicitorEmail', 'family@solicitors.example');
   await page.click('#contact-form button[type=submit]');
+  await until(() => document.querySelector('#email-body'), 5000);
   const body = await page.$eval('#email-body', (e) => e.value);
   assert.match(body, /paragraph 2 /);
   assert.match(body, /John Doe was given a police caution/);
@@ -235,6 +237,41 @@ await step('find evidence: MARAC and council pages show who to ask locally', asy
   }
   assert.equal(sent.filter((u) => u.includes('postcodes.io')).length, 1, 'the area is looked up once');
   assert.ok(sent.every((u) => !u.includes('4AA')), sent.join(' '));
+});
+
+await step('find evidence: send it for me, with a phone call back instead of a reply', async () => {
+  await go('index.html'); // fresh page load, so the send check runs again
+  let posted;
+  const answer = (r) => {
+    if (!r.url().endsWith('/api/send')) return r.continue();
+    if (r.method() === 'POST') posted = JSON.parse(r.postData());
+    r.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(r.method() === 'POST' ? { sent: true, to: 'support@service.example' } : { enabled: true }) });
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await go('check.html#police/court/health/services/evP17');
+    await page.type('#applicant', 'Jane Doe');
+    await page.type('#profEmail', 'support@service.example');
+    await page.click('#contact-form button[type=submit]');
+    await until(() => document.querySelector('#send-for-me'), 5000);
+    const headings = await page.$$eval('#contact-preview h2', (hs) => hs.map((h) => h.textContent.trim()));
+    assert.deepEqual(headings.slice(0, 2), ['Send it for me', 'Or send it from your own email']);
+    await page.click('#contactBy-phone');
+    await page.click('#send-for-me button[type=submit]');
+    assert.match(await text('#phone-error'), /Enter a phone number/);
+    await page.type('#phone', '07700 900982');
+    assert.match(await page.$eval('#sfm-preview', (e) => e.textContent), /Please call me on 07700 900982/);
+    await audit('send it for me');
+    await page.click('#send-for-me button[type=submit]');
+    await until(() => document.querySelector('#sfm-sent'), 5000);
+    assert.match(await text('#sfm-sent'), /asked to call you on 07700 900982/);
+    assert.equal(posted.contactBy, 'phone');
+    assert.equal(posted.key, 'p17');
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
 });
 
 await step('letter checker: rejected example needs changes, with a message', async () => {
@@ -389,7 +426,10 @@ await step('exit: Shift 3 times leaves and clears what was typed', async () => {
 });
 
 await step('no console errors or missing files', async () => {
-  assert.deepEqual(errors.filter((e) => !e.includes('bbc.co.uk')), []);
+  // api/send is a Vercel function, so the static test server answers 404 and
+  // the page falls back to the person's own email. That is expected.
+  const sendCheck = (e) => e.includes('/api/send') || (e.includes('check.html') && e.includes('status of 404'));
+  assert.deepEqual(errors.filter((e) => !e.includes('bbc.co.uk') && !sendCheck(e)), []);
 });
 
 await browser.close();

@@ -55,9 +55,22 @@ export function buildRequest(key, details, { baseUrl = '' } = {}) {
   const applicant = clean(d.applicant) || '[your name]';
   const greeting = clean(d.profName) ? `Dear ${clean(d.profName)},` : 'Dear Sir or Madam,';
   const toSolicitor = d.replyTo === 'solicitor' && clean(d.solicitorEmail);
-  const sendTo = toSolicitor
-    ? `Please send it to my solicitor${clean(d.solicitorName) ? `, ${clean(d.solicitorName)},` : ''} at ${clean(d.solicitorEmail)}, and copy me in. I have copied them into this email.`
-    : 'Please send it to me by replying to this email.';
+  // When this website sends the email, replies cannot come back to the sender,
+  // so the person gives another address or a phone number instead.
+  const sentForMe = !!d.sentForMe;
+  let sendTo;
+  if (toSolicitor) {
+    sendTo = `Please send it to my solicitor${clean(d.solicitorName) ? `, ${clean(d.solicitorName)},` : ''} at ${clean(d.solicitorEmail)}${sentForMe ? '.' : ', and copy me in. I have copied them into this email.'}`;
+  } else if (sentForMe && d.contactBy === 'phone' && clean(d.phone)) {
+    sendTo = `Please call me on ${clean(d.phone)} to arrange how I can get the letter.${clean(d.callTimes) ? ` The best time to call is ${clean(d.callTimes)}.` : ''} ${d.voicemail ? 'You can leave a voicemail.' : 'Please do not leave a voicemail.'}`;
+  } else if (sentForMe && clean(d.altEmail)) {
+    sendTo = `Please send it to me at ${clean(d.altEmail)}.`;
+  } else {
+    sendTo = 'Please send it to me by replying to this email.';
+  }
+  const footer = sentForMe
+    ? `\n\n---\nThis email was sent for ${applicant} by a prototype service that helps people ask for evidence for legal aid. Replies to the sending address are not read, so please use the contact details above.`
+    : '';
   const note = clean(d.note) ? `\n${clean(d.note)}\n` : '';
 
   let subject;
@@ -93,9 +106,10 @@ ${middle.trim()}
 ${sendTo}
 
 Thank you,
-${applicant}`;
+${applicant}${footer}`;
 
-  return { to: clean(d.profEmail), cc: toSolicitor ? clean(d.solicitorEmail) : '', subject, body };
+  const replyTo = sentForMe ? (toSolicitor ? clean(d.solicitorEmail) : (d.contactBy !== 'phone' && clean(d.altEmail)) || '') : '';
+  return { to: clean(d.profEmail), cc: toSolicitor ? clean(d.solicitorEmail) : '', replyTo, subject, body };
 }
 
 const enc = encodeURIComponent;
@@ -111,5 +125,8 @@ export const outlookUrl = ({ to, cc, subject, body }) => `https://outlook.live.c
 
 // Some desktop email apps cut off mailto links longer than about 2,000 characters.
 export const MAILTO_SAFE_LENGTH = 2000;
+
+// A UK phone number, loosely: digits, spaces and an optional leading +.
+export const looksLikePhone = (s) => /^\+?[\d\s()-]{10,16}$/.test(clean(s)) && clean(s).replace(/\D/g, '').length >= 10;
 
 export const looksLikeEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean(s));
