@@ -81,6 +81,14 @@ await step('home page has one button, which starts the find-a-solicitor flow', a
   assert.equal(await text('#flow h1'), 'Do you have a solicitor for your family case?');
 });
 
+await step('home page links to find evidence', async () => {
+  await go('index.html');
+  await Promise.all([page.waitForNavigation(), page.click('main a[href="check.html"]')]);
+  await until(() => document.querySelector('#flow h1'));
+  assert.equal(await text('#flow h1'), 'Do you have a solicitor for your family case?');
+  assert.match(page.url(), /check\.html$/);
+});
+
 await step('find a solicitor: error, keyboard answers, back link, finder search', async () => {
   await go('find-solicitor.html');
   await until(() => document.querySelector('#flow form'));
