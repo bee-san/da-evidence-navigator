@@ -420,6 +420,24 @@ await step('letter checker: camera flow takes, reviews and removes photos, then 
   assert.deepEqual(external, [], 'photos never leave the device');
 });
 
+await step('compare text readers: Tesseract scores an example letter, offline', async () => {
+  await go('ocr-compare.html');
+  for (const id of await page.$$eval('input[name=engine]:checked', (els) => els.map((e) => e.id))) {
+    if (id !== 'engine-tesseract') await page.click(`#${id}`);
+  }
+  await page.click('#photo-like'); // a clean image, so the score is stable
+  const external = [];
+  const watch = (r) => { if (!r.url().startsWith(base) && !/^(data|blob):/.test(r.url())) external.push(r.url()); };
+  page.on('request', watch);
+  await page.click('#compare-form button[type=submit]');
+  await until(() => document.getElementById('compare-status').textContent === 'Done.', 120000);
+  page.off('request', watch);
+  const cells = await page.$$eval('#results tbody td', (tds) => tds.map((t) => t.textContent.trim()));
+  assert.ok(parseInt(cells[1], 10) >= 80, `Tesseract read most words: ${cells.join(' | ')}`);
+  assert.deepEqual(external, [], 'Tesseract needs no downloads from other sites');
+  await audit('compare results');
+});
+
 await step('letter checker: reads a photo of a letter on the device', async () => {
   await go('letter-checker.html');
   // Draw the rejected example as an image, the way a phone photo would arrive.

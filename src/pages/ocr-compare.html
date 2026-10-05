@@ -1,0 +1,70 @@
+<!-- title: Compare text readers -->
+<!-- nav: letter-checker -->
+<!-- script: app/page-ocr-compare.js -->
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <a href="letter-checker.html" class="govuk-back-link">Back to Check a letter</a>
+    <span class="govuk-caption-l">For testing</span>
+    <h1 class="govuk-heading-l">Compare text readers</h1>
+    <p class="govuk-body">Check a letter reads photos with a text reader (OCR). This page runs several readers on the same photo so you can compare how well and how fast they read it.</p>
+    <p class="govuk-body">Every reader runs on your device. Your photo is not sent anywhere. Most readers download their code and models from jsDelivr, Hugging Face, esm.sh or Baidu the first time they run – those sites see that a download happened, but not your photo.</p>
+
+    <form id="compare-form" novalidate>
+      <div class="govuk-form-group">
+        <fieldset class="govuk-fieldset">
+          <legend class="govuk-fieldset__legend govuk-fieldset__legend--m"><h2 class="govuk-fieldset__heading">Letter to read</h2></legend>
+          <div class="govuk-radios">
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="source-example" name="source" type="radio" value="example" checked>
+              <label class="govuk-label govuk-radios__label" for="source-example">An example letter</label>
+              <div class="govuk-hint govuk-radios__hint">We know what it says, so we can score each reader.</div>
+            </div>
+            <div class="govuk-radios__conditional" id="source-example-details">
+              <div class="govuk-form-group">
+                <label class="govuk-label" for="example">Example</label>
+                <select class="govuk-select" id="example"></select>
+              </div>
+              <div class="govuk-checkboxes govuk-checkboxes--small">
+                <div class="govuk-checkboxes__item">
+                  <input class="govuk-checkboxes__input" id="photo-like" type="checkbox" checked>
+                  <label class="govuk-label govuk-checkboxes__label" for="photo-like">Make it look like a phone photo (tilted, blurred, uneven light)</label>
+                </div>
+              </div>
+            </div>
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="source-photo" name="source" type="radio" value="photo">
+              <label class="govuk-label govuk-radios__label" for="source-photo">My own photo</label>
+            </div>
+            <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="source-photo-details">
+              <div class="govuk-form-group">
+                <label class="govuk-label" for="photo">Take or choose a photo of a letter</label>
+                <input class="govuk-file-upload" id="photo" type="file" accept="image/*" capture="environment">
+              </div>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="govuk-form-group">
+        <fieldset class="govuk-fieldset">
+          <legend class="govuk-fieldset__legend govuk-fieldset__legend--m"><h2 class="govuk-fieldset__heading">Readers to compare</h2></legend>
+          <div class="govuk-checkboxes" id="engines"></div>
+          <p class="govuk-body-s govuk-!-margin-top-2" id="engines-unavailable"></p>
+        </fieldset>
+      </div>
+
+      <div class="govuk-checkboxes govuk-checkboxes--small govuk-!-margin-bottom-4">
+        <div class="govuk-checkboxes__item">
+          <input class="govuk-checkboxes__input" id="consent" type="checkbox">
+          <label class="govuk-label govuk-checkboxes__label" for="consent">I understand the readers I chose may download code and models from other sites, which may use mobile data</label>
+        </div>
+      </div>
+      <p class="govuk-error-message" id="compare-error" hidden></p>
+      <button type="submit" class="govuk-button" data-module="govuk-button">Read with the chosen readers</button>
+    </form>
+
+    <div id="preview"></div>
+    <p class="govuk-body govuk-!-font-weight-bold" id="compare-status" aria-live="polite"></p>
+  </div>
+</div>
+<div id="results" tabindex="-1"></div>
