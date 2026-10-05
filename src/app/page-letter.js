@@ -5,6 +5,7 @@ import { escapeHtml } from './chat.js';
 import { resultHtml } from './render.js';
 import { extractText } from './ocr.js';
 import { secondOpinion, MODEL, MEASURED } from './model.js';
+import { modelCheck, compareHtml, COMPARE_MODEL } from './compare.js';
 
 const type = document.getElementById('type');
 const sample = document.getElementById('sample');
@@ -57,6 +58,8 @@ document.getElementById('letter-form').addEventListener('submit', (e) => {
   const text = letter.value.trim();
   if (!text) return setError('Paste the text of the letter');
   const r = checkLetter(text, type.value || undefined);
+  // Comparison with the AI model: checks letters the rules do not recognise too.
+  if (document.getElementById('checker-model').checked) return compare(text, r);
   if (r.outcome === 'unknown') return setError('We could not tell what type of letter this is. Choose the type of letter');
   setError('');
   result.innerHTML = `${resultHtml(r)}
@@ -80,6 +83,19 @@ document.getElementById('letter-form').addEventListener('submit', (e) => {
   wireModel(text, r);
   result.focus();
 });
+
+async function compare(text, r) {
+  setError('');
+  result.innerHTML = `<p class="govuk-body" aria-live="polite">Asking ${COMPARE_MODEL}. This can take up to a minute.</p>`;
+  result.focus();
+  try {
+    const m = await modelCheck(text, type.value);
+    result.innerHTML = `${compareHtml(m, r)}${r.outcome === 'unknown' ? '' : `<h2 class="govuk-heading-m">The rules' checks in full</h2>${resultHtml(r, { headingLevel: 3 })}`}`;
+  } catch (e) {
+    result.innerHTML = `<div class="govuk-inset-text">${e.message === 'not configured' ? `The comparison with ${COMPARE_MODEL} is not set up on this site.` : `${COMPARE_MODEL} could not be reached. Try again, or check with the rules on this device.`}</div>`;
+  }
+  result.focus();
+}
 
 function wireModel(text, r) {
   const consent = document.getElementById('consent');

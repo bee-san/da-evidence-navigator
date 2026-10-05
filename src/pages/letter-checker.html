@@ -39,6 +39,24 @@
         <textarea class="govuk-textarea" id="letter" rows="12" spellcheck="false" autocomplete="off"></textarea>
       </div>
 
+      <div class="govuk-form-group">
+        <fieldset class="govuk-fieldset">
+          <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Check with</legend>
+          <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="checker-rules" name="checker" type="radio" value="rules" checked>
+              <label class="govuk-label govuk-radios__label" for="checker-rules">Rules on this device</label>
+              <div class="govuk-hint govuk-radios__hint">Your letter stays on your device.</div>
+            </div>
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="checker-model" name="checker" type="radio" value="model" aria-describedby="checker-model-hint">
+              <label class="govuk-label govuk-radios__label" for="checker-model">Compare with the gpt-6-sol AI model</label>
+              <div class="govuk-hint govuk-radios__hint" id="checker-model-hint">For testing the prototype. Your letter is sent to OpenAI through Vercel to be checked. Do not use a real letter.</div>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+
       <button type="submit" class="govuk-button" data-module="govuk-button">Check the letter</button>
     </form>
 
