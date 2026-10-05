@@ -74,21 +74,16 @@ await step('keyboard: skip link first, then Exit this page is reachable', async 
   assert.notEqual(outline, 'nonenone', 'focus is visible');
 });
 
-await step('home page has one button, which starts the find-a-solicitor flow', async () => {
+await step('home page has one button, which starts preparing evidence', async () => {
   await go('index.html');
+  assert.equal(await text('main h1'), 'Get help preparing evidence for legal aid for domestic abuse');
   const buttons = await page.$$eval('main .govuk-button, header nav a', (b) => b.map((x) => x.textContent.trim()));
   assert.deepEqual(buttons, ['Start now']);
+  assert.ok(await page.$('main a[href="https://find-legal-advice.justice.gov.uk/"]'), 'points to the GOV.UK solicitor finder');
   await Promise.all([page.waitForNavigation(), page.click('.govuk-button--start')]);
   await until(() => document.querySelector('#flow h1'));
   assert.equal(await text('#flow h1'), 'Do you have a solicitor for your family case?');
-});
-
-await step('home page links to find evidence', async () => {
-  await go('index.html');
-  await Promise.all([page.waitForNavigation(), page.click('main a[href="check.html"]')]);
-  await until(() => document.querySelector('#flow h1'));
-  assert.equal(await text('#flow h1'), 'Do you have a solicitor for your family case?');
-  assert.match(page.url(), /check\.html$/);
+  assert.match(page.url(), /check\.html/);
 });
 
 await step('find a solicitor leads into find evidence without asking about a solicitor again', async () => {

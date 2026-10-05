@@ -10,6 +10,7 @@
 
 import { EVIDENCE, POLICE_EVENTS, COURT_EVENTS } from '../evidence.js';
 import { ROUTES } from '../routes.js';
+import { finderForm } from './find-solicitor.js';
 import { mountAll } from '../contact-ui.js';
 import { mountLocal } from '../local-ui.js';
 
@@ -114,11 +115,12 @@ const steps = {
   },
   toSolicitor: {
     title: 'Find a legal aid solicitor',
-    body: `<p class="govuk-body">Answer a few questions to find out how to get a legal aid solicitor. When you have finished, you can come back and find evidence.</p>
-<a href="find-solicitor.html#have/risk" role="button" draggable="false" class="govuk-button govuk-button--start" data-module="govuk-button">Find a solicitor
-  <svg class="govuk-button__start-icon" xmlns="http://www.w3.org/2000/svg" width="17.5" height="19" viewBox="0 0 33 40" aria-hidden="true" focusable="false"><path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" /></svg>
-</a>
-<p class="govuk-body"><a class="govuk-link" href="#solicitor/findSolicitor/police">Find evidence first instead</a></p>`,
+    body: `<p class="govuk-body">Search GOV.UK for solicitors near you who do legal aid family work. Call 2 or 3 of them and say you have experienced domestic abuse and need help with a family matter. You do not have to describe what happened.</p>
+${finderForm('solicitorPostcode')}
+<p class="govuk-body">You can also call Civil Legal Advice on <strong>0345 345 4 345</strong>. Say if you are at risk of harm and they will deal with your call quickly.</p>
+<h2 class="govuk-heading-m">Then find evidence</h2>
+<p class="govuk-body">Your solicitor will tell you which evidence they need. You can also start now.</p>
+<p class="govuk-body"><a class="govuk-link" href="#solicitor/findSolicitor/police">Find evidence you can use</a></p>`,
   },
   police: {
     title: 'Have the police been involved?',
