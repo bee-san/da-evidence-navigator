@@ -241,8 +241,8 @@ function gpHtml(p) {
 ${p.email
     ? `<p class="govuk-body">We have added their email address, <strong>${escapeHtml(p.email)}</strong>, below. It comes from the NHS website – check it is right before you send.</p>`
     : `<p class="govuk-body">They do not list an email address.${tel ? ` Call ${tel} and ask where to send a request for a letter, then add it below.` : ''}</p>`}
-<p class="govuk-body-s">Some GPs charge a fee for a letter. You can ask when you contact them.</p></div>
-<div id="gpCall"></div>`;
+<p class="govuk-body-s">Some GPs charge a fee for a letter. You can ask when you contact them.</p>
+<div id="gpCall"></div></div>`;
 }
 
 // "Call them for me": an AI assistant phones the practice and asks where to
