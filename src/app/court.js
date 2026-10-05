@@ -7,7 +7,7 @@
 import { findPlace, outwardCode } from './location.js';
 
 const api = async (query, fetchFn) => {
-  const res = await fetchFn(`api/court?${query}`, { credentials: 'omit', signal: AbortSignal.timeout(15000) });
+  const res = await fetchFn(`api/court?${query}`, { credentials: 'same-origin', signal: AbortSignal.timeout(15000) });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`court lookup returned ${res.status}`);
   return res.json();

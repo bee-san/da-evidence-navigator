@@ -32,7 +32,7 @@ export async function searchPractices(query, fetchFn = fetch) {
 // Returns { name, telephone, email, url } for a practice code.
 export async function practiceContact(code, fetchFn = fetch) {
   try {
-    const r = await fetchFn(`api/gp?code=${encodeURIComponent(code)}`, { credentials: 'omit' });
+    const r = await fetchFn(`api/gp?code=${encodeURIComponent(code)}`, { credentials: 'same-origin' });
     if (r.ok) return await r.json();
   } catch { /* fall back to ODS below */ }
   const org = (await getJson(`${ODS}/${encodeURIComponent(code)}`, fetchFn))?.Organisation;
