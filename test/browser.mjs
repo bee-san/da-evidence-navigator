@@ -30,7 +30,8 @@ const CHROME = process.env.CHROME_PATH || (process.platform === 'darwin'
 const profile = await mkdtemp(join(tmpdir(), 'da-chrome-'));
 const browser = await puppeteer.launch({
   executablePath: CHROME, headless: true, defaultViewport: null, userDataDir: profile,
-  args: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--no-first-run', '--window-size=1100,900'],
+  // A fake camera, so the photo flow can be tested without a device.
+  args: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--no-first-run', '--window-size=1100,900', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
 });
 const page = (await browser.pages())[0] || await browser.newPage();
 const errors = [];
@@ -392,6 +393,33 @@ await step('letter checker: guidance-only types are labelled', async () => {
 });
 
 const tmp = await mkdtemp(join(tmpdir(), 'da-files-'));
+await step('letter checker: camera flow takes, reviews and removes photos, then turns the camera off', async () => {
+  await go('letter-checker.html');
+  const external = [];
+  const watch = (r) => { if (!r.url().startsWith(base) && !/^(data|blob):/.test(r.url())) external.push(r.url()); };
+  page.on('request', watch);
+  const snapAndUse = async () => {
+    await until(() => document.getElementById('cam-video').videoWidth > 0, 10000);
+    await page.click('#cam-snap');
+    await until(() => !document.querySelector('.app-camera__review').hidden, 10000);
+    await page.click('#cam-use');
+  };
+  await page.click('#cam-start');
+  await until(() => !document.querySelector('.app-camera__live').hidden, 10000);
+  await audit('camera on');
+  await snapAndUse();
+  assert.equal(await page.$$eval('#cam-list li', (l) => l.length), 1);
+  assert.equal(await page.$eval('#cam-video', (v) => v.srcObject), null, 'camera off while reviewing pages');
+  await page.click('#cam-more');
+  await snapAndUse();
+  assert.equal(await page.$$eval('#cam-list li', (l) => l.length), 2);
+  await audit('two photos');
+  await page.click('[data-remove="1"]');
+  assert.equal(await page.$$eval('#cam-list li', (l) => l.length), 1);
+  page.off('request', watch);
+  assert.deepEqual(external, [], 'photos never leave the device');
+});
+
 await step('letter checker: reads a photo of a letter on the device', async () => {
   await go('letter-checker.html');
   // Draw the rejected example as an image, the way a phone photo would arrive.
@@ -409,6 +437,7 @@ await step('letter checker: reads a photo of a letter on the device', async () =
   const external = [];
   const watch = (r) => { if (!r.url().startsWith(base) && !r.url().startsWith('data:') && !r.url().startsWith('blob:')) external.push(r.url()); };
   page.on('request', watch);
+  await page.click('.govuk-details__summary');
   await (await page.$('#file')).uploadFile(file);
   await until(() => /Text added/.test(document.getElementById('file-status').textContent), 120000);
   page.off('request', watch);
