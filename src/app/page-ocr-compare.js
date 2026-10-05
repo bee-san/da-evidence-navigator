@@ -82,7 +82,8 @@ form.addEventListener('submit', async (e) => {
   const needsDownload = chosen.some((x) => !x.local);
   const problem = !chosen.length ? 'Choose at least one reader'
     : needsDownload && !form.consent.checked ? 'Tick the box to say you understand some readers download from other sites'
-      : form.source.value === 'photo' && !form.photo.files[0] ? 'Take or choose a photo' : '';
+      : chosen.some((x) => x.sendsPhoto) && !form['consent-upload'].checked ? 'Tick the box to say you understand GPT-6 Sol sends the photo to OpenAI'
+        : form.source.value === 'photo' && !form.photo.files[0] ? 'Take or choose a photo' : '';
   error.hidden = !problem;
   error.textContent = problem;
   if (problem) return;
