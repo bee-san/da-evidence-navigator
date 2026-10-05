@@ -2,7 +2,7 @@ import { BUILDER, buildLetter, exampleAnswers } from './builder.js';
 import { ROUTES } from './routes.js';
 import { checkLetter } from './rules.js';
 import { escapeHtml } from './chat.js';
-import { checksList, OUTCOME } from './render.js';
+import { checksList, confidenceText, OUTCOME } from './render.js';
 
 const select = document.getElementById('write-type');
 const fields = document.getElementById('write-fields');
@@ -55,6 +55,7 @@ document.getElementById('write-form').addEventListener('submit', (e) => {
 </div>
 <p class="govuk-body govuk-!-font-weight-bold" id="copy-letter-status" aria-live="polite"></p>
 <h2 class="govuk-heading-m">Check of this letter ${OUTCOME[r.outcome].tag}</h2>
+<p class="govuk-body">Confidence that it meets the requirements: <strong>${confidenceText(r)}</strong></p>
 ${checksList(r)}
 <p class="govuk-body">Print it on your organisation's letterhead, then sign and date it.</p>`;
   document.getElementById('copy-letter').addEventListener('click', async () => {

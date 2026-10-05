@@ -114,3 +114,29 @@ test('api/chat uses the OpenAI API when OPENAI_API_KEY is set', async (t) => {
   assert.equal(sent.init.headers.authorization, 'Bearer sk-test');
   assert.equal(sent.body.model, 'gpt-5-mini');
 });
+
+test('the rules page describes every check', async () => {
+  const { readFileSync } = await import('node:fs');
+  const page = readFileSync(new URL('../src/pages/rules.html', import.meta.url), 'utf8');
+  const documented = new Set([...page.matchAll(/data-check="([\w]+):([\w]+)"/g)].map((m) => `${m[1]}:${m[2]}`));
+  const isva = 'Name of perpetrator: John Doe\nI am an ISVA. I can confirm that I am providing Jane Doe with support relating to sexual violence by John Doe.\nJohn Smith\nISVA';
+  const gp = 'I can confirm that I examined Jane Doe. The injuries are consistent with domestic abuse.\nYours sincerely,\nDr John Smith\nGeneral Practitioner';
+  const unnamed = 'I can confirm that I am providing the client with support.\nYours sincerely,\nJohn Smith\nIDVA';
+  const letters = [...Object.keys(BUILDER).map((t) => buildLetter(t, exampleAnswers(t), new Date('2026-10-05')).text), isva, gp, unnamed];
+  const found = new Set();
+  for (const text of letters) {
+    const r = checkLetter(text, undefined, { today: new Date('2026-10-05') });
+    // Regulation 33 and the date warning apply to every type; refuge stays also have their own dates check.
+    for (const c of r.checks) found.add(c.id === 'reg33' || (c.id === 'dates' && r.type !== 'refugeStay') ? `all:${c.id}` : `${r.type}:${c.id}`);
+  }
+  for (const id of found) assert.ok(documented.has(id), `rules.html is missing ${id}`);
+  for (const id of documented) assert.ok(found.has(id) || id === 'all:dates', `rules.html describes ${id}, which no check produces`);
+});
+
+test('confidence: certain, probable and possible findings lower the rating by different amounts', () => {
+  const at = (id) => checkLetter(SAMPLES.find((s) => s.id === id).text, undefined, { today: new Date('2026-10-05') }).confidence;
+  assert.deepEqual(at('p11-ok-4'), { score: 100, level: 'high' });
+  assert.deepEqual(at('p11-bad-5'), { score: 5, level: 'low' }); // hedged: certain
+  assert.deepEqual(at('p18-bad-9'), { score: 6, level: 'low' }); // two missing: probably × 2
+  assert.deepEqual(at('p17-bad-3'), { score: 60, level: 'medium' }); // too general: possibly
+});

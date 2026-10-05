@@ -20,9 +20,10 @@ export function evaluate(today = new Date('2026-10-05T00:00:00Z')) {
     const detected = detectType(l.text);
     const r = checkLetter(l.text, undefined, { today });
     const failed = r.checks.filter((c) => c.status === 'fail').map((c) => c.id);
-    const predicted = failed.length ? 'rejected' : 'accepted';
+    // Accepted means the checker is confident (high level) the letter meets the requirements.
+    const predicted = r.outcome === 'ready' ? 'accepted' : 'rejected';
     const correct = detected === l.type && predicted === l.expected && (!l.failId || failed.includes(l.failId));
-    return { id: l.id, label: l.label, source: l.source, type: l.type, detected, expected: l.expected, predicted, failId: l.failId, failed, correct };
+    return { id: l.id, label: l.label, source: l.source, type: l.type, detected, expected: l.expected, predicted, confidence: r.confidence, failId: l.failId, failed, correct };
   });
   const by = (src) => rows.filter((r) => !src || r.source === src);
   const summary = Object.fromEntries(['pack', 'synthetic', 'variation', ''].map((src) => {
