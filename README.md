@@ -23,7 +23,7 @@ And a **demo** page with a before-and-after story, accuracy results and an impac
 ## Safety and privacy
 
 - No analytics or cookies. Typed text is cleared on exit. The only storage is the progress tracker, and only if the user ticks "Save". Only helper questions leave the browser.
-- Photos and PDFs are read on the device by Tesseract.js and PDF.js, served from this site (`assets/vendor/`). The browser test checks that no request leaves the site while a photo is read.
+- Photos and PDFs are read on the device by PaddleOCR (paddleocr.js on ONNX Runtime Web, PP-OCRv6 tiny models) and PDF.js, served from this site (`assets/vendor/`; the models are downloaded at build time by `scripts/fetch-ocr-models.mjs`). On phone-style photos of the 28 test letters it made 0.4% character errors, against 39% for Tesseract.js, which it replaces. The browser test checks that no request leaves the site while a photo is read.
 - The AI second opinion downloads a model from Hugging Face and its runtime from jsDelivr, only after the user agrees. The letter is not sent. Nothing is cached.
 - GOV.UK **Exit this page** on every page (Shift ×3) and a [stay safe online](src/pages/safety.html) page adapted from Check if you can get legal aid.
 - Points to 999 (Silent Solution 55), the National Domestic Abuse Helpline and the Civil Legal Advice harm fast-track.
@@ -81,4 +81,4 @@ The endpoint spends the project's OpenAI or AI Gateway credit and sits behind Ve
 
 ## Credits
 
-[GOV.UK Frontend](https://design-system.service.gov.uk/) 6.5.1 (MIT), vendored without the GDS Transport font and GOV.UK crown, which are restricted to GOV.UK services. Tesseract.js, PDF.js and qrcode-generator are listed in `assets/vendor/NOTICE.txt`. Content is adapted from [GOV.UK](https://www.gov.uk/legal-aid/domestic-abuse) under the Open Government Licence v3.0.
+[GOV.UK Frontend](https://design-system.service.gov.uk/) 6.5.1 (MIT), vendored without the GDS Transport font and GOV.UK crown, which are restricted to GOV.UK services. paddleocr.js, ONNX Runtime Web, the PP-OCRv6 models, PDF.js and qrcode-generator are listed in `assets/vendor/NOTICE.txt`. Content is adapted from [GOV.UK](https://www.gov.uk/legal-aid/domestic-abuse) under the Open Government Licence v3.0.

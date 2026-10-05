@@ -10,6 +10,8 @@
   },
   "devDependencies": {
     "axe-core": "4.13.0",
+    "onnxruntime-web": "1.30.0",
+    "paddleocr": "1.2.0",
     "puppeteer-core": "25.12.0"
   }
 }

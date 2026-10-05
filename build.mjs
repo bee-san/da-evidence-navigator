@@ -1,5 +1,7 @@
 // Renders src/pages/*.html into src/layout.html and writes a static site to _site/.
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, readdirSync } from 'node:fs';
+import { fetchOcrModels, CACHE } from './scripts/fetch-ocr-models.mjs';
+import { OCR_MODEL } from './src/app/ocr-model.js';
 
 const NAV = [
   ['index', 'index.html', 'Home'],
@@ -20,6 +22,16 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out);
 cpSync('assets', `${out}/assets`, { recursive: true });
 cpSync('src/app', `${out}/app`, { recursive: true });
+
+// Text reader for photos (src/app/ocr.js): paddleocr.js, ONNX Runtime Web and
+// the PP-OCRv6 models, all served from this site.
+await fetchOcrModels([OCR_MODEL]);
+const ocrDir = `${out}/assets/vendor`;
+mkdirSync(`${ocrDir}/paddleocr`, { recursive: true });
+mkdirSync(`${ocrDir}/onnxruntime`, { recursive: true });
+cpSync('node_modules/paddleocr/dist/index.mjs', `${ocrDir}/paddleocr/paddleocr.mjs`);
+cpSync(`${CACHE}/${OCR_MODEL}`, `${ocrDir}/paddleocr/${OCR_MODEL}`, { recursive: true });
+for (const f of ['ort.wasm.min.mjs', 'ort-wasm-simd-threaded.mjs', 'ort-wasm-simd-threaded.wasm']) cpSync(`node_modules/onnxruntime-web/dist/${f}`, `${ocrDir}/onnxruntime/${f}`);
 
 const fullLayout = readFileSync('src/layout.html', 'utf8');
 // Footer links marked data-menu-only go with the menu.
