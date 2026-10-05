@@ -4,6 +4,7 @@ import { SYNTHETIC } from './synthetic.js';
 import { escapeHtml } from './chat.js';
 import { resultHtml } from './render.js';
 import { extractText } from './ocr.js';
+import { mountCamera } from './camera.js';
 import { secondOpinion, MODEL, MEASURED } from './model.js';
 
 const type = document.getElementById('type');
@@ -24,6 +25,26 @@ sample.addEventListener('change', () => {
   letter.value = s.text;
   type.value = '';
   result.innerHTML = '';
+});
+
+// Photos taken with the camera, page by page, read into the letter text.
+const camera = mountCamera(document.getElementById('camera'), {
+  status: (m) => { fileStatus.textContent = m; },
+  read: async (files) => {
+    const texts = [];
+    for (const [i, f] of files.entries()) {
+      texts.push(await extractText(f, (m) => { fileStatus.textContent = files.length > 1 ? `Page ${i + 1} of ${files.length}: ${m}` : m; }));
+    }
+    return texts.join('\n\n');
+  },
+  onText: (text) => {
+    letter.value = text.trim();
+    fileStatus.textContent = text.trim()
+      ? 'Text added below. Check it matches the letter, then select "Check the letter".'
+      : 'No text was found. Try again in better light, or type the letter in.';
+    if (text.trim()) camera.clear();
+    letter.focus();
+  },
 });
 
 file.addEventListener('change', async () => {

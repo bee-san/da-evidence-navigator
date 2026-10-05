@@ -4,15 +4,21 @@
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
     <h1 class="govuk-heading-l">Check a letter</h1>
-    <p class="govuk-body">Add a photo or PDF of a letter you have been given, or paste its text. We will check it against the wording the Legal Aid Agency usually accepts.</p>
-    <p class="govuk-body">The check runs on your device. The letter is not sent anywhere or saved.</p>
+    <p class="govuk-body">Take a photo of a letter you have been given, or paste its text. We will check it against the wording the Legal Aid Agency usually accepts.</p>
+    <p class="govuk-body">The photo and the check stay on your device. The letter is not sent anywhere or saved.</p>
 
-    <div class="govuk-form-group">
-      <label class="govuk-label govuk-label--s" for="file">Add a photo or PDF of the letter (optional)</label>
-      <div id="file-hint" class="govuk-hint">Take the photo in good light with the whole page showing. Your photo stays on your device.</div>
-      <input class="govuk-file-upload" id="file" type="file" accept="image/*,application/pdf,.pdf,.txt,text/plain" aria-describedby="file-hint file-status">
-      <p class="govuk-body govuk-!-margin-top-2" id="file-status" aria-live="polite" data-wipe></p>
-    </div>
+    <div id="camera"></div>
+    <p class="govuk-body govuk-!-font-weight-bold" id="file-status" aria-live="polite" data-wipe></p>
+
+    <details class="govuk-details">
+      <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Upload a photo or PDF instead</span></summary>
+      <div class="govuk-details__text">
+        <div class="govuk-form-group govuk-!-margin-bottom-0">
+          <label class="govuk-label" for="file">Photo, PDF or text file of the letter</label>
+          <input class="govuk-file-upload" id="file" type="file" accept="image/*,application/pdf,.pdf,.txt,text/plain" aria-describedby="file-status">
+        </div>
+      </div>
+    </details>
 
     <details class="govuk-details">
       <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Try an example letter</span></summary>
@@ -43,5 +49,7 @@
     </form>
 
     <div id="result" data-wipe tabindex="-1"></div>
+
+    <p class="govuk-body-s govuk-!-margin-top-6">For testing: <a class="govuk-link" href="ocr-compare.html">compare text readers</a>.</p>
   </div>
 </div>
