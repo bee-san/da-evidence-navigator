@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" class="govuk-template">
+<head>
+  <meta charset="utf-8">
+  <title>{{title}} – Domestic abuse evidence for legal aid</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#0b0c0c">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="assets/govuk/govuk-frontend.min.css">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body class="govuk-template__body">
+  <script>document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>
+  <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
+
+  <header class="app-header" role="banner">
+    <div class="govuk-width-container">
+      <span class="app-header__title">Hackathon prototype</span>
+    </div>
+  </header>
+
+  <section aria-label="Service information" class="govuk-service-navigation" data-module="govuk-service-navigation">
+    <div class="govuk-width-container">
+      <div class="govuk-service-navigation__container">
+        <span class="govuk-service-navigation__service-name">
+          <a href="index.html" class="govuk-service-navigation__link">Domestic abuse evidence for legal aid</a>
+        </span>
+        <nav aria-label="Menu" class="govuk-service-navigation__wrapper">
+          <button type="button" class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle" aria-controls="navigation" hidden>Menu</button>
+          <ul class="govuk-service-navigation__list" id="navigation">
+            {{nav}}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+  <div class="govuk-width-container">
+    <div class="govuk-phase-banner">
+      <p class="govuk-phase-banner__content">
+        <strong class="govuk-tag govuk-phase-banner__content__tag">Prototype</strong>
+        <span class="govuk-phase-banner__text">This is not a real government service. It uses fictional example letters and gives no legal advice.</span>
+      </p>
+    </div>
+
+    <div class="govuk-exit-this-page" data-module="govuk-exit-this-page">
+      <a href="https://www.bbc.co.uk/weather" role="button" draggable="false" class="govuk-button govuk-button--warning govuk-exit-this-page__button govuk-js-exit-this-page-button" data-module="govuk-button" rel="nofollow noreferrer">
+        <span class="govuk-visually-hidden">Emergency</span> Exit this page
+      </a>
+    </div>
+
+    <main class="govuk-main-wrapper" id="main-content">
+{{content}}
+    </main>
+  </div>
+
+  <footer class="govuk-footer">
+    <div class="govuk-width-container">
+      <div class="govuk-footer__meta">
+        <div class="govuk-footer__meta-item govuk-footer__meta-item--grow">
+          <h2 class="govuk-visually-hidden">Support links</h2>
+          <ul class="govuk-footer__inline-list">
+            <li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="safety.html">Stay safe online</a></li>
+            <li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="about.html">About this prototype</a></li>
+            <li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="https://www.gov.uk/legal-aid/domestic-abuse" rel="noreferrer">Legal aid for domestic abuse on GOV.UK</a></li>
+          </ul>
+          <p class="govuk-body-s">Built for the 10 Downing Street data science hackathon. Uses <a class="govuk-footer__link" href="https://design-system.service.gov.uk/" rel="noreferrer">GOV.UK Frontend</a> under the MIT licence. Content is based on GOV.UK guidance, available under the <a class="govuk-footer__link" href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" rel="noreferrer">Open Government Licence v3.0</a>.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { initAll } from './assets/govuk/govuk-frontend.min.js';
+    initAll();
+    // Clear anything typed when leaving, so Back or a restored tab shows nothing.
+    const wipe = () => {
+      document.querySelectorAll('textarea, input[type=text]').forEach((el) => { el.value = ''; });
+      document.querySelectorAll('input[type=checkbox]').forEach((el) => { el.checked = false; });
+      document.querySelectorAll('[data-wipe]').forEach((el) => { el.innerHTML = ''; });
+    };
+    document.querySelector('.govuk-js-exit-this-page-button').addEventListener('click', wipe);
+    window.addEventListener('pagehide', wipe);
+    window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload(); });
+  </script>
+  {{scripts}}
+</body>
+</html>

@@ -1,0 +1,2 @@
+GOV.UK Frontend 6.5.1 (MIT licence), https://github.com/alphagov/govuk-frontend
+GDS Transport font and GOV.UK crown removed: they are restricted to GOV.UK services.

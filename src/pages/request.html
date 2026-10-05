@@ -1,0 +1,23 @@
+<!-- title: Get a request note -->
+<!-- nav: request -->
+<!-- script: app/page-request.js -->
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Get a request note to give a professional</h1>
+    <p class="govuk-body">Give this note to the person you are asking for evidence. It explains what the Legal Aid Agency needs, with suggested wording they can copy.</p>
+    <p class="govuk-body">Replace the words in [square brackets] or ask them to fill them in. Some professionals may charge a fee, so ask first.</p>
+
+    <div class="govuk-form-group app-no-print">
+      <label class="govuk-label govuk-label--s" for="route-select">Who are you asking?</label>
+      <select class="govuk-select" id="route-select"></select>
+    </div>
+
+    <div id="note-panel"></div>
+
+    <div class="govuk-button-group app-no-print">
+      <button type="button" class="govuk-button" id="copy" data-module="govuk-button">Copy the note</button>
+      <button type="button" class="govuk-button govuk-button--secondary" id="print" data-module="govuk-button">Print</button>
+    </div>
+    <div aria-live="polite" class="govuk-body govuk-!-font-weight-bold" id="copy-status" data-wipe></div>
+  </div>
+</div>

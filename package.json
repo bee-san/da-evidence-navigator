@@ -1,0 +1,9 @@
+{
+  "name": "da-evidence-navigator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/rules.test.mjs",
+    "build": "node build.mjs"
+  }
+}

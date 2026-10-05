@@ -1,0 +1,40 @@
+<!-- title: Check a letter -->
+<!-- nav: letter-checker -->
+<!-- script: app/page-letter.js -->
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Check a letter</h1>
+    <p class="govuk-body">Paste the text of a letter you have been given. We will check it against the wording the Legal Aid Agency usually accepts.</p>
+    <p class="govuk-body">The check runs on your device. The letter is not sent anywhere or saved.</p>
+
+    <details class="govuk-details">
+      <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Try an example letter</span></summary>
+      <div class="govuk-details__text">
+        <p class="govuk-body">These fictional letters come from the hackathon evidence pack. Some were accepted and some were rejected.</p>
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="sample">Example</label>
+          <select class="govuk-select" id="sample"><option value="">Choose an example</option></select>
+        </div>
+      </div>
+    </details>
+
+    <form id="letter-form" novalidate>
+      <div class="govuk-form-group" id="type-group">
+        <label class="govuk-label govuk-label--s" for="type">Type of letter</label>
+        <select class="govuk-select" id="type">
+          <option value="">Work it out for me</option>
+        </select>
+      </div>
+
+      <div class="govuk-form-group" id="letter-group">
+        <label class="govuk-label govuk-label--s" for="letter">Letter text</label>
+        <p id="letter-error" class="govuk-error-message" hidden><span class="govuk-visually-hidden">Error:</span> <span id="letter-error-text"></span></p>
+        <textarea class="govuk-textarea" id="letter" rows="12" spellcheck="false" autocomplete="off"></textarea>
+      </div>
+
+      <button type="submit" class="govuk-button" data-module="govuk-button">Check the letter</button>
+    </form>
+
+    <div id="result" data-wipe tabindex="-1"></div>
+  </div>
+</div>
