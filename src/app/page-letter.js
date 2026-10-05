@@ -88,7 +88,7 @@ async function checkWithAi(text, category) {
   const res = await fetch('api/check-ai', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    credentials: 'omit',
+    credentials: 'same-origin', // deployments are behind Vercel login, which covers api/*
     body: JSON.stringify({ text, category }),
   });
   const r = await res.json().catch(() => ({}));

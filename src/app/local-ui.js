@@ -7,6 +7,7 @@ import { findPlace, rememberedPlace, socialServicesCouncil } from './location.js
 import { forceForPlace, FORCES } from './police.js';
 import { escapeHtml } from './chat.js';
 import { servicesFor, hasServiceList } from './services-lookup.js';
+import { mountCall } from './contact-ui.js';
 
 const link = (url, text) => `<a class="govuk-link" href="${escapeHtml(url)}" target="_blank" rel="noreferrer noopener">${escapeHtml(text)} (opens in new tab)</a>`;
 const DIRECTORY = link('https://www.womensaid.org.uk/domestic-abuse-directory/', 'Find a local domestic abuse service on Women’s Aid');
@@ -56,7 +57,8 @@ function servicesHtml(c, key) {
   </div>
 </fieldset></div>
 <p class="govuk-body-s">From the Women’s Aid directory, Routes to Support. Details can change, so check them on the service’s website.</p>
-<p class="govuk-body govuk-!-font-weight-bold" id="service-status" aria-live="polite"></p>`;
+<p class="govuk-body govuk-!-font-weight-bold" id="service-status" aria-live="polite"></p>
+<div id="serviceCall"></div>`;
 }
 
 // Fills in the email with the chosen service, without overwriting anything
@@ -74,6 +76,11 @@ function useService(root, c, key, id) {
     status.textContent = !sv ? ''
       : sv.email ? `We have added ${sv.name} to your email below.`
         : `${sv.name} does not list an email address.${sv.phone ? ` Call them on ${sv.phone} and ask where to send your request.` : ''}`;
+  }
+  const callBox = root.querySelector('#serviceCall');
+  if (callBox) {
+    callBox.innerHTML = '';
+    if (sv && !sv.email && sv.phone) mountCall(callBox, { kind: 'service', id: sv.id, phone: sv.phone, name: sv.name }, set);
   }
 }
 
