@@ -1,16 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GET, POST, readDetails } from '../api/send.js';
+import { docxText } from '../src/app/docx.js';
 
 const base = { key: 'p11', applicant: 'Jane Doe', profEmail: 'gp@example.nhs.uk', replyTo: 'me' };
-const post = (body) => POST(new Request('https://example.org/api/send', { method: 'POST', body: JSON.stringify(body) }));
+// A different address for each request, so the hourly limit does not get in the way.
+let ip = 0;
+const post = (body) => POST(new Request('https://example.org/api/send', {
+  method: 'POST', headers: { 'x-forwarded-for': `192.0.2.${(ip += 1)}` }, body: JSON.stringify(body),
+}));
 
-function withResend(t) {
+// mode: { EMAIL_LIVE: '1' } sends to the real recipient, { EMAIL_TEST_TO: '…' } to a test inbox.
+function withResend(t, mode = { EMAIL_LIVE: '1' }) {
   process.env.RESEND_API_KEY = 'test-key';
   process.env.EMAIL_FROM = 'Requests <requests@example.org>';
+  Object.assign(process.env, mode);
   const calls = [];
   t.mock.method(globalThis, 'fetch', async (url, init) => { calls.push({ url, body: JSON.parse(init.body), auth: init.headers.authorization }); return new Response('{"id":"1"}'); });
-  t.after(() => { delete process.env.RESEND_API_KEY; delete process.env.EMAIL_FROM; });
+  t.after(() => { for (const k of ['RESEND_API_KEY', 'EMAIL_FROM', 'EMAIL_LIVE', 'EMAIL_TEST_TO']) delete process.env[k]; });
   return calls;
 }
 
@@ -38,7 +45,48 @@ test('sends with a different reply-to address and an on-behalf footer', async (t
   assert.equal(c.body.reply_to, 'safe@example.com');
   assert.match(c.body.text, /Please send it to me at safe@example\.com\./);
   assert.match(c.body.text, /sent for Jane Doe by a prototype service/);
-  assert.match(c.body.text, /https:\/\/example\.org\/letter-checker\.html\?type=p11/);
+  assert.match(c.body.text, /https:\/\/da-evidence-navigator-rho\.vercel\.app\/letter-checker\.html\?type=p11/, 'links to the live site');
+});
+
+test('sending is not offered unless emails go to a test inbox or EMAIL_LIVE=1 is set', async () => {
+  process.env.RESEND_API_KEY = 'test-key';
+  process.env.EMAIL_FROM = 'Requests <requests@example.org>';
+  try {
+    assert.deepEqual(await GET().json(), { enabled: false });
+    process.env.EMAIL_TEST_TO = 'test@example.com';
+    assert.deepEqual(await GET().json(), { enabled: true });
+  } finally {
+    for (const k of ['RESEND_API_KEY', 'EMAIL_FROM', 'EMAIL_TEST_TO']) delete process.env[k];
+  }
+});
+
+test('test mode: everything goes to the test inbox, with the real recipient in the subject and no copy', async (t) => {
+  const calls = withResend(t, { EMAIL_TEST_TO: 'test@example.com' });
+  const res = await post({ ...base, replyTo: 'solicitor', solicitorEmail: 'sol@example.com' });
+  assert.deepEqual(await res.json(), { sent: true, to: 'gp@example.nhs.uk', testTo: 'test@example.com' });
+  const [c] = calls;
+  assert.deepEqual(c.body.to, ['test@example.com']);
+  assert.equal(c.body.cc, undefined);
+  assert.equal(c.body.subject, '[Test – would go to gp@example.nhs.uk, cc sol@example.com] Request for a letter for my legal aid application');
+});
+
+test('a letter request attaches the suggested wording as a Word document', async (t) => {
+  const calls = withResend(t);
+  await post({ ...base, altEmail: 'safe@example.com' });
+  const [c] = calls;
+  assert.match(c.body.text, /also attached as a Word document, with the parts to fill in highlighted/);
+  assert.equal(c.body.attachments.length, 1);
+  const { filename, content } = c.body.attachments[0];
+  assert.equal(filename, 'suggested-letter.docx');
+  const text = await docxText(new Blob([Buffer.from(content, 'base64')]));
+  assert.match(text, /I can confirm that I have examined Jane Doe/);
+  assert.match(text, /\[injuries \/ condition\]/);
+});
+
+test('a police records request has no attachment', async (t) => {
+  const calls = withResend(t);
+  await post({ ...base, key: 'police', event: 'convicted', other: 'John Doe', profEmail: 'records@police.uk', altEmail: 'safe@example.com' });
+  assert.equal(calls[0].body.attachments, undefined);
 });
 
 test('phone call back: no reply-to, number and voicemail preference in the email', async (t) => {

@@ -534,7 +534,8 @@ async function sendForMe(preview, key, d) {
     button.outerHTML = `<div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="sfm-sent-title" tabindex="-1" id="sfm-sent">
   <div class="govuk-notification-banner__header"><h2 class="govuk-notification-banner__title" id="sfm-sent-title">Success</h2></div>
   <div class="govuk-notification-banner__content">
-    <p class="govuk-notification-banner__heading">Your email has been sent to ${escapeHtml(r.to)}</p>
+    <p class="govuk-notification-banner__heading">Your email has been sent${r.testTo ? '' : ` to ${escapeHtml(r.to)}`}</p>
+    ${r.testTo ? `<p class="govuk-body"><strong>Test mode:</strong> it went to ${escapeHtml(r.testTo)}, not to ${escapeHtml(r.to)}.</p>` : ''}
     <p class="govuk-body">They have been asked to ${escapeHtml(how)}. We have not kept a copy, and nothing was sent to your inbox.</p>
   </div>
 </div>`;
@@ -606,7 +607,7 @@ export function mountContact(el, answers = {}) {
     showErrors(el, errors);
     if (errors.length) return;
 
-    const email = buildRequest(key, d, { baseUrl: new URL('.', location.href).href });
+    const email = buildRequest(key, d);
     preview.innerHTML = previewHtml(key, email, d);
     const status = preview.querySelector('#send-status');
     if (d.sentForMe) {
