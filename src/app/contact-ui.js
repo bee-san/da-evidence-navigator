@@ -241,7 +241,83 @@ function gpHtml(p) {
 ${p.email
     ? `<p class="govuk-body">We have added their email address, <strong>${escapeHtml(p.email)}</strong>, below. It comes from the NHS website – check it is right before you send.</p>`
     : `<p class="govuk-body">They do not list an email address.${tel ? ` Call ${tel} and ask where to send a request for a letter, then add it below.` : ''}</p>`}
-<p class="govuk-body-s">Some GPs charge a fee for a letter. You can ask when you contact them.</p></div>`;
+<p class="govuk-body-s">Some GPs charge a fee for a letter. You can ask when you contact them.</p></div>
+<div id="gpCall"></div>`;
+}
+
+// "Call them for me": an AI assistant phones the practice and asks where to
+// send the request. Shown only when api/call.js is set up.
+let callCheck;
+const canCall = () => (callCheck ??= fetch('api/call', { credentials: 'omit' })
+  .then((r) => (r.ok ? r.json() : { enabled: false })).catch(() => ({ enabled: false })));
+
+function callHtml(p, demo) {
+  return `<details class="govuk-details">
+  <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Ask an AI assistant to call them for me</span></summary>
+  <div class="govuk-details__text">
+    <p class="govuk-body">An AI assistant will phone the practice and ask where to send a request for a letter, and who to address it to. It says it is an AI calling on behalf of a patient. It does not give your name or say why you need the letter.</p>
+    ${demo ? '<div class="govuk-warning-text"><span class="govuk-warning-text__icon" aria-hidden="true">!</span><strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>Demo: this calls a test phone, not the practice.</strong></div>' : ''}
+    <p class="govuk-body">The practice’s phone number is sent to our calling provider. The call is recorded and transcribed so we can fill in what they say.</p>
+    <div class="govuk-form-group" id="callPhone-group">
+      <label class="govuk-label" for="callPhone">Practice phone number</label>
+      <p class="govuk-error-message" id="callPhone-error" hidden><span class="govuk-visually-hidden">Error:</span> <span></span></p>
+      <input class="govuk-input govuk-input--width-20" id="callPhone" type="tel" autocomplete="off" value="${escapeHtml(p.telephone || '')}">
+    </div>
+    <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button" id="callStart">Call the practice for me</button>
+    <p class="govuk-body govuk-!-font-weight-bold" id="callStatus" aria-live="polite"></p>
+  </div>
+</details>`;
+}
+
+const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
+
+async function mountCall(el, code, p, set) {
+  const box = el.querySelector('#gpCall');
+  const { enabled, demo } = await canCall();
+  if (!enabled || !box) return;
+  box.innerHTML = callHtml(p, demo);
+  const button = box.querySelector('#callStart');
+  const status = box.querySelector('#callStatus');
+  const phone = box.querySelector('#callPhone');
+  const error = box.querySelector('#callPhone-error');
+  const fail = (msg) => {
+    error.hidden = false;
+    error.querySelector('span:last-child').textContent = msg;
+    box.querySelector('#callPhone-group').classList.add('govuk-form-group--error');
+    status.textContent = '';
+    button.disabled = false;
+  };
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    error.hidden = true;
+    box.querySelector('#callPhone-group').classList.remove('govuk-form-group--error');
+    status.textContent = 'Starting the call…';
+    let id;
+    try {
+      const res = await fetch('api/call', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'omit', body: JSON.stringify({ code, phone: phone.value, name: p.name }) });
+      const r = await res.json().catch(() => ({}));
+      if (!res.ok || !r.id) { fail(r.error || 'The call could not be started. Try again, or call them yourself.'); return; }
+      id = r.id;
+    } catch { fail('The call could not be started. Try again, or call them yourself.'); return; }
+    status.textContent = 'Calling the practice. This usually takes a minute or two – you can keep filling in the form.';
+    for (let i = 0; i < 60; i++) {
+      await sleep(5000);
+      let r;
+      try { r = await (await fetch(`api/call?id=${encodeURIComponent(id)}`, { credentials: 'omit' })).json(); } catch { continue; }
+      if (r.status === 'calling') continue;
+      if (r.status === 'done' && r.email) {
+        set('#profEmail', r.email);
+        if (r.name) set('#profName', r.name);
+        status.textContent = `The practice said to send it to ${r.email}${r.name ? `, for ${r.name}` : ''}. We have added this below – check it before you send.`;
+      } else {
+        status.textContent = 'The call ended without an email address. Try again later, or call them yourself.';
+      }
+      button.disabled = false;
+      return;
+    }
+    status.textContent = 'The call is taking longer than expected. Call them yourself if you do not hear back.';
+    button.disabled = false;
+  });
 }
 
 function mountGpFinder(el) {
@@ -262,6 +338,7 @@ function mountGpFinder(el) {
       detail.innerHTML = gpHtml(p);
       set('#profName', p.name);
       set('#profEmail', p.email);
+      mountCall(detail, code, p, set);
     } catch {
       detail.innerHTML = '<p class="govuk-error-message">We could not get their contact details just now. Fill them in below instead.</p>';
     }

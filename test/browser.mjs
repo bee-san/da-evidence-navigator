@@ -408,6 +408,44 @@ await step('find evidence: find my GP and add their email', async () => {
   }
 });
 
+await step('find evidence: an AI assistant calls the GP and fills in the email', async () => {
+  await go('index.html');
+  const posted = [];
+  const answer = (r) => {
+    const u = r.url();
+    const ok = (body) => r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
+    if (u.startsWith('https://directory.spineservices.nhs.uk/')) ok({ Organisations: [{ OrgId: 'K84016', Name: 'BEAUMONT ELMS PRACTICE', PostCode: 'OX1 2HB' }] });
+    else if (u.includes('/api/gp?code=K84016')) ok({ name: 'Beaumont Elms Practice', telephone: '01865240501', email: '', url: '' });
+    else if (u.endsWith('/api/call') && r.method() === 'POST') { posted.push(JSON.parse(r.postData())); ok({ id: 'conv_test', demo: true }); }
+    else if (u.endsWith('/api/call')) ok({ enabled: true, demo: true });
+    else if (u.includes('/api/call?id=conv_test')) ok({ status: 'done', email: 'letters.beaumont@nhs.net', name: 'Dr Okafor' });
+    else r.continue();
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await go('check.html#solicitor/police/court/health/evP11');
+    await page.$eval('#gpSearch', (e) => { e.value = ''; });
+    await page.type('#gpSearch', 'OX1 2HB');
+    await page.click('#gpFind');
+    await until(() => document.querySelector('#gp-0'), 5000);
+    await page.click('#gp-0');
+    await until(() => document.querySelector('#callStart'), 5000);
+    assert.match(await text('#gpCall'), /Demo: this calls a test phone/);
+    assert.equal(await page.$eval('#callPhone', (e) => e.value), '01865240501');
+    await page.click('#gpCall summary');
+    await audit('GP call offered');
+    await page.click('#callStart');
+    await until(() => document.querySelector('#profEmail').value === 'letters.beaumont@nhs.net', 12000);
+    assert.equal(await page.$eval('#profName', (e) => e.value), 'Dr Okafor');
+    assert.deepEqual(posted, [{ code: 'K84016', phone: '01865240501', name: 'Beaumont Elms Practice' }]);
+    assert.match(await text('#callStatus'), /send it to letters\.beaumont@nhs\.net, for Dr Okafor/);
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+});
+
 await step('find evidence: choose a local support service to fill in the email', async () => {
   await go('index.html');
   const answer = (r) => {
@@ -635,9 +673,9 @@ await step('exit: Shift 3 times leaves and clears what was typed', async () => {
 });
 
 await step('no console errors or missing files', async () => {
-  // api/send is a Vercel function, so the static test server answers 404 and
-  // the page falls back to the person's own email. That is expected.
-  const sendCheck = (e) => e.includes('/api/send') || (e.includes('check.html') && e.includes('status of 404'));
+  // api/send and api/call are Vercel functions, so the static test server
+  // answers 404 and the page falls back to the person's own email. That is expected.
+  const sendCheck = (e) => e.includes('/api/send') || e.includes('/api/call') || (e.includes('check.html') && e.includes('status of 404'));
   assert.deepEqual(errors.filter((e) => !e.includes('bbc.co.uk') && !sendCheck(e)), []);
 });
 
