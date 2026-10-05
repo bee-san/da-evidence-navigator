@@ -465,7 +465,6 @@ await step('find evidence: an AI assistant calls the GP and fills in the email',
     await until(() => document.querySelector('#callStart'), 5000);
     assert.match(await text('#gpCall'), /Demo: this calls a test phone/);
     assert.equal(await page.$eval('#callPhone', (e) => e.value), '01865240501');
-    await page.click('#gpCall summary');
     await audit('GP call offered');
     await page.click('#callStart');
     await until(() => document.querySelector('#profEmail').value === 'letters.beaumont@nhs.net', 12000);

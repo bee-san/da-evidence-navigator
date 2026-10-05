@@ -252,9 +252,9 @@ const canCall = () => (callCheck ??= fetch('api/call', { credentials: 'omit' })
   .then((r) => (r.ok ? r.json() : { enabled: false })).catch(() => ({ enabled: false })));
 
 function callHtml(p, demo) {
-  return `<details class="govuk-details">
-  <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Ask an AI assistant to call them for me</span></summary>
-  <div class="govuk-details__text">
+  return `<div class="app-gp-call">
+  <h3 class="govuk-heading-s">Or ask an AI assistant to call them for you</h3>
+  <div>
     <p class="govuk-body">An AI assistant will phone the practice and ask where to send a request for a letter, and who to address it to. It says it is an AI calling on behalf of a patient. It does not give your name or say why you need the letter.</p>
     ${demo ? '<div class="govuk-warning-text"><span class="govuk-warning-text__icon" aria-hidden="true">!</span><strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>Demo: this calls a test phone, not the practice.</strong></div>' : ''}
     <p class="govuk-body">The practice’s phone number is sent to our calling provider. The call is recorded and transcribed so we can fill in what they say.</p>
@@ -263,10 +263,10 @@ function callHtml(p, demo) {
       <p class="govuk-error-message" id="callPhone-error" hidden><span class="govuk-visually-hidden">Error:</span> <span></span></p>
       <input class="govuk-input govuk-input--width-20" id="callPhone" type="tel" autocomplete="off" value="${escapeHtml(p.telephone || '')}">
     </div>
-    <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button" id="callStart">Call the practice for me</button>
+    <button type="button" class="govuk-button" data-module="govuk-button" id="callStart">Call the practice for me</button>
     <p class="govuk-body govuk-!-font-weight-bold" id="callStatus" aria-live="polite"></p>
   </div>
-</details>`;
+</div>`;
 }
 
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
