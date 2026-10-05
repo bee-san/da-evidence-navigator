@@ -248,7 +248,7 @@ ${p.email
 // "Call them for me": an AI assistant phones the practice and asks where to
 // send the request. Shown only when api/call.js is set up.
 let callCheck;
-const canCall = () => (callCheck ??= fetch('api/call', { credentials: 'omit' })
+const canCall = () => (callCheck ??= fetch('api/call', { credentials: 'same-origin' })
   .then((r) => (r.ok ? r.json() : { enabled: false })).catch(() => ({ enabled: false })));
 
 function callHtml(p, demo) {
@@ -294,7 +294,7 @@ async function mountCall(el, code, p, set) {
     status.textContent = 'Starting the call…';
     let id;
     try {
-      const res = await fetch('api/call', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'omit', body: JSON.stringify({ code, phone: phone.value, name: p.name }) });
+      const res = await fetch('api/call', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ code, phone: phone.value, name: p.name }) });
       const r = await res.json().catch(() => ({}));
       if (!res.ok || !r.id) { fail(r.error || 'The call could not be started. Try again, or call them yourself.'); return; }
       id = r.id;
@@ -303,7 +303,7 @@ async function mountCall(el, code, p, set) {
     for (let i = 0; i < 60; i++) {
       await sleep(5000);
       let r;
-      try { r = await (await fetch(`api/call?id=${encodeURIComponent(id)}`, { credentials: 'omit' })).json(); } catch { continue; }
+      try { r = await (await fetch(`api/call?id=${encodeURIComponent(id)}`, { credentials: 'same-origin' })).json(); } catch { continue; }
       if (r.status === 'calling') continue;
       if (r.status === 'done' && r.email) {
         set('#profEmail', r.email);
@@ -422,7 +422,7 @@ function mountForceFinder(el) {
 
 // Whether this site can send the email (api/send.js is set up). Checked once.
 let sendCheck;
-const canSend = () => (sendCheck ??= fetch('api/send', { credentials: 'omit' })
+const canSend = () => (sendCheck ??= fetch('api/send', { credentials: 'same-origin' })
   .then((r) => (r.ok ? r.json() : { enabled: false })).then((r) => !!r.enabled).catch(() => false));
 
 function previewHtml(key, email, d) {
@@ -507,7 +507,7 @@ async function sendForMe(preview, key, d) {
   button.disabled = true;
   status.textContent = 'Sending…';
   try {
-    const res = await fetch('api/send', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'omit', body: JSON.stringify({ ...d, key }) });
+    const res = await fetch('api/send', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ ...d, key }) });
     const r = await res.json().catch(() => ({}));
     if (!res.ok || !r.sent) throw new Error(r.error || 'The email could not be sent. Try again, or send it from your own email.');
     const how = d.replyTo === 'solicitor' ? `send the letter to your solicitor at ${d.solicitorEmail}`
