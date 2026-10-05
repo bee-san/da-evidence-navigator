@@ -102,9 +102,11 @@ test('email links are encoded', () => {
   assert.equal(mailtoUrl(email), 'mailto:a%40b.com?cc=c%40d.com&subject=A%20%26%20B&body=Line%201%0ALine%202%20%26%20%3F');
 });
 
-test('no solicitor: offered the find-a-solicitor flow, which skips asking again', () => {
+test('no solicitor: offered the GOV.UK solicitor search, then the evidence questions', () => {
   assert.deepEqual(readPath(flow, '#solicitor/findSolicitor/toSolicitor').at(-1), 'toSolicitor');
-  assert.match(flow.steps.toSolicitor.body, /href="find-solicitor\.html#have\/risk"/);
+  assert.match(flow.steps.toSolicitor.body, /action="https:\/\/find-legal-advice\.justice\.gov\.uk\/search"/, 'searches GOV.UK directly');
+  assert.match(flow.steps.toSolicitor.body, /name="categories" value="mat"/, 'with Family chosen');
+  assert.equal(readPath(flow, '#solicitor/findSolicitor/police').at(-1), 'police', 'and can carry on to the evidence questions');
   assert.deepEqual(readPath(solicitorFlow, '#have/risk'), ['have', 'risk'], 'that link is a valid path');
 });
 
