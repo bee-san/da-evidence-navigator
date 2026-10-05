@@ -28,6 +28,7 @@ And a **demo** page with a before-and-after story, accuracy results and an impac
 - GOV.UK **Exit this page** on every page (Shift ×3) and a [stay safe online](src/pages/safety.html) page adapted from Check if you can get legal aid.
 - Points to 999 (Silent Solution 55), the National Domestic Abuse Helpline and the Civil Legal Advice harm fast-track.
 - The helper sends questions to `api/chat.js`, a Vercel function that calls `gpt-5-mini` (override with `CHAT_MODEL`) with the OpenAI API when `OPENAI_API_KEY` is set, or through the Vercel AI Gateway with `AI_GATEWAY_API_KEY`. Danger, privacy and pasted letters are always answered by the rules in the browser, which are also the fallback when the API is unavailable.
+- **Call the GP for me** (`api/call.js`): when a practice does not list an email address, an ElevenLabs voice agent can phone it and ask where to send the letter request and who to address it to, then fill both in. It says it is an AI calling on behalf of a patient and never gives the person's name or why they need the letter. Only the practice code and phone number leave the browser, and the function only calls the number the NHS website lists for that practice. Set `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID` and `ELEVENLABS_PHONE_NUMBER_ID` to turn it on. `CALL_DEMO_NUMBER` sends every call to a test phone instead, and the page says so.
 
 ## How the checks work
 
