@@ -68,3 +68,13 @@
   .govuk-footer, .app-no-print { display: none !important; }
   .app-note { border: 0; background: none; padding: 0; }
 }
+
+.app-qr { max-width: 220px; }
+.app-qr svg { display: block; width: 100%; height: auto; }
+.app-link-button {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font-family: arial, sans-serif; font-size: 1rem; text-decoration: underline;
+}
+.app-demo-step { border-left: 5px solid #1d70b8; padding-left: 15px; margin-bottom: 30px; }
+.app-panel-left { text-align: left; }
+.app-easy-read .govuk-body-l { max-width: 30em; }

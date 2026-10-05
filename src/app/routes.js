@@ -91,18 +91,88 @@ I understand that [your name] wishes to access legal aid for a family dispute as
 
 Accordingly, I can confirm that [your name], a person with whom [perpetrator] is or was in a family relationship, was assessed as being, or at risk of being, a victim of domestic abuse by [perpetrator].`,
   },
+  marac: {
+    title: 'A letter from a MARAC member',
+    para: 'Schedule 1',
+    who: 'Someone who sits on the multi-agency risk assessment conference (MARAC) that discussed you, for example an IDVA or police officer.',
+    musts: [
+      'say they are a member of the MARAC',
+      'confirm you were referred to or discussed at the MARAC',
+      'confirm firmly that you are or have been at risk of harm from domestic abuse – not "may be"',
+      'name the person who abused you',
+    ],
+    template: `Name of perpetrator: [name]
+Name of applicant: [your name]
+
+I understand that [your name] wishes to access legal aid for a family dispute as a victim of domestic abuse. For this reason, I have been asked to provide a letter in accordance with regulation 33 and schedule 1 of the Civil Legal Aid (Procedure) Regulations 2012 (as amended).
+
+I am a member of the [area] multi-agency risk assessment conference (MARAC).
+
+I can confirm that [your name] was referred to the MARAC on [date] as a victim of domestic abuse by [perpetrator].
+
+I can confirm that [your name] is or has been at risk of harm from domestic abuse by [perpetrator].`,
+  },
+  refugeStay: {
+    title: 'A letter from a refuge that gave you a place',
+    para: 'Schedule 1',
+    who: 'The manager of a refuge you stayed in.',
+    musts: [
+      'name the person who abused you',
+      'confirm you are or were in a family relationship with them',
+      'confirm you were admitted to the refuge, with the dates',
+      'say you were admitted because of domestic abuse by that person',
+    ],
+    template: `Name of perpetrator: [name]
+Name of applicant: [your name]
+
+I understand that [your name] wishes to access legal aid for a family dispute as a victim of domestic abuse. For this reason, I have been asked to provide a letter in accordance with regulation 33 and schedule 1 of the Civil Legal Aid (Procedure) Regulations 2012 (as amended).
+
+I can confirm that [your name], with whom [perpetrator] is or was in a family relationship, was admitted to our refuge on [date] [and stayed until [date]].
+
+I can confirm that [your name] was admitted because of allegations of domestic abuse by [perpetrator].`,
+  },
+  social: {
+    title: 'A letter from social services',
+    para: 'Schedule 1',
+    who: 'A social worker or children\'s services officer who has worked with you or your children.',
+    musts: [
+      'say which social services department they work for',
+      'confirm firmly that you were assessed as being, or at risk of being, a victim of domestic abuse – not "may have been"',
+      'name the person who abused you',
+    ],
+    template: `Name of perpetrator: [name]
+Name of applicant: [your name]
+
+I understand that [your name] wishes to access legal aid for a family dispute as a victim of domestic abuse. For this reason, I have been asked to provide a letter in accordance with regulation 33 and schedule 1 of the Civil Legal Aid (Procedure) Regulations 2012 (as amended).
+
+I am a [role] in [department and local authority].
+
+I can confirm that [your name], with whom [perpetrator] is or was in a family relationship, was assessed by [department] on [date] as being, or at risk of being, a victim of domestic abuse by [perpetrator].`,
+  },
+  financial: {
+    title: 'Financial abuse evidence from your bank, employer or benefits provider',
+    para: 'Schedule 1',
+    who: 'Your bank or building society, employer, education or training provider, or benefits provider – if someone controlled your money or took out debt in your name.',
+    musts: [
+      'say which organisation they are and their role',
+      'refer to the specific accounts, statements, loans or payments',
+      'confirm firmly what the records show – not "may indicate"',
+    ],
+    template: `Name of applicant: [your name]
+
+I understand that [your name] wishes to access legal aid for a family dispute as a victim of domestic abuse. For this reason, I have been asked to provide a letter in accordance with regulation 33 and schedule 1 of the Civil Legal Aid (Procedure) Regulations 2012 (as amended).
+
+I am a [role] at [organisation].
+
+I can confirm that our records show that [what the records show, for example loans or credit taken out in your name, or control of the account your pay went into], between [date] and [date].`,
+  },
 };
 
 // Routes the solicitor usually obtains directly from official records.
 export const OTHER_ROUTES = {
   police: { title: 'Police or criminal court records', text: 'For example a conviction, caution or ongoing criminal proceedings for a domestic abuse offence. Your solicitor can usually request these.' },
   court: { title: 'Family or civil court orders', text: 'For example a non-molestation order or other protective injunction. Give your solicitor a copy if you have one.' },
-  marac: { title: 'A MARAC referral', text: 'If you were discussed at a multi-agency risk assessment conference (MARAC), your solicitor can ask for confirmation.' },
-  social: { title: 'Social services', text: 'Social services can confirm their assessment. Your solicitor can advise on what to ask for.' },
-  refugeAdmitted: { title: 'A refuge that gave you a place', text: 'A refuge manager can confirm your stay. Your solicitor can advise on the wording needed.' },
-  financial: { title: 'Financial abuse evidence', text: 'If you were financially controlled, documents from your bank – for example credit card accounts, loan documents and statements – can be evidence.' },
-  employer: { title: 'Your employer, or education or training provider', text: 'They can provide evidence of financial abuse, for example if your pay was controlled.' },
-  benefits: { title: 'Your benefits provider', text: 'The provider of benefits you have received can provide evidence of financial abuse.' },
+  financialDocs: { title: 'Financial documents', text: 'Bank statements, credit card accounts and loan documents can also be evidence of financial abuse. Give copies to your solicitor.' },
 };
 
 export const QUESTIONS = [
@@ -110,15 +180,13 @@ export const QUESTIONS = [
   { value: 'p14', label: 'An IDVA or ISVA', hint: 'Independent domestic or sexual violence adviser' },
   { value: 'p17', label: 'A domestic abuse support service', hint: 'For example a helpline, outreach worker or local charity' },
   { value: 'p18', label: 'A refuge that could not give me a place' },
-  { value: 'refugeAdmitted', label: 'A refuge that gave me a place' },
+  { value: 'refugeStay', label: 'A refuge that gave me a place' },
   { value: 'p19', label: 'My council or a housing association', hint: 'For example a homeless application' },
   { value: 'police', label: 'The police' },
   { value: 'court', label: 'A court', hint: 'For example a non-molestation order' },
   { value: 'social', label: 'Social services' },
   { value: 'marac', label: 'A MARAC meeting', hint: 'You may not know if this happened – that is fine' },
-  { value: 'financial', label: 'My bank', hint: 'If someone controlled your money or took out debt in your name' },
-  { value: 'employer', label: 'My employer, or an education or training provider' },
-  { value: 'benefits', label: 'A benefits provider' },
+  { value: 'financial', label: 'My bank, employer, college or benefits provider', hint: 'If someone controlled your money or took out debt in your name' },
 ];
 
 export function requestNote(key) {

@@ -1,0 +1,10 @@
+Third-party code served from this folder, unmodified apart from removed
+sourcemap comments and unused build variants:
+
+tesseract.js 7.0.0         Apache-2.0  tesseract/ (tesseract.esm.min.js, worker.min.js)
+tesseract.js-core 7.0.0    Apache-2.0  tesseract/core/ (LSTM builds only)
+@tesseract.js-data/eng 1.0.0 (tessdata 4.0.0_best_int)  Apache-2.0  tesseract/lang/
+pdfjs-dist 6.4.299         Apache-2.0  pdfjs/
+qrcode-generator 2.0.4     MIT         qrcode/ (Copyright (c) 2009 Kazuhiko Arase)
+
+Licence texts are in each folder where the package included one.

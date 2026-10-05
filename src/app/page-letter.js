@@ -1,28 +1,46 @@
-import { checkLetter, changeRequest, LETTER_TYPES } from './rules.js';
+import { checkLetter, LETTER_TYPES } from './rules.js';
 import { SAMPLES } from './samples.js';
+import { SYNTHETIC } from './synthetic.js';
 import { escapeHtml } from './chat.js';
+import { resultHtml } from './render.js';
+import { extractText } from './ocr.js';
+import { secondOpinion, MODEL, MEASURED } from './model.js';
 
 const type = document.getElementById('type');
 const sample = document.getElementById('sample');
 const letter = document.getElementById('letter');
 const result = document.getElementById('result');
+const file = document.getElementById('file');
+const fileStatus = document.getElementById('file-status');
+const examples = [...SAMPLES, ...SYNTHETIC];
 
 type.insertAdjacentHTML('beforeend', Object.entries(LETTER_TYPES).map(([k, v]) => `<option value="${k}">${escapeHtml(v)}</option>`).join(''));
-sample.insertAdjacentHTML('beforeend', SAMPLES.map((s) => `<option value="${s.id}">${escapeHtml(s.label)}</option>`).join(''));
+sample.insertAdjacentHTML('beforeend', `<optgroup label="From the hackathon evidence pack">${SAMPLES.map((s) => `<option value="${s.id}">${escapeHtml(s.label)}</option>`).join('')}</optgroup>
+<optgroup label="Written for this prototype">${SYNTHETIC.map((s) => `<option value="${s.id}">${escapeHtml(s.label)}</option>`).join('')}</optgroup>`);
 
 sample.addEventListener('change', () => {
-  const s = SAMPLES.find((x) => x.id === sample.value);
+  const s = examples.find((x) => x.id === sample.value);
   if (!s) return;
   letter.value = s.text;
   type.value = '';
   result.innerHTML = '';
 });
 
-const TAGS = {
-  pass: '<strong class="govuk-tag govuk-tag--green">OK</strong>',
-  warn: '<strong class="govuk-tag govuk-tag--yellow">Check</strong>',
-  fail: '<strong class="govuk-tag govuk-tag--red">Change needed</strong>',
-};
+file.addEventListener('change', async () => {
+  const f = file.files[0];
+  if (!f) return;
+  fileStatus.textContent = 'Getting the text from your file. This can take up to a minute for a photo.';
+  try {
+    const text = await extractText(f, (m) => { fileStatus.textContent = m; });
+    letter.value = text.trim();
+    fileStatus.textContent = text.trim()
+      ? 'Text added below. Check it matches the letter, then select "Check the letter".'
+      : 'No text was found. Try a clearer photo, or type the letter in.';
+  } catch (e) {
+    fileStatus.textContent = e.message === 'Choose a photo, PDF or text file' ? e.message : 'The file could not be read. Try a clearer photo, or type the letter in.';
+  }
+  file.value = '';
+});
 
 function setError(msg) {
   const group = document.getElementById('letter-group');
@@ -41,31 +59,55 @@ document.getElementById('letter-form').addEventListener('submit', (e) => {
   const r = checkLetter(text, type.value || undefined);
   if (r.outcome === 'unknown') return setError('We could not tell what type of letter this is. Choose the type of letter');
   setError('');
-
-  const banner = {
-    ready: ['govuk-notification-banner--success', 'This letter looks ready', 'Give it to your solicitor. They and the Legal Aid Agency will make the final decision.'],
-    check: ['', 'This letter may need a small change', 'Ask your solicitor whether the points marked "Check" matter for your application.'],
-    changes: ['', 'This letter needs changes', 'Ask the person who wrote it to update it. You can send them the message below.'],
-  }[r.outcome];
-
-  const req = changeRequest(r);
-  result.innerHTML = `
-<div class="govuk-notification-banner ${banner[0]}" role="region" aria-labelledby="result-title">
-  <div class="govuk-notification-banner__header"><h2 class="govuk-notification-banner__title" id="result-title">Result</h2></div>
-  <div class="govuk-notification-banner__content">
-    <p class="govuk-notification-banner__heading">${banner[1]}</p>
-    <p class="govuk-body">${banner[2]}</p>
+  result.innerHTML = `${resultHtml(r)}
+<details class="govuk-details app-no-print" id="opinion">
+  <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Get a second opinion from an AI model (optional)</span></summary>
+  <div class="govuk-details__text">
+    <p class="govuk-body">A small AI model can read the key sentences and say whether each one sounds definite or uncertain. It is a general model, not trained on legal aid letters. In our tests it spotted ${MEASURED.hedgedCaught} of ${MEASURED.hedged} letters with uncertain wording, and did not wrongly flag any of ${MEASURED.firm} letters with firm wording. The check above spotted all of them.</p>
+    <p class="govuk-body">It runs on your device. Your letter is not sent anywhere. To start, your browser downloads the model (${MODEL.size}) from Hugging Face and jsDelivr. Those sites will see that a download happened, but not your letter. This may use your mobile data.</p>
+    <div class="govuk-checkboxes govuk-checkboxes--small govuk-!-margin-bottom-4" data-module="govuk-checkboxes">
+      <div class="govuk-checkboxes__item">
+        <input class="govuk-checkboxes__input" id="consent" type="checkbox">
+        <label class="govuk-label govuk-checkboxes__label" for="consent">I understand and want to download the model</label>
+      </div>
+    </div>
+    <button type="button" class="govuk-button govuk-button--secondary" id="run-model" data-module="govuk-button" disabled aria-disabled="true">Get a second opinion</button>
+    <p class="govuk-body" id="model-status" aria-live="polite"></p>
+    <div id="model-result"></div>
   </div>
-</div>
-<h2 class="govuk-heading-m">${escapeHtml(LETTER_TYPES[r.type])}</h2>
-<dl class="govuk-summary-list app-check-result">
-${r.checks.map((c) => `  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">${escapeHtml(c.label)}</dt>
-    <dd class="govuk-summary-list__value"><p class="govuk-body">${escapeHtml(c.detail)}</p>${c.fix && c.status !== 'pass' ? `<p class="govuk-body"><strong>What to change:</strong> ${escapeHtml(c.fix)}</p>` : ''}</dd>
-    <dd class="govuk-summary-list__actions">${TAGS[c.status]}</dd>
-  </div>`).join('\n')}
-</dl>
-${req ? `<h2 class="govuk-heading-m">Message to send back</h2><pre class="app-note">${escapeHtml(req)}</pre>` : ''}
+</details>
 <div class="govuk-inset-text">This is a screening check based on example letters. It does not decide whether you get legal aid.</div>`;
+  wireModel(text, r);
   result.focus();
 });
+
+function wireModel(text, r) {
+  const consent = document.getElementById('consent');
+  const run = document.getElementById('run-model');
+  const status = document.getElementById('model-status');
+  const out = document.getElementById('model-result');
+  consent.addEventListener('change', () => { run.disabled = !consent.checked; run.setAttribute('aria-disabled', String(!consent.checked)); });
+  run.addEventListener('click', async () => {
+    run.disabled = true;
+    status.textContent = 'Starting the model';
+    try {
+      const opinions = await secondOpinion(text, (m) => { status.textContent = m; });
+      const rulesFail = r.checks.some((c) => c.status === 'fail' && /hedged/.test(c.detail));
+      const modelUnsure = opinions.some((o) => o.label === 'uncertain');
+      status.textContent = !opinions.length ? 'The model did not find any key sentences to read.'
+        : rulesFail === modelUnsure ? 'The model agrees with the check above.'
+          : 'The model and the check above disagree. Ask your solicitor to look at this letter.';
+      out.innerHTML = `<table class="govuk-table"><caption class="govuk-table__caption govuk-table__caption--s">What the model thinks of each key sentence</caption>
+<thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Sentence</th><th scope="col" class="govuk-table__header">Model view</th></tr></thead>
+<tbody class="govuk-table__body">${opinions.map((o) => `<tr class="govuk-table__row"><td class="govuk-table__cell">${escapeHtml(o.sentence)}</td><td class="govuk-table__cell">${{ definite: 'Sounds definite', uncertain: 'Sounds uncertain', unclear: 'No clear view' }[o.label]} (${Math.round(o.score * 100)}%)</td></tr>`).join('')}</tbody></table>`;
+    } catch {
+      status.textContent = 'The model could not be downloaded. The check above still works without it.';
+      run.disabled = false;
+    }
+  });
+}
+
+if (new URLSearchParams(location.search).get('sample')) {
+  sample.value = new URLSearchParams(location.search).get('sample');
+  sample.dispatchEvent(new Event('change'));
+}

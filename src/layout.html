@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="govuk-template">
+<html lang="{{lang}}" class="govuk-template">
 <head>
   <meta charset="utf-8">
   <title>{{title}} – Domestic abuse evidence for legal aid</title>
@@ -15,11 +15,12 @@
   <script>document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>
   <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
 
-  <header class="app-header" role="banner">
+  <header role="banner">
+  <div class="app-header">
     <div class="govuk-width-container">
       <span class="app-header__title">Hackathon prototype</span>
     </div>
-  </header>
+  </div>
 
   <section aria-label="Service information" class="govuk-service-navigation" data-module="govuk-service-navigation">
     <div class="govuk-width-container">
@@ -44,6 +45,10 @@
         <span class="govuk-phase-banner__text">This is not a real government service. It uses fictional example letters and gives no legal advice.</span>
       </p>
     </div>
+  </div>
+  </header>
+
+  <div class="govuk-width-container">
 
     <div class="govuk-exit-this-page" data-module="govuk-exit-this-page">
       <a href="https://www.bbc.co.uk/weather" role="button" draggable="false" class="govuk-button govuk-button--warning govuk-exit-this-page__button govuk-js-exit-this-page-button" data-module="govuk-button" rel="nofollow noreferrer">
@@ -64,6 +69,10 @@
           <ul class="govuk-footer__inline-list">
             <li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="safety.html">Stay safe online</a></li>
             <li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="about.html">About this prototype</a></li>
+            <li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="cymraeg.html" lang="cy">Cymraeg</a></li>
+            <li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="easy-read.html">Easy read</a></li>
+            <li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="batch-check.html">Check several letters</a></li>
+            <li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="demo.html">Demo</a></li>
             <li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="https://www.gov.uk/legal-aid/domestic-abuse" rel="noreferrer">Legal aid for domestic abuse on GOV.UK</a></li>
           </ul>
           <p class="govuk-body-s">Built for the 10 Downing Street data science hackathon. Uses <a class="govuk-footer__link" href="https://design-system.service.gov.uk/" rel="noreferrer">GOV.UK Frontend</a> under the MIT licence. Content is based on GOV.UK guidance, available under the <a class="govuk-footer__link" href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" rel="noreferrer">Open Government Licence v3.0</a>.</p>
@@ -77,7 +86,7 @@
     initAll();
     // Clear anything typed when leaving, so Back or a restored tab shows nothing.
     const wipe = () => {
-      document.querySelectorAll('textarea, input[type=text]').forEach((el) => { el.value = ''; });
+      document.querySelectorAll('textarea, input[type=text]:not([data-keep]), input[type=file]').forEach((el) => { el.value = ''; });
       document.querySelectorAll('input[type=checkbox]').forEach((el) => { el.checked = false; });
       document.querySelectorAll('[data-wipe]').forEach((el) => { el.innerHTML = ''; });
     };
