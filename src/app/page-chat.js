@@ -1,9 +1,12 @@
-import { reply, WELCOME, escapeHtml } from './chat.js';
+import { reply, localReply, textToHtml, WELCOME, escapeHtml } from './chat.js';
 
 const log = document.getElementById('log');
 const quick = document.getElementById('quick');
 const form = document.getElementById('chat-form');
 const input = document.getElementById('msg');
+const button = form.querySelector('button[type=submit]');
+// Conversation sent to the AI helper. Held in memory only.
+let history = [];
 
 function add(who, html) {
   const div = document.createElement('div');
@@ -25,16 +28,43 @@ function setQuick(items) {
   }
 }
 
-function send(text) {
+async function ask(t) {
+  history.push({ role: 'user', content: t });
+  try {
+    const res = await fetch('api/chat', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ messages: history }),
+    });
+    if (!res.ok) throw new Error(String(res.status));
+    const { text } = await res.json();
+    history.push({ role: 'assistant', content: text });
+    return { html: textToHtml(text), quick: [] };
+  } catch {
+    history.pop();
+    return reply(t);
+  }
+}
+
+async function send(text) {
   const t = text.trim();
-  if (!t) return;
+  if (!t || button.disabled) return;
   add('user', `<p>${escapeHtml(t.length > 400 ? `${t.slice(0, 400)}…` : t)}</p>`);
-  const r = reply(t);
+  setQuick([]);
+  let r = localReply(t);
+  if (!r) {
+    button.disabled = true;
+    log.setAttribute('aria-busy', 'true');
+    r = await ask(t);
+    button.disabled = false;
+    log.removeAttribute('aria-busy');
+  }
   add('bot', r.html);
   setQuick(r.quick);
 }
 
 function start() {
+  history = [];
   log.innerHTML = '';
   add('bot', WELCOME.html);
   setQuick(WELCOME.quick);

@@ -7,14 +7,14 @@ To get legal aid for a private family matter on the basis of domestic abuse, app
 1. **Find evidence** – answer which services you have been in contact with (never what happened) and see the evidence routes that may apply.
 2. **Request notes** – a note to hand each professional with the exact wording that paragraph needs.
 3. **Check a letter** – paste a letter and see whether it is likely to be accepted, with a message to send back if it needs changes.
-4. **Ask the helper** – a scripted chatbot for process questions. It can also check a pasted letter.
+4. **Ask the helper** – an AI chatbot for process questions, with scripted rules for emergencies, privacy and pasted letters.
 
 ## Safety
 
-- Static site: no server, analytics, cookies or storage. Entered text is cleared on exit.
+- No analytics, cookies or storage. Entered text is cleared on exit. Only helper questions leave the browser.
 - GOV.UK **Exit this page** on every page (Shift ×3) and a [stay safe online](src/pages/safety.html) page adapted from Check if you can get legal aid.
 - Points to 999 (Silent Solution 55), the National Domestic Abuse Helpline and the Civil Legal Advice harm fast-track.
-- The helper is rule-based, not an LLM, so its answers are predictable.
+- The helper sends questions to `api/chat.js`, a Vercel function that calls an OpenAI model (`openai/gpt-5-mini`, override with `CHAT_MODEL`) through the Vercel AI Gateway. Danger, privacy and pasted letters are always answered by the rules in the browser, which are also the fallback when the API is unavailable (as on GitHub Pages).
 
 ## How the checks work
 
@@ -38,7 +38,17 @@ npm run build    # writes the static site to _site/
 npx serve _site  # or any static server
 ```
 
-Pushes to `main` are tested, built and deployed to GitHub Pages by `.github/workflows/pages.yml`.
+Pushes to `main` are tested, built and deployed to GitHub Pages by `.github/workflows/pages.yml`. GitHub Pages has no backend, so the helper uses its scripted answers there.
+
+## Deploy to Vercel
+
+`vercel.json` builds the static site into `_site/` and serves `api/chat.js` as a function. Set `AI_GATEWAY_API_KEY` in the project's environment variables, then:
+
+```bash
+vercel deploy --prod
+```
+
+The endpoint has no authentication and spends the project's AI Gateway credit; it caps each request at 12 messages of 4,000 characters.
 
 ## Credits
 

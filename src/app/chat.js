@@ -1,6 +1,8 @@
-// Scripted helper for the chatbot. Runs entirely in the browser: nothing the
-// user types is sent anywhere or stored. It answers routing and process
-// questions only, and never asks the user to describe the abuse.
+// Scripted part of the chatbot. Danger, privacy and pasted letters are always
+// answered here, in the browser, so those answers stay predictable and a
+// pasted letter never leaves the device. Other questions go to the AI helper
+// (api/chat.js); these scripted answers are the fallback when it is
+// unavailable. It never asks the user to describe the abuse.
 
 import { ROUTES } from './routes.js';
 import { checkLetter, changeRequest, LETTER_TYPES } from './rules.js';
@@ -41,7 +43,7 @@ const INTENTS = [
     id: 'privacy',
     match: /\b(saved?|stored?|store|private|privacy|track\w*|history|see what|find out|safe to use|record\w*)\b/,
     quick: ['What evidence can I use?'],
-    html: () => `<p class="govuk-body">Nothing you type here is sent anywhere or saved. The chat disappears when you leave or refresh the page.</p>
+    html: () => `<p class="govuk-body">Nothing is saved. Questions are sent to an AI service to answer them, and are not stored. Letters you paste are checked on your device and are not sent anywhere. The chat disappears when you leave or refresh the page.</p>
 <p class="govuk-body">To leave quickly, select <strong>Exit this page</strong> or press the Shift key 3 times. If someone checks your device, also clear your browser history, or use a private window. ${a('safety.html', 'Read how to stay safe online')}.</p>`,
   },
   {
@@ -123,9 +125,27 @@ export const WELCOME = {
   quick: ['What evidence can I use?', 'Can my GP write a letter?', 'How do I check a letter?', 'Is anything saved?'],
 };
 
-export function reply(raw) {
+const LOCAL = new Set(['danger', 'privacy', 'pastedLetter']);
+
+function findIntent(raw) {
   const t = raw.toLowerCase();
-  const intent = INTENTS.find((i) => (typeof i.match === 'function' ? i.match(t, raw) : i.match.test(t)));
+  return INTENTS.find((i) => (typeof i.match === 'function' ? i.match(t, raw) : i.match.test(t)));
+}
+
+// Answer that must not go to the AI helper, or null.
+export function localReply(raw) {
+  const intent = findIntent(raw);
+  return intent && LOCAL.has(intent.id) ? { html: intent.html(raw), quick: intent.quick || [] } : null;
+}
+
+// Renders the AI helper's plain-text answer as escaped paragraphs.
+export function textToHtml(text) {
+  return String(text).split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
+    .map((p) => `<p class="govuk-body">${escapeHtml(p).replace(/\n/g, '<br>')}</p>`).join('\n');
+}
+
+export function reply(raw) {
+  const intent = findIntent(raw);
   if (!intent) {
     return {
       html: `<p class="govuk-body">Sorry, I do not know about that yet. I can tell you which evidence you could use, explain what a letter needs to say, or check a letter.</p>`,
