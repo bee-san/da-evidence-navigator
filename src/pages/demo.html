@@ -1,0 +1,61 @@
+<!-- title: Demo -->
+<!-- nav: none -->
+<!-- script: app/page-demo.js -->
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <span class="govuk-caption-l">Hackathon demo</span>
+    <h1 class="govuk-heading-l">How one word delays legal aid</h1>
+    <p class="govuk-body-l">A GP writes that the patient's condition "might be consistent" with domestic abuse. The Legal Aid Agency returns it, because the judgement must be firm. Here is what this service does instead.</p>
+
+    <div class="app-demo-step">
+      <h2 class="govuk-heading-m">1. The letter as written</h2>
+      <pre class="app-note" id="demo-before"></pre>
+      <div id="demo-before-result"></div>
+    </div>
+
+    <div class="app-demo-step">
+      <h2 class="govuk-heading-m">2. The message the victim sends back</h2>
+      <p class="govuk-body">Written for them, so they do not have to explain the rules to their GP.</p>
+      <pre class="app-note" id="demo-message"></pre>
+    </div>
+
+    <div class="app-demo-step">
+      <h2 class="govuk-heading-m">3. The corrected letter</h2>
+      <pre class="app-note" id="demo-after"></pre>
+      <div id="demo-after-result"></div>
+    </div>
+
+    <p class="govuk-body">This happens before the solicitor submits anything, so the Legal Aid Agency never has to return the application.</p>
+  </div>
+
+  <div class="govuk-grid-column-full">
+    <h2 class="govuk-heading-l">How well the checks work</h2>
+    <p class="govuk-body">Every test letter, checked on this page by the same code the service uses. A letter counts as correct if its type is recognised, the outcome matches, and a rejected letter fails for the reason it was rejected.</p>
+    <div id="demo-accuracy"></div>
+    <div class="govuk-inset-text">The hackathon pack has 12 real-style examples, covering 5 types of letter. The other letters are variations and fictional examples written for this prototype, so these results show the rules are consistent – not that they match Legal Aid Agency decisions. Measuring that needs a larger set of real, anonymised decisions.</div>
+  </div>
+
+  <div class="govuk-grid-column-two-thirds">
+    <h2 class="govuk-heading-l">Rules compared with an AI model</h2>
+    <p class="govuk-body">The letter checker can also ask a small AI model (DeBERTa v3, run in the browser) whether key sentences sound uncertain. We measured both on 45 test letters.</p>
+    <table class="govuk-table">
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Method</th><th scope="col" class="govuk-table__header govuk-table__header--numeric">Uncertain letters found</th><th scope="col" class="govuk-table__header govuk-table__header--numeric">Firm letters wrongly flagged</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row"><th scope="row" class="govuk-table__header">Rules</th><td class="govuk-table__cell govuk-table__cell--numeric">16 of 16</td><td class="govuk-table__cell govuk-table__cell--numeric">0 of 29</td></tr>
+        <tr class="govuk-table__row"><th scope="row" class="govuk-table__header">AI model</th><td class="govuk-table__cell govuk-table__cell--numeric">11 of 16</td><td class="govuk-table__cell govuk-table__cell--numeric">0 of 29</td></tr>
+      </tbody>
+    </table>
+    <p class="govuk-body">The rules were written from these letters, so they are expected to do well on them. The model has never seen them, which makes it a useful independent check on letters the rules were not written for. The model is optional and only runs if the person agrees.</p>
+
+    <h2 class="govuk-heading-l">What it could save</h2>
+    <p class="govuk-body">The hackathon brief does not give volumes, so enter your own figures. The starting values are examples only.</p>
+    <form id="impact-form" novalidate>
+      <div class="govuk-form-group"><label class="govuk-label" for="i-apps">Domestic abuse legal aid applications a year</label><input class="govuk-input govuk-input--width-10" id="i-apps" type="text" inputmode="numeric" value="10000" data-keep></div>
+      <div class="govuk-form-group"><label class="govuk-label" for="i-returned">Percentage returned because of evidence</label><div class="govuk-input__wrapper"><input class="govuk-input govuk-input--width-3" id="i-returned" type="text" inputmode="numeric" value="20" data-keep><div class="govuk-input__suffix" aria-hidden="true">%</div></div></div>
+      <div class="govuk-form-group"><label class="govuk-label" for="i-caught">Percentage of those problems this service catches first</label><div class="govuk-input__wrapper"><input class="govuk-input govuk-input--width-3" id="i-caught" type="text" inputmode="numeric" value="50" data-keep><div class="govuk-input__suffix" aria-hidden="true">%</div></div></div>
+      <div class="govuk-form-group"><label class="govuk-label" for="i-days">Days of delay each return causes</label><input class="govuk-input govuk-input--width-3" id="i-days" type="text" inputmode="numeric" value="14" data-keep></div>
+      <div class="govuk-form-group"><label class="govuk-label" for="i-mins">Staff minutes each return costs (provider and caseworker)</label><input class="govuk-input govuk-input--width-3" id="i-mins" type="text" inputmode="numeric" value="60" data-keep></div>
+    </form>
+    <div id="impact-result" aria-live="polite"></div>
+  </div>
+</div>

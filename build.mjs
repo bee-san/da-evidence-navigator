@@ -7,6 +7,8 @@ const NAV = [
   ['request', 'request.html', 'Request notes'],
   ['letter-checker', 'letter-checker.html', 'Check a letter'],
   ['chat', 'chat.html', 'Ask the helper'],
+  ['track', 'track.html', 'Track progress'],
+  ['professionals', 'write-letter.html', 'For professionals'],
 ];
 
 const out = '_site';
@@ -26,6 +28,7 @@ for (const file of readdirSync('src/pages')) {
     : `<li class="govuk-service-navigation__item"><a class="govuk-service-navigation__link" href="${href}">${text}</a></li>`)).join('\n            ');
   const script = meta(src, 'script');
   const html = layout
+    .replace('{{lang}}', meta(src, 'lang') || 'en')
     .replace('{{title}}', meta(src, 'title'))
     .replace('{{nav}}', nav)
     .replace('{{scripts}}', script ? `<script type="module" src="${script}"></script>` : '')

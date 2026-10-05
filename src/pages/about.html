@@ -17,7 +17,9 @@
     <p class="govuk-body">The same checks could run for providers and Legal Aid Agency caseworkers before an application is submitted.</p>
 
     <h2 class="govuk-heading-m">How the checks work</h2>
-    <p class="govuk-body">The letter checker uses rules derived from the accepted and rejected example letters in the hackathon evidence pack, for paragraphs 11, 14, 17, 18 and 19. Every example is tested: accepted letters pass, and each rejected letter fails for the reason it was rejected.</p>
+    <p class="govuk-body">The letter checker uses rules derived from the accepted and rejected example letters in the hackathon evidence pack, for paragraphs 11, 14, 17, 18 and 19. Every example is tested: accepted letters pass, and each rejected letter fails for the reason it was rejected. The tests also cover variations of the examples, such as "may be" or "could be" instead of "might be", and letters in capitals or with broken lines.</p>
+    <p class="govuk-body">Letters from a MARAC, a refuge that gave someone a place, social services and banks or employers are also checked. There were no real examples of these, so their rules come from GOV.UK guidance and are tested against fictional letters only.</p>
+    <p class="govuk-body">The <a class="govuk-link" href="demo.html">demo page</a> runs every test letter in the browser and shows the results.</p>
 
     <table class="govuk-table">
       <caption class="govuk-table__caption govuk-table__caption--s">Why the example letters were rejected</caption>
@@ -35,7 +37,9 @@
 
     <h2 class="govuk-heading-m">Safety and privacy</h2>
     <ul class="govuk-list govuk-list--bullet">
-      <li>Everything runs in the browser. There is no server, no analytics and no cookies, and nothing is stored on the device.</li>
+      <li>Everything runs in the browser. There is no server, no analytics and no cookies. Nothing is stored on the device unless someone chooses to save their progress.</li>
+      <li>Photos and PDFs of letters are read on the device. The text reader and its language data are served from this website.</li>
+      <li>The optional AI second opinion only starts after the person agrees. It downloads a model from Hugging Face and jsDelivr, and runs it on the device. The letter is not sent.</li>
       <li>Exit this page is on every page, and pressing Shift 3 times leaves quickly.</li>
       <li>The service never asks people to describe the abuse – only which services they have contacted.</li>
       <li>The helper is scripted, not a large language model, so its answers are predictable and checkable.</li>
@@ -44,8 +48,11 @@
     <h2 class="govuk-heading-m">Limitations</h2>
     <ul class="govuk-list govuk-list--bullet">
       <li>The rules are based on 12 example letters, which is not enough to measure accuracy against Legal Aid Agency assessors.</li>
-      <li>Only 5 types of evidence letter are checked. Police, court, MARAC, social services and financial evidence are not.</li>
-      <li>It does not check dates, letterheads, signatures or whether the author is eligible to write the letter.</li>
+      <li>Police records, convictions and court orders are not checked, because solicitors usually get these directly.</li>
+      <li>It warns about dates more than 5 years old or in the future, but does not apply the time limits for each type of evidence.</li>
+      <li>It does not check letterheads, signatures or whether the author is eligible to write the letter.</li>
+      <li>Reading photos depends on the photo quality. People should check the text before checking the letter.</li>
+      <li>The Welsh page is a draft that has not been checked by a translator, and the rest of the service is in English.</li>
       <li>It is a screening aid. People make the decisions.</li>
     </ul>
 
