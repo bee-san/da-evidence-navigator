@@ -267,6 +267,39 @@ await step('find evidence: police force found from the first half of the postcod
   await audit('police force found');
 });
 
+await step('find evidence: court found from the first half of the postcode, and its email added', async () => {
+  await go('check.html#solicitor/police/court/courtWhat/evInjunction');
+  const sent = [];
+  const answer = (r) => {
+    const u = r.url();
+    if (u.startsWith('https://api.postcodes.io/') || u.includes('/api/court?')) {
+      sent.push(u);
+      const body = u.includes('/outcodes/') ? { result: { latitude: 53.47, longitude: -2.23, country: ['England'] } }
+        : u.includes('slug=') ? { name: 'Stockport County Court and Family Court', email: 'stockportfamily@justice.gov.uk', emailFor: 'Family court', phone: '0161 474 7707', address: 'The Courthouse, Edward Street, Stockport, SK1 3NF', url: 'https://www.find-court-tribunal.service.gov.uk/courts/stockport-county-court-and-family-court' }
+          : { courts: [{ slug: 'manchester-civil-justice-centre-civil-and-family-courts', name: 'Manchester Civil Justice Centre (Civil and Family Courts)', types: ['Family Court'], distance: 0.6 }, { slug: 'stockport-county-court-and-family-court', name: 'Stockport County Court and Family Court', types: ['Family Court'], distance: 6.2 }] };
+      r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
+    } else r.continue();
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await page.$eval('#courtSearch', (e) => { e.value = ''; });
+    await page.type('#courtSearch', 'M1 1AE');
+    await page.click('#courtFind');
+    await until(() => document.querySelectorAll('input[name=court]').length === 2, 5000);
+    await page.click('#court-1');
+    await until(() => document.querySelector('#courtDetail strong')?.textContent === 'Stockport County Court and Family Court', 5000);
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+  assert.ok(sent.every((u) => !u.includes('1AE')), sent.join(' '));
+  assert.ok(sent.some((u) => u.includes('api/court?lat=53.47&lon=-2.23&kind=family')), sent.join(' '));
+  assert.equal(await page.$eval('#profName', (e) => e.value), 'Stockport County Court and Family Court');
+  assert.equal(await page.$eval('#profEmail', (e) => e.value), 'stockportfamily@justice.gov.uk');
+  await audit('court found');
+});
+
 await step('find evidence: MARAC and council pages show who to ask locally', async () => {
   await go('check.html#solicitor/police/court/health/services/evMarac');
   const sent = [];
