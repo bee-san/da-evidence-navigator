@@ -1,0 +1,32 @@
+<!-- title: Check several letters -->
+<!-- nav: professionals -->
+<!-- script: app/page-batch.js -->
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <span class="govuk-caption-l">For solicitors and legal aid providers</span>
+    <h1 class="govuk-heading-l">Check several letters at once</h1>
+  </div>
+  <div class="govuk-grid-column-two-thirds">
+    <p class="govuk-body">Check every evidence letter for a client before you submit the application. Add files, or paste the letters with a line containing only <code>---</code> between them.</p>
+    <p class="govuk-body">This runs on your device. Letters are not sent anywhere or saved.</p>
+    <form id="batch-form" novalidate>
+      <div class="govuk-form-group">
+        <label class="govuk-label govuk-label--s" for="batch-files">Add letters (optional)</label>
+        <div id="batch-files-hint" class="govuk-hint">Photos, PDFs or text files. You can choose more than one.</div>
+        <input class="govuk-file-upload" id="batch-files" type="file" multiple accept="image/*,application/pdf,.pdf,.txt,text/plain" aria-describedby="batch-files-hint">
+      </div>
+      <div class="govuk-form-group">
+        <label class="govuk-label govuk-label--s" for="batch-text">Or paste letters</label>
+        <textarea class="govuk-textarea" id="batch-text" rows="10" spellcheck="false" autocomplete="off"></textarea>
+      </div>
+      <div class="govuk-button-group">
+        <button type="submit" class="govuk-button" data-module="govuk-button">Check the letters</button>
+        <button type="button" class="govuk-button govuk-button--secondary" id="batch-examples" data-module="govuk-button">Use the example letters</button>
+      </div>
+      <p class="govuk-body" id="batch-status" aria-live="polite" data-wipe></p>
+    </form>
+  </div>
+  <div class="govuk-grid-column-full">
+    <div id="batch-result" data-wipe tabindex="-1"></div>
+  </div>
+</div>

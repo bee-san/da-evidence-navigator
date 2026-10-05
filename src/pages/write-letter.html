@@ -1,0 +1,26 @@
+<!-- title: Write an evidence letter -->
+<!-- nav: professionals -->
+<!-- script: app/page-write.js -->
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <span class="govuk-caption-l">For professionals</span>
+    <h1 class="govuk-heading-l">Write an evidence letter</h1>
+    <p class="govuk-body">If someone has asked you for a letter to support their legal aid application, answer a few questions and we will write it with the wording the Legal Aid Agency usually accepts. You can then copy it onto your organisation's letterhead.</p>
+    <p class="govuk-body">This runs on your device. Nothing you type is sent anywhere or saved.</p>
+
+    <form id="write-form" novalidate>
+      <div class="govuk-form-group">
+        <label class="govuk-label govuk-label--s" for="write-type">Type of letter</label>
+        <select class="govuk-select" id="write-type"></select>
+      </div>
+      <div id="write-fields" data-wipe></div>
+      <div class="govuk-button-group">
+        <button type="submit" class="govuk-button" data-module="govuk-button">Write the letter</button>
+        <button type="button" class="govuk-button govuk-button--secondary" id="write-example" data-module="govuk-button">Fill in example answers</button>
+      </div>
+    </form>
+
+    <div id="write-result" data-wipe tabindex="-1"></div>
+    <p class="govuk-body"><a class="govuk-link" href="batch-check.html">Check several letters at once</a></p>
+  </div>
+</div>
