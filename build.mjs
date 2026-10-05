@@ -11,6 +11,10 @@ const NAV = [
   ['professionals', 'write-letter.html', 'For professionals'],
 ];
 
+// The menu is hidden while the site focuses on the find-a-solicitor flow.
+// Set to true to show it again; every page is still built and linkable.
+const SHOW_MENU = false;
+
 const out = '_site';
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out);
@@ -30,7 +34,12 @@ for (const file of readdirSync('src/pages')) {
   const html = layout
     .replace('{{lang}}', meta(src, 'lang') || 'en')
     .replace('{{title}}', meta(src, 'title'))
-    .replace('{{nav}}', nav)
+    .replace('{{menu}}', SHOW_MENU ? `<nav aria-label="Menu" class="govuk-service-navigation__wrapper">
+          <button type="button" class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle" aria-controls="navigation" hidden>Menu</button>
+          <ul class="govuk-service-navigation__list" id="navigation">
+            ${nav}
+          </ul>
+        </nav>` : '')
     .replace('{{scripts}}', script ? `<script type="module" src="${script}"></script>` : '')
     .replace('{{content}}', src.replace(/<!-- \w+: .+? -->\n/g, ''));
   writeFileSync(`${out}/${file}`, html);
