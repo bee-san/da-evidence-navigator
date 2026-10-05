@@ -12,6 +12,7 @@ import { escapeHtml } from './chat.js';
 import { FORCES, findForce } from './police.js';
 import { rememberedPlace } from './location.js';
 import { searchPractices, practiceContact } from './gp.js';
+import { findCourts, courtDetails } from './court.js';
 
 const input = (id, label, hint, { type = 'text', width = '', autocomplete = 'off' } = {}) => `
 <div class="govuk-form-group" id="${id}-group">
@@ -98,6 +99,7 @@ function formHtml(key, answers) {
   ${needsOtherParty(key) ? input('other', 'Full name of the person who abused you', 'The evidence must name them.') : ''}
   ${records ? input('reference', 'Crime reference or case number (optional)', 'This helps them find the records. It is on any letter they sent you.', { width: 'govuk-input--width-20' }) : ''}
   ${key === 'police' ? forceFinderHtml() : ''}
+  ${key === 'court' ? courtFinderHtml() : ''}
   ${key === 'p11' || key === 'p12' ? gpFinderHtml() : ''}
   ${input('profName', `Name of the ${records ? 'team or person' : 'person'} you are asking (optional)`, '')}
   ${input('profEmail', 'Their email address', 'Ask their reception or check their website.', { type: 'email' })}
@@ -132,6 +134,89 @@ function forceFinderHtml() {
   </fieldset>
   <div id="forceResult" aria-live="polite"></div>
 </div>`;
+}
+
+function courtFinderHtml() {
+  return `
+<div class="govuk-form-group app-force-finder">
+  <fieldset class="govuk-fieldset">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Which court dealt with it?</legend>
+    <div class="govuk-hint">The court’s name is on any order or letter it sent you. If you do not have one, it is usually one of the courts nearest to where you lived.</div>
+    <div class="govuk-form-group">
+      <fieldset class="govuk-fieldset">
+        <legend class="govuk-fieldset__legend">What kind of court was it?</legend>
+        <div class="govuk-radios govuk-radios--small govuk-radios--inline">
+          ${radio('courtKind', 'family', 'Family or civil court', { checked: true, hint: 'Most protective orders, undertakings and findings of fact' })}
+          ${radio('courtKind', 'crime', 'Criminal court', { hint: 'For example, a restraining order after a trial' })}
+        </div>
+      </fieldset>
+    </div>
+    <label class="govuk-label" for="courtSearch">First half of the postcode, or the court’s name</label>
+    <div class="govuk-hint" id="courtSearch-hint">For example, M1 or Stockport. Only the area is used, never your full postcode. It is sent to postcodes.io and HM Courts and Tribunals Service to find the court.</div>
+    <input class="govuk-input govuk-input--width-20" id="courtSearch" type="text" autocomplete="off" spellcheck="false" aria-describedby="courtSearch-hint">
+    <button type="button" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0 app-inline-button" data-module="govuk-button" id="courtFind">Find the court</button>
+  </fieldset>
+  <div id="courtResults" aria-live="polite"></div>
+</div>`;
+}
+
+function courtHtml(c) {
+  const ext = (url, text) => `<a class="govuk-link" href="${escapeHtml(url)}" target="_blank" rel="noreferrer noopener">${text} (opens in new tab)</a>`;
+  return `<div class="govuk-inset-text"><p class="govuk-body"><strong>${escapeHtml(c.name)}</strong>${c.address ? `<br>${escapeHtml(c.address)}` : ''}${c.phone ? `<br>Phone ${escapeHtml(c.phone)}` : ''}</p>
+${c.email
+    ? `<p class="govuk-body">We have added their email address, <strong>${escapeHtml(c.email)}</strong>${c.emailFor ? ` (${escapeHtml(c.emailFor)})` : ''}, below.</p>`
+    : `<p class="govuk-body">We could not find an email address for copies of orders.${c.phone ? ` Call ${escapeHtml(c.phone)} and ask where to send your request, then add it below.` : ''}</p>`}
+<p class="govuk-body-s">From ${ext(c.url, 'Find a Court or Tribunal')} on GOV.UK. Courts list several email addresses – check this is the right one before you send.</p></div>`;
+}
+
+function mountCourtFinder(el) {
+  const search = el.querySelector('#courtSearch');
+  const button = el.querySelector('#courtFind');
+  const results = el.querySelector('#courtResults');
+  const kind = () => el.querySelector('input[name=courtKind]:checked')?.value || 'family';
+  const set = (sel, value) => {
+    const f = el.querySelector(sel);
+    if (f && (!f.value || f.dataset.prefilled)) { f.value = value; f.dataset.prefilled = value ? 'true' : ''; }
+  };
+  const choose = async (slug) => {
+    const detail = results.querySelector('#courtDetail');
+    detail.innerHTML = '<p class="govuk-body">Getting the court’s contact details…</p>';
+    try {
+      const c = await courtDetails(slug, kind());
+      if (!c) { detail.innerHTML = '<p class="govuk-error-message">We could not find that court’s details. Fill them in below instead.</p>'; return; }
+      detail.innerHTML = courtHtml(c);
+      set('#profName', c.name);
+      set('#profEmail', c.email);
+    } catch {
+      detail.innerHTML = '<p class="govuk-error-message">We could not get the court’s contact details just now. Fill them in below instead.</p>';
+    }
+  };
+  const find = async () => {
+    button.disabled = true;
+    results.innerHTML = '<p class="govuk-body">Finding courts…</p>';
+    try {
+      const r = await findCourts(search.value, kind());
+      if (r.problem) { results.innerHTML = `<p class="govuk-error-message">${escapeHtml(r.problem)}</p>`; return; }
+      results.innerHTML = `<div class="govuk-form-group govuk-!-margin-top-4"><fieldset class="govuk-fieldset">
+  <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Choose the court</legend>
+  <div class="govuk-radios govuk-radios--small">${r.courts.map((c, i) => `<div class="govuk-radios__item">
+    <input class="govuk-radios__input" id="court-${i}" name="court" type="radio" value="${escapeHtml(c.slug)}">
+    <label class="govuk-label govuk-radios__label" for="court-${i}">${escapeHtml(c.name)}</label>
+    ${c.distance !== null ? `<div class="govuk-hint govuk-radios__hint">${c.distance < 1 ? 'Less than 1 mile away' : `About ${Math.round(c.distance)} ${Math.round(c.distance) === 1 ? 'mile' : 'miles'} away`}</div>` : ''}
+  </div>`).join('')}</div>
+</fieldset></div>
+<div id="courtDetail"></div>`;
+      for (const r2 of results.querySelectorAll('input[name=court]')) r2.addEventListener('change', () => choose(r2.value));
+    } catch {
+      results.innerHTML = '<p class="govuk-error-message">We could not search for courts just now. Fill in the court’s details below instead.</p>';
+    } finally {
+      button.disabled = false;
+    }
+  };
+  button.addEventListener('click', find);
+  search.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); find(); } });
+  const known = rememberedPlace();
+  if (known) search.value = known.outcode;
 }
 
 function gpFinderHtml() {
@@ -384,6 +469,7 @@ export function mountContact(el, answers = {}) {
   if (!EVIDENCE[key]) return;
   el.innerHTML = formHtml(key, answers);
   if (key === 'police') mountForceFinder(el);
+  if (key === 'court') mountCourtFinder(el);
   if (key === 'p11' || key === 'p12') mountGpFinder(el);
   const form = el.querySelector('#contact-form');
   const preview = el.querySelector('#contact-preview');
