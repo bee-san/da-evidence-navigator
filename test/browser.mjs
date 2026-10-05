@@ -131,12 +131,39 @@ await step('find a solicitor: error, keyboard answers, back link, finder search'
   const stop = (r) => { if (r.url().startsWith('https://find-legal-advice')) { finder = r.url(); r.abort(); } else r.continue(); };
   page.on('request', stop);
   await page.type('#postcode', 'SW1H 9AJ');
-  await page.click('form[action*="find-legal-advice"] button');
+  await page.click('form[action*="find-legal-advice"] button[type=submit]');
   await new Promise((r) => setTimeout(r, 500));
   page.off('request', stop);
   await page.setRequestInterception(false);
   assert.equal(finder, 'https://find-legal-advice.justice.gov.uk/search?categories=mat&postcode=SW1H+9AJ');
   errors.splice(0, errors.length, ...errors.filter((e) => !e.includes('find-legal-advice')));
+});
+
+await step('find a solicitor: Find location fills the postcode district', async () => {
+  await browser.defaultBrowserContext().overridePermissions(base.slice(0, -1), ['geolocation']);
+  await page.setGeolocation({ latitude: 51.49943, longitude: -0.13371 });
+  await go('find-solicitor.html#have/risk/find');
+  await until(() => document.querySelector('[data-locate]'));
+  const sent = [];
+  const answer = (r) => {
+    if (r.url().startsWith('https://api.postcodes.io/')) {
+      sent.push(r.url());
+      r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ result: [{ postcode: 'SW1H 0BB', outcode: 'SW1H' }] }) });
+    } else r.continue();
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await page.click('[data-locate]');
+    await until(() => document.querySelector('#postcode').value === 'SW1H', 10000);
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+  assert.equal(sent.length, 1);
+  assert.match(sent[0], /lon=-0\.13&lat=51\.50&/, 'location is rounded before it is sent');
+  assert.match(await text('#postcode-locate-status'), /Found SW1H/);
+  await audit('flow with location found');
 });
 
 await step('find evidence: no police or court, GP letter, email written on the device', async () => {
