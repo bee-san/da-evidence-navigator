@@ -78,3 +78,7 @@
 .app-demo-step { border-left: 5px solid #1d70b8; padding-left: 15px; margin-bottom: 30px; }
 .app-panel-left { text-align: left; }
 .app-easy-read .govuk-body-l { max-width: 30em; }
+
+/* Headings get focus by script when a flow step changes, so screen readers
+   announce the new question. They are not interactive, so no focus box. */
+#flow h1[tabindex="-1"]:focus { outline: none; }
