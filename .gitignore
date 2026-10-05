@@ -6,3 +6,6 @@ node_modules/
 
 # Generated alongside the JSONL datasets
 data/**/*.csv
+
+# Text reading models, downloaded at build time
+.cache/

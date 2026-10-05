@@ -1,36 +1,72 @@
 // Reads text from a letter file entirely in the browser.
 // Text files are read directly. PDFs use their text layer, and scanned
-// pages are rendered and passed to Tesseract. Photos go straight to Tesseract.
-// All libraries and language data are served from this site, and nothing is
-// cached or sent anywhere.
+// pages are rendered and passed to the text reader. Photos go straight to it.
+// The text reader is PaddleOCR (paddleocr.js on ONNX Runtime Web) with the
+// PP-OCRv6 models. All libraries and models are served from this site, and
+// nothing is cached or sent anywhere.
 
+import { OCR_MODEL } from './ocr-model.js';
+
+export { OCR_MODEL };
 const vendor = (p) => new URL(`../assets/vendor/${p}`, import.meta.url).href;
 
-let workerPromise;
-function ocrWorker(onProgress) {
-  if (!workerPromise) {
-    workerPromise = import(vendor('tesseract/tesseract.esm.min.js')).then(({ default: Tesseract }) =>
-      Tesseract.createWorker('eng', 1, {
-        workerPath: vendor('tesseract/worker.min.js'),
-        corePath: vendor('tesseract/core'),
-        langPath: vendor('tesseract/lang'),
-        cacheMethod: 'none',
-        workerBlobURL: false,
-        logger: (m) => progress.fn?.(m),
-      }));
+// Longest side photos are scaled to before reading: enough for a phone photo
+// of an A4 page, and keeps reading quick on a phone.
+const MAX_SIDE = 2000;
+
+let readerPromise;
+function reader(onProgress) {
+  if (!readerPromise) {
+    readerPromise = (async () => {
+      onProgress?.('Getting the text reader ready');
+      const [ort, { PaddleOcrService }] = await Promise.all([
+        import(vendor('onnxruntime/ort.wasm.min.mjs')),
+        import(vendor('paddleocr/paddleocr.mjs')),
+      ]);
+      ort.env.wasm.wasmPaths = vendor('onnxruntime/');
+      // Several threads need cross-origin isolation, which this site does not use.
+      ort.env.wasm.numThreads = globalThis.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
+      const get = async (f) => {
+        const res = await fetch(vendor(`paddleocr/${OCR_MODEL}/${f}`), { cache: 'no-store' });
+        if (!res.ok) throw new Error(`text reader file ${f} returned ${res.status}`);
+        return f.endsWith('.txt') ? res.text() : res.arrayBuffer();
+      };
+      const [det, rec, dict] = await Promise.all([get('det.onnx'), get('rec.onnx'), get('dict.txt')]);
+      return PaddleOcrService.createInstance({
+        ort,
+        modelPreset: OCR_MODEL,
+        detection: { modelBuffer: det },
+        recognition: { modelBuffer: rec, charactersDictionary: dict.split('\n') },
+      });
+    })().catch((e) => { readerPromise = undefined; throw e; });
   }
-  progress.fn = onProgress;
-  return workerPromise;
+  return readerPromise;
 }
-const progress = { fn: null };
+
+// Pixels from a photo file or a canvas, scaled down if very large.
+async function pixels(image) {
+  const source = image instanceof HTMLCanvasElement ? image : await createImageBitmap(image);
+  const scale = Math.min(1, MAX_SIDE / Math.max(source.width, source.height));
+  const canvas = Object.assign(document.createElement('canvas'), { width: Math.round(source.width * scale), height: Math.round(source.height * scale) });
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+  source.close?.();
+  const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  return { width, height, data: new Uint8Array(data.buffer) };
+}
 
 async function ocr(image, onProgress) {
-  const worker = await ocrWorker((m) => {
-    if (m.status === 'recognizing text') onProgress?.(`Reading the text: ${Math.round(m.progress * 100)}%`);
-    else if (m.status) onProgress?.('Getting the text reader ready');
+  const paddle = await reader(onProgress);
+  onProgress?.('Reading the text');
+  let found = 0;
+  let done = 0;
+  const results = await paddle.recognize(await pixels(image), {
+    onProgress(e) {
+      if (e.type === 'det' && e.stage === 'postprocess') found = e.detectedCount || 0;
+      if (e.type === 'rec' && e.stage === 'item' && found) onProgress?.(`Reading the text: ${Math.round((100 * (done += 1)) / found)}%`);
+    },
   });
-  const { data } = await worker.recognize(image);
-  return data.text;
+  return paddle.processRecognition(results).text;
 }
 
 async function pdfText(file, onProgress) {
@@ -68,9 +104,9 @@ export async function extractText(file, onProgress) {
 }
 
 export async function stopOcr() {
-  if (workerPromise) {
-    const w = await workerPromise;
-    workerPromise = undefined;
-    await w.terminate();
+  if (readerPromise) {
+    const r = await readerPromise.catch(() => null);
+    readerPromise = undefined;
+    await r?.destroy?.();
   }
 }
