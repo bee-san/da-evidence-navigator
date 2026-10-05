@@ -1,0 +1,35 @@
+<!-- title: Track your evidence -->
+<!-- nav: track -->
+<!-- script: app/page-track.js -->
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Track your evidence</h1>
+    <p class="govuk-body">Keep track of each letter you are getting, from asking for it to giving it to your solicitor.</p>
+    <div class="govuk-warning-text">
+      <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+      <strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span> Nothing is saved unless you choose to save it. If someone else uses this device, do not save your progress.</strong>
+    </div>
+
+    <form id="track-add" novalidate class="app-no-print">
+      <div class="govuk-form-group">
+        <label class="govuk-label govuk-label--s" for="track-type">Add a letter you are getting</label>
+        <select class="govuk-select" id="track-type"></select>
+      </div>
+      <button type="submit" class="govuk-button govuk-button--secondary" data-module="govuk-button">Add</button>
+    </form>
+
+    <div id="track-list" aria-live="polite"></div>
+
+    <div class="govuk-checkboxes govuk-checkboxes--small govuk-!-margin-bottom-4 app-no-print" data-module="govuk-checkboxes">
+      <div class="govuk-checkboxes__item">
+        <input class="govuk-checkboxes__input" id="track-save" type="checkbox" aria-describedby="track-save-hint">
+        <label class="govuk-label govuk-checkboxes__label" for="track-save">Save my progress on this device</label>
+        <div id="track-save-hint" class="govuk-hint govuk-checkboxes__hint">Anyone who opens this page on this device will be able to see it. It only shows which types of letter you are getting.</div>
+      </div>
+    </div>
+    <div class="govuk-button-group app-no-print">
+      <button type="button" class="govuk-button govuk-button--secondary" id="track-print" data-module="govuk-button">Print</button>
+      <button type="button" class="govuk-button govuk-button--warning" id="track-clear" data-module="govuk-button">Delete my progress</button>
+    </div>
+  </div>
+</div>
