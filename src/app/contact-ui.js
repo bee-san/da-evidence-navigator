@@ -166,7 +166,8 @@ function courtHtml(c) {
 ${c.email
     ? `<p class="govuk-body">We have added their email address, <strong>${escapeHtml(c.email)}</strong>${c.emailFor ? ` (${escapeHtml(c.emailFor)})` : ''}, below.</p>`
     : `<p class="govuk-body">We could not find an email address for copies of orders.${c.phone ? ` Call ${escapeHtml(c.phone)} and ask where to send your request, then add it below.` : ''}</p>`}
-<p class="govuk-body-s">From ${ext(c.url, 'Find a Court or Tribunal')} on GOV.UK. Courts list several email addresses – check this is the right one before you send.</p></div>`;
+<p class="govuk-body-s">From ${ext(c.url, 'Find a Court or Tribunal')} on GOV.UK. Courts list several email addresses – check this is the right one before you send.</p></div>
+<div id="courtCall"></div>`;
 }
 
 function mountCourtFinder(el) {
@@ -187,6 +188,7 @@ function mountCourtFinder(el) {
       detail.innerHTML = courtHtml(c);
       set('#profName', c.name);
       set('#profEmail', c.email);
+      if (!c.email) mountCall(detail.querySelector('#courtCall'), { kind: 'court', slug, phone: c.phone, name: c.name }, set);
     } catch {
       detail.innerHTML = '<p class="govuk-error-message">We could not get the court’s contact details just now. Fill them in below instead.</p>';
     }
@@ -245,25 +247,35 @@ ${p.email
 <div id="gpCall"></div></div>`;
 }
 
-// "Call them for me": an AI assistant phones the practice and asks where to
-// send the request. Shown only when api/call.js is set up.
+// "Call them for me": an AI assistant phones a GP practice, court or local
+// service and asks where to send the request. Shown wherever there is a phone
+// number but no email, when api/call.js is set up for that kind of organisation.
 let callCheck;
 const canCall = () => (callCheck ??= fetch('api/call', { credentials: 'same-origin' })
   .then((r) => (r.ok ? r.json() : { enabled: false })).catch(() => ({ enabled: false })));
 
-function callHtml(p, demo) {
+const CALL_WORDS = {
+  gp: { them: 'the practice', who: 'a patient', label: 'Practice phone number' },
+  court: { them: 'the court', who: 'someone who needs a copy of a court document', label: 'Court phone number' },
+  service: { them: 'the service', who: 'someone they have supported', label: 'Service phone number' },
+};
+// Never offer to call a helpline (they are for people in crisis) or a freephone number.
+const isHelpline = (name, phone) => /helpline/i.test(name || '') || /^(?:\+44|0044|0)\s*80[08]/.test(String(phone || '').replace(/[\s()-]/g, ''));
+
+function callHtml(target, demo) {
+  const w = CALL_WORDS[target.kind];
   return `<div class="app-gp-call">
-  <h3 class="govuk-heading-s">Or ask an AI assistant to call them for you</h3>
+  <h3 class="govuk-heading-s">Call them for me</h3>
   <div>
-    <p class="govuk-body">An AI assistant will phone the practice and ask where to send a request for a letter, and who to address it to. It says it is an AI calling on behalf of a patient. It does not give your name or say why you need the letter.</p>
-    ${demo ? '<div class="govuk-warning-text"><span class="govuk-warning-text__icon" aria-hidden="true">!</span><strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>Demo: this calls a test phone, not the practice.</strong></div>' : ''}
-    <p class="govuk-body">The practice’s phone number is sent to our calling provider. The call is recorded and transcribed so we can fill in what they say.</p>
+    <p class="govuk-body">An AI assistant will phone ${w.them} and ask where to send your request, and who to address it to. It says it is an AI calling on behalf of ${w.who}. It does not give your name or say why you need the evidence.</p>
+    ${demo ? `<div class="govuk-warning-text"><span class="govuk-warning-text__icon" aria-hidden="true">!</span><strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>Demo: this calls a test phone, not ${w.them}.</strong></div>` : ''}
+    <p class="govuk-body">Their phone number is sent to our calling provider. The call is recorded and transcribed so we can fill in what they say.</p>
     <div class="govuk-form-group" id="callPhone-group">
-      <label class="govuk-label" for="callPhone">Practice phone number</label>
+      <label class="govuk-label" for="callPhone">${w.label}</label>
       <p class="govuk-error-message" id="callPhone-error" hidden><span class="govuk-visually-hidden">Error:</span> <span></span></p>
-      <input class="govuk-input govuk-input--width-20" id="callPhone" type="tel" autocomplete="off" value="${escapeHtml(p.telephone || '')}">
+      <input class="govuk-input govuk-input--width-20" id="callPhone" type="tel" autocomplete="off" value="${escapeHtml(target.phone || '')}">
     </div>
-    <button type="button" class="govuk-button" data-module="govuk-button" id="callStart">Call the practice for me</button>
+    <button type="button" class="govuk-button" data-module="govuk-button" id="callStart">Call ${w.them} for me</button>
     <p class="govuk-body govuk-!-font-weight-bold" id="callStatus" aria-live="polite"></p>
   </div>
 </div>`;
@@ -271,11 +283,14 @@ function callHtml(p, demo) {
 
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
 
-async function mountCall(el, code, p, set) {
-  const box = el.querySelector('#gpCall');
-  const { enabled, demo } = await canCall();
-  if (!enabled || !box) return;
-  box.innerHTML = callHtml(p, demo);
+// box: where to show it. target: { kind: 'gp'|'court'|'service', code|slug|id, phone, name }.
+// set(selector, value) fills in the email form.
+export async function mountCall(box, target, set) {
+  if (!box || !target.phone || isHelpline(target.name, target.phone)) return;
+  const { enabled, demo, kinds = ['gp'] } = await canCall();
+  if (!enabled || !kinds.includes(target.kind)) return;
+  const w = CALL_WORDS[target.kind];
+  box.innerHTML = callHtml(target, demo);
   const button = box.querySelector('#callStart');
   const status = box.querySelector('#callStatus');
   const phone = box.querySelector('#callPhone');
@@ -294,12 +309,13 @@ async function mountCall(el, code, p, set) {
     status.textContent = 'Starting the call…';
     let id;
     try {
-      const res = await fetch('api/call', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ code, phone: phone.value, name: p.name }) });
+      const { kind, code, slug, id: serviceId, name } = target;
+      const res = await fetch('api/call', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ kind, code, slug, id: serviceId, name, phone: phone.value }) });
       const r = await res.json().catch(() => ({}));
       if (!res.ok || !r.id) { fail(r.error || 'The call could not be started. Try again, or call them yourself.'); return; }
       id = r.id;
     } catch { fail('The call could not be started. Try again, or call them yourself.'); return; }
-    status.textContent = 'Calling the practice. This usually takes a minute or two – you can keep filling in the form.';
+    status.textContent = `Calling ${w.them}. This usually takes a minute or two – you can keep filling in the form.`;
     for (let i = 0; i < 60; i++) {
       await sleep(5000);
       let r;
@@ -308,7 +324,7 @@ async function mountCall(el, code, p, set) {
       if (r.status === 'done' && r.email) {
         set('#profEmail', r.email);
         if (r.name) set('#profName', r.name);
-        status.textContent = `The practice said to send it to ${r.email}${r.name ? `, for ${r.name}` : ''}. We have added this below – check it before you send.`;
+        status.textContent = `They said to send it to ${r.email}${r.name ? `, for ${r.name}` : ''}. We have added this below – check it before you send.`;
       } else {
         status.textContent = 'The call ended without an email address. Try again later, or call them yourself.';
       }
@@ -338,7 +354,7 @@ function mountGpFinder(el) {
       detail.innerHTML = gpHtml(p);
       set('#profName', p.name);
       set('#profEmail', p.email);
-      mountCall(detail, code, p, set);
+      if (!p.email) mountCall(detail.querySelector('#gpCall'), { kind: 'gp', code, phone: p.telephone, name: p.name }, set);
     } catch {
       detail.innerHTML = '<p class="govuk-error-message">We could not get their contact details just now. Fill them in below instead.</p>';
     }
@@ -492,7 +508,10 @@ function check(d, key) {
   const errors = [];
   if (!d.applicant?.trim()) errors.push(['applicant', 'Enter your full name']);
   if ('other' in d && !d.other.trim()) errors.push(['other', 'Enter the name of the person who abused you']);
-  if (d.profEmail?.trim() ? !looksLikeEmail(d.profEmail) : d.sentForMe) errors.push(['profEmail', 'Enter their email address, like name@example.com']);
+  if (d.profEmail?.trim() && !looksLikeEmail(d.profEmail)) errors.push(['profEmail', 'Enter their email address in the correct format, like name@example.com']);
+  else if (!d.profEmail?.trim() && d.sentForMe) {
+    errors.push(['profEmail', 'Enter their email address so we can send it for you. If they do not have one, use “Call them for me” if it is shown above, or choose “Reply to my own email” to copy the request into their form.']);
+  }
   if (d.replyTo === 'solicitor' && !looksLikeEmail(d.solicitorEmail)) errors.push(['solicitorEmail', 'Enter your solicitor’s email address, like name@example.com']);
   if (d.sentForMe && d.replyTo !== 'solicitor') {
     if (d.method === 'phone' && !looksLikePhone(d.phone)) errors.push(['phone', 'Enter a phone number, like 07700 900 982']);

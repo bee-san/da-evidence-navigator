@@ -1,21 +1,29 @@
-// Vercel function: an AI assistant phones a GP practice for someone and asks
-// where to send a request for an evidence letter, so they do not have to make
-// the call themselves. The assistant says it is an AI calling on behalf of a
-// patient, and never gives the patient's name or says why the letter is needed.
+// Vercel function: an AI assistant phones a GP practice, a court or a local
+// domestic abuse service for someone and asks where to send a request for
+// evidence, so they do not have to make the call themselves. The assistant
+// says it is an AI calling on someone's behalf, and never gives their name or
+// says why the evidence is needed.
 //
-// Only the practice code and its phone number are sent here – never anything
-// about the person. The number must be the one the NHS website lists for that
-// practice, so this cannot be used to call anyone else. Calls go through
-// ElevenLabs (ELEVENLABS_API_KEY, ELEVENLABS_AGENT_ID, ELEVENLABS_PHONE_NUMBER_ID).
+// Only the organisation's code and phone number are sent here – never anything
+// about the person. The number must be the one listed for that organisation
+// (the NHS website for a GP practice, HMCTS Find a Court or Tribunal for a court,
+// the bundled directory for a service), so this cannot be used to call anyone
+// else. Calls go through ElevenLabs (ELEVENLABS_API_KEY, ELEVENLABS_AGENT_ID,
+// ELEVENLABS_PHONE_NUMBER_ID). ELEVENLABS_AGENT_ID's script is for GP practices
+// ("on behalf of a patient"); courts and services are only called when
+// ELEVENLABS_GENERAL_AGENT_ID is set to an agent whose script uses the
+// organisation_type and on_behalf_of variables.
 //
 // CALL_DEMO_NUMBER sends every call to that test phone instead of the
 // practice, for demos. The page says so before anyone presses the button.
 //
-// GET  /api/call            -> { enabled, demo }
-// POST /api/call {code, phone} -> { id, demo }
+// GET  /api/call            -> { enabled, demo, kinds }
+// POST /api/call {kind: 'gp', code, phone} | {kind: 'court', slug, phone} | {kind: 'service', id, phone}
+//                            -> { id, demo }
 // GET  /api/call?id=conv_…  -> { status, email, name }
 
 import { practiceDetails } from './gp.js';
+import { SERVICES } from '../src/app/services.js';
 
 const API = 'https://api.elevenlabs.io/v1/convai';
 
@@ -41,9 +49,52 @@ const env = () => ({
   key: process.env.ELEVENLABS_API_KEY,
   agent: process.env.ELEVENLABS_AGENT_ID,
   number: process.env.ELEVENLABS_PHONE_NUMBER_ID,
+  general: process.env.ELEVENLABS_GENERAL_AGENT_ID || '',
   demo: process.env.CALL_DEMO_NUMBER || '',
 });
 const configured = () => { const e = env(); return !!(e.key && e.agent && e.number); };
+// Which kinds of organisation can be called with the agents that are set up.
+const kinds = () => (configured() ? (env().general ? ['gp', 'court', 'service'] : ['gp']) : []);
+
+const FACT = 'https://www.find-court-tribunal.service.gov.uk';
+
+// Never call a helpline: they are for people who need support, often in crisis,
+// and an assistant must not tie them up. Freephone 0800/0808 numbers are how
+// helplines are usually reached.
+export const isHelpline = (name, phone) => /helpline/i.test(name || '') || /^\+44(800|808)/.test(ukE164(phone));
+const UA = { 'user-agent': 'Mozilla/5.0 (compatible; legal aid evidence prototype)' };
+
+// The organisation to call, checked against its public listing. Returns
+// { name, phones: [E.164...] } or { error }.
+async function listed(kind, body) {
+  if (kind === 'gp') {
+    const code = String(body?.code || '');
+    if (!/^[A-Z]\d{5}$/.test(code)) return { error: 'Choose your GP practice first' };
+    const page = await fetch(`https://www.nhs.uk/services/gp-surgery/practice/${code}`, { headers: UA, redirect: 'follow' });
+    if (!page.ok) return { error: 'We could not check the practice’s phone number. Call them yourself instead.', status: 502 };
+    const p = practiceDetails(await page.text());
+    return { name: p.name, phones: [ukE164(p.telephone)].filter(Boolean) };
+  }
+  if (kind === 'court') {
+    const slug = String(body?.slug || '');
+    if (!/^[a-z0-9-]{3,120}$/.test(slug)) return { error: 'Choose the court first' };
+    const res = await fetch(`${FACT}/courts/${slug}.json`, { headers: { ...UA, accept: 'application/json' } });
+    if (!res.ok) return { error: 'We could not check the court’s phone number. Call them yourself instead.', status: 502 };
+    const c = await res.json();
+    return { name: c.name, phones: (c.contacts || []).map((x) => ukE164(x.number)).filter(Boolean) };
+  }
+  const id = String(body?.id || '');
+  const sv = /^[0-9a-f-]{36}$/.test(id) ? SERVICES[id] : null;
+  if (!sv) return { error: 'Choose the service first' };
+  if (isHelpline(sv.name, sv.phone)) return { error: 'We do not call helplines. Call them yourself if you want to.' };
+  return { name: sv.name, phones: [ukE164(sv.phone)].filter(Boolean) };
+}
+
+const ABOUT = {
+  gp: { type: 'GP practice', onBehalfOf: 'a patient', default: 'your GP practice' },
+  court: { type: 'court', onBehalfOf: 'someone who needs a copy of a court document', default: 'the court' },
+  service: { type: 'domestic abuse support service', onBehalfOf: 'someone the service has supported', default: 'the service' },
+};
 
 // "01865 240501", "+44 1865 240501" -> "+441865240501". Returns '' if it is
 // not a UK number.
@@ -69,7 +120,7 @@ export function callResult(conv) {
 
 export async function GET(request) {
   const id = new URL(request.url).searchParams.get('id');
-  if (id == null) return json({ enabled: configured(), demo: !!env().demo });
+  if (id == null) return json({ enabled: configured(), demo: !!env().demo, kinds: kinds() });
   if (!configured()) return json({ error: 'not configured' }, 503);
   if (!/^conv_[A-Za-z0-9]+$/.test(id)) return json({ error: 'bad id' }, 400);
   const res = await fetch(`${API}/conversations/${id}`, { headers: { 'xi-api-key': env().key } });
@@ -84,38 +135,38 @@ export async function POST(request) {
 
   let body;
   try { body = await request.json(); } catch { return json({ error: 'bad request' }, 400); }
-  const code = String(body?.code || '');
-  if (!/^[A-Z]\d{5}$/.test(code)) return json({ error: 'Choose your GP practice first' }, 400);
+  const kind = ['gp', 'court', 'service'].includes(body?.kind) ? body.kind : 'gp';
+  if (!kinds().includes(kind)) return json({ error: 'Calls to this kind of organisation are not set up yet. Call them yourself instead.' }, 400);
   const asked = ukE164(body?.phone);
-  if (!asked) return json({ error: 'Enter the practice’s phone number, like 01865 240501' }, 400);
+  if (!asked) return json({ error: 'Enter their phone number, like 01865 240501' }, 400);
+  if (isHelpline('', asked)) return json({ error: 'We do not call helplines or freephone numbers. Call them yourself if you want to.' }, 400);
 
   const e = env();
+  const about = ABOUT[kind];
   let to = ukE164(e.demo);
-  // In a demo the test phone plays the practice, so use the name the page chose.
-  let practice = (to && String(body?.name || '').trim().slice(0, 100)) || 'your GP practice';
+  // In a demo the test phone plays the organisation, so use the name the page chose.
+  let name = (to && String(body?.name || '').trim().slice(0, 100)) || about.default;
   if (!to) {
-    // Only ever call the number the NHS lists for this practice.
-    const page = await fetch(`https://www.nhs.uk/services/gp-surgery/practice/${code}`, {
-      headers: { 'user-agent': 'Mozilla/5.0 (compatible; legal aid evidence prototype)' },
-      redirect: 'follow',
-    });
-    if (!page.ok) return json({ error: 'We could not check the practice’s phone number. Call them yourself instead.' }, 502);
-    const p = practiceDetails(await page.text());
-    if (!p.telephone || ukE164(p.telephone) !== asked) {
-      return json({ error: 'We can only call the phone number the NHS website lists for this practice.' }, 400);
-    }
+    const org = await listed(kind, body);
+    if (org.error) return json({ error: org.error }, org.status || 400);
+    // Only ever call a number listed for this organisation.
+    if (!org.phones.includes(asked)) return json({ error: 'We can only call the phone number listed for them.' }, 400);
     to = asked;
-    practice = p.name || practice;
+    name = org.name || name;
+  } else if (kind === 'gp' && !/^[A-Z]\d{5}$/.test(String(body?.code || ''))) {
+    return json({ error: 'Choose your GP practice first' }, 400);
   }
 
   const res = await fetch(`${API}/twilio/outbound-call`, {
     method: 'POST',
     headers: { 'xi-api-key': e.key, 'content-type': 'application/json' },
     body: JSON.stringify({
-      agent_id: e.agent,
+      agent_id: kind === 'gp' ? e.agent : e.general,
       agent_phone_number_id: e.number,
       to_number: to,
-      conversation_initiation_client_data: { dynamic_variables: { practice_name: practice } },
+      conversation_initiation_client_data: {
+        dynamic_variables: { practice_name: name, organisation_name: name, organisation_type: about.type, on_behalf_of: about.onBehalfOf },
+      },
     }),
   });
   const r = await res.json().catch(() => ({}));

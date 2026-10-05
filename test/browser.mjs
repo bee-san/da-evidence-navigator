@@ -469,7 +469,7 @@ await step('find evidence: an AI assistant calls the GP and fills in the email',
     await page.click('#callStart');
     await until(() => document.querySelector('#profEmail').value === 'letters.beaumont@nhs.net', 12000);
     assert.equal(await page.$eval('#profName', (e) => e.value), 'Dr Okafor');
-    assert.deepEqual(posted, [{ code: 'K84016', phone: '01865240501', name: 'Beaumont Elms Practice' }]);
+    assert.deepEqual(posted, [{ kind: 'gp', code: 'K84016', phone: '01865240501', name: 'Beaumont Elms Practice' }]);
     assert.match(await text('#callStatus'), /send it to letters\.beaumont@nhs\.net, for Dr Okafor/);
   } finally {
     page.off('request', answer);
@@ -500,6 +500,39 @@ await step('find evidence: choose a local support service to fill in the email',
     assert.match(await text('#service-status'), /added .* to your email/);
     await page.click('#service-none');
     assert.equal(await page.$eval('#profEmail', (e) => e.value), '', 'choosing none takes it out again');
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+});
+
+await step('find evidence: call them for me appears for a court with a phone number but no email', async () => {
+  await go('index.html');
+  const posted = [];
+  const answer = (r) => {
+    const u = r.url();
+    const ok = (body) => r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
+    if (u.includes('/api/court?q=')) ok({ courts: [{ slug: 'oxford-combined-court-centre', name: 'Oxford Combined Court Centre', types: ['Family'], distance: null }] });
+    else if (u.includes('/api/court?slug=')) ok({ name: 'Oxford Combined Court Centre', email: '', emailFor: '', phone: '01865 264 200', address: 'St Aldates, Oxford', url: 'https://www.find-court-tribunal.service.gov.uk/courts/oxford-combined-court-centre' });
+    else if (u.endsWith('/api/call') && r.method() === 'POST') { posted.push(JSON.parse(r.postData())); ok({ id: 'conv_court', demo: true }); }
+    else if (u.endsWith('/api/call')) ok({ enabled: true, demo: true, kinds: ['gp', 'court', 'service'] });
+    else r.continue();
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await go('check.html#solicitor/police/court/courtWhat/evInjunction');
+    await page.type('#courtSearch', 'Oxford');
+    await page.click('#courtFind');
+    await until(() => document.querySelector('#court-0'), 5000);
+    await page.click('#court-0');
+    await until(() => document.querySelector('#courtCall #callStart'), 5000);
+    assert.equal(await text('#courtCall #callStart'), 'Call the court for me');
+    assert.equal(await page.$eval('#callPhone', (e) => e.value), '01865 264 200');
+    await audit('call the court');
+    await page.click('#callStart');
+    await until(() => /Calling the court/.test(document.querySelector('#callStatus')?.textContent || ''), 5000);
+    assert.deepEqual(posted, [{ kind: 'court', slug: 'oxford-combined-court-centre', name: 'Oxford Combined Court Centre', phone: '01865 264 200' }]);
   } finally {
     page.off('request', answer);
     await page.setRequestInterception(false);
