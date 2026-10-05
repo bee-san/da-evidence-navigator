@@ -12,23 +12,35 @@ const CAN_LOCATE = typeof navigator !== 'undefined' && 'geolocation' in navigato
 // "Find location": device location, rounded to about 1km, to a postcode
 // district (for example SW1H) through postcodes.io. Only the district goes
 // in the box, so the search does not show the home postcode.
+// It is one or the other: typing a postcode hides the button and cancels a
+// lookup that has not finished, and the typed postcode is what is searched.
+let lookup = 0;
+const groupFor = (id) => document.querySelector(`[data-locate-group="${id}"]`);
 async function locate(button) {
-  const input = document.getElementById(button.dataset.locate);
-  const status = document.getElementById(`${button.dataset.locate}-locate-status`);
+  const id = button.dataset.locate;
+  const input = document.getElementById(id);
+  const status = document.getElementById(`${id}-locate-status`);
   const say = (msg) => { status.textContent = msg; };
+  const mine = ++lookup;
+  const current = () => mine === lookup && !input.value.trim();
   button.disabled = true;
   say('Finding your location…');
   try {
     const pos = await new Promise((ok, fail) => navigator.geolocation.getCurrentPosition(ok, fail,
       { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 }));
+    if (!current()) return;
     const r2 = (n) => n.toFixed(2);
     const res = await fetch(`https://api.postcodes.io/postcodes?lon=${r2(pos.coords.longitude)}&lat=${r2(pos.coords.latitude)}&radius=2000&limit=1`);
     const outcode = res.ok && (await res.json()).result?.[0]?.outcode;
-    if (!outcode) { say('We could not find a postcode for your location. Type a postcode instead.'); return; }
+    if (!current()) return;
+    if (!outcode) { say('We could not find a postcode for your location. Enter a postcode instead.'); input.focus(); return; }
     input.value = outcode;
+    groupFor(id).hidden = true;
     say(`Found ${outcode}. Select Search for a legal aid solicitor.`);
   } catch (e) {
-    say(e && e.code === 1 ? 'Location was not shared. Type a postcode instead.' : 'We could not find your location. Type a postcode instead.');
+    if (!current()) return;
+    say(e && e.code === 1 ? 'Location was not shared. Enter a postcode instead.' : 'We could not find your location. Enter a postcode instead.');
+    input.focus();
   } finally {
     button.disabled = false;
   }
@@ -37,6 +49,13 @@ if (CAN_LOCATE && typeof document !== 'undefined') {
   document.addEventListener('click', (e) => {
     const b = e.target.closest?.('[data-locate]');
     if (b) locate(b);
+  });
+  document.addEventListener('input', (e) => {
+    const group = e.target.id && groupFor(e.target.id);
+    if (!group) return;
+    lookup++;
+    group.hidden = !!e.target.value.trim();
+    document.getElementById(`${e.target.id}-locate-status`).textContent = '';
   });
 }
 
@@ -50,11 +69,12 @@ export const finderForm = (id = 'postcode') => `
     <div class="govuk-hint" id="${id}-hint">You can use a postcode near you, for example where you work, if you do not want to use your home postcode.</div>
     <input class="govuk-input govuk-input--width-10" id="${id}" name="postcode" type="text" autocomplete="postal-code" spellcheck="false" aria-describedby="${id}-hint">
   </div>${CAN_LOCATE ? `
-  <div class="govuk-form-group">
+  <div class="govuk-form-group" data-locate-group="${id}">
+    <p class="govuk-body">Or, instead of typing a postcode:</p>
     <button type="button" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-2" data-locate="${id}">Find location</button>
-    <p class="govuk-body-s govuk-!-margin-bottom-0" id="${id}-locate-status" role="status"></p>
     <p class="govuk-body-s">This uses your device's location to fill in the first part of your postcode, for example SW1H. Your approximate location is sent to postcodes.io to look this up. Your browser may remember that you allowed this.</p>
-  </div>` : ''}
+  </div>
+  <p class="govuk-body-s" id="${id}-locate-status" role="status"></p>` : ''}
   <button type="submit" class="govuk-button" data-module="govuk-button">Search for a legal aid solicitor</button>
   <p class="govuk-body-s">This opens Find a Legal Aid Adviser on GOV.UK in this tab, with family law already chosen. Your postcode goes to GOV.UK, not to this website. The search will show in your browser history.</p>
 </form>`;

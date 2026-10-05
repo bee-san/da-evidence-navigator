@@ -140,6 +140,12 @@ await step('find a solicitor: error, keyboard answers, back link, finder search'
   errors.splice(0, errors.length, ...errors.filter((e) => !e.includes('find-legal-advice')));
 });
 
+const clearPostcode = async () => {
+  await page.focus('#postcode');
+  await page.evaluate(() => document.querySelector('#postcode').select());
+  await page.keyboard.press('Backspace');
+};
+
 await step('find a solicitor: Find location fills the postcode district', async () => {
   await browser.defaultBrowserContext().overridePermissions(base.slice(0, -1), ['geolocation']);
   await page.setGeolocation({ latitude: 51.49943, longitude: -0.13371 });
@@ -164,7 +170,33 @@ await step('find a solicitor: Find location fills the postcode district', async 
   assert.equal(sent.length, 1);
   assert.match(sent[0], /lon=-0\.13&lat=51\.50&/, 'location is rounded before it is sent');
   assert.match(await text('#postcode-locate-status'), /Found SW1H/);
+  assert.equal(await page.evaluate(() => document.querySelector('[data-locate-group]').hidden), true, 'location option hides once there is a postcode');
   await audit('flow with location found');
+  // One or the other: a typed postcode hides the location option, and
+  // clearing it brings the option back.
+  await clearPostcode();
+  assert.equal(await page.evaluate(() => document.querySelector('[data-locate-group]').hidden), false);
+  await page.type('#postcode', 'L8 7AE');
+  assert.equal(await page.evaluate(() => document.querySelector('[data-locate-group]').hidden), true);
+  assert.equal(await page.evaluate(() => document.querySelector('#postcode').value), 'L8 7AE');
+});
+
+await step('find a solicitor: location refused, a typed postcode is used', async () => {
+  await browser.defaultBrowserContext().clearPermissionOverrides();
+  await go('find-solicitor.html#have/risk/find');
+  await until(() => document.querySelector('[data-locate]'));
+  await clearPostcode();
+  await page.evaluate(() => { navigator.geolocation.getCurrentPosition = (ok, fail) => setTimeout(() => fail({ code: 1 }), 300); });
+  await page.click('[data-locate]');
+  await page.type('#postcode', 'L8 7AE');
+  await new Promise((r) => setTimeout(r, 600));
+  assert.equal(await page.evaluate(() => document.querySelector('#postcode').value), 'L8 7AE');
+  assert.equal(await text('#postcode-locate-status'), '', 'a late refusal does not tell them to type a postcode they already typed');
+  await clearPostcode();
+  await page.click('[data-locate]');
+  await until(() => /not shared/.test(document.querySelector('#postcode-locate-status').textContent));
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'postcode', 'focus goes to the postcode box');
+  await audit('flow with location refused');
 });
 
 await step('find evidence: no police or court, GP letter, email written on the device', async () => {
