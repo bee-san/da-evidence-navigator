@@ -166,8 +166,8 @@ function courtHtml(c) {
 ${c.email
     ? `<p class="govuk-body">We have added their email address, <strong>${escapeHtml(c.email)}</strong>${c.emailFor ? ` (${escapeHtml(c.emailFor)})` : ''}, below.</p>`
     : `<p class="govuk-body">We could not find an email address for copies of orders.${c.phone ? ` Call ${escapeHtml(c.phone)} and ask where to send your request, then add it below.` : ''}</p>`}
-<p class="govuk-body-s">From ${ext(c.url, 'Find a Court or Tribunal')} on GOV.UK. Courts list several email addresses – check this is the right one before you send.</p></div>
-<div id="courtCall"></div>`;
+<p class="govuk-body-s">From ${ext(c.url, 'Find a Court or Tribunal')} on GOV.UK. Courts list several email addresses – check this is the right one before you send.</p>
+<div id="courtCall"></div></div>`;
 }
 
 function mountCourtFinder(el) {
