@@ -4,7 +4,7 @@
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
     <h1 class="govuk-heading-l">Check a letter</h1>
-    <p class="govuk-body">Take a photo of a letter you have been given, or paste its text. We will check it against the wording the Legal Aid Agency usually accepts.</p>
+    <p class="govuk-body">Take a photo of a letter you have been given, or paste its text. We will check it against each thing the Legal Aid Agency needs that type of evidence to show, and tell you what to ask for if something is missing.</p>
     <p class="govuk-body">The photo and the check stay on your device. The letter is not sent anywhere or saved.</p>
 
     <div id="camera"></div>
@@ -33,10 +33,36 @@
 
     <form id="letter-form" novalidate>
       <div class="govuk-form-group" id="type-group">
-        <label class="govuk-label govuk-label--s" for="type">Type of letter</label>
-        <select class="govuk-select" id="type">
+        <label class="govuk-label govuk-label--s" for="type">Type of evidence</label>
+        <div class="govuk-hint" id="type-hint">If you are not sure, leave this and we will try to work it out.</div>
+        <p id="type-error" class="govuk-error-message" hidden><span class="govuk-visually-hidden">Error:</span> Choose the type of evidence</p>
+        <select class="govuk-select" id="type" aria-describedby="type-hint">
           <option value="">Work it out for me</option>
         </select>
+      </div>
+
+      <div class="govuk-form-group">
+        <fieldset class="govuk-fieldset" aria-describedby="people-hint">
+          <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Names to look for in the letter (optional)</legend>
+          <div class="govuk-hint" id="people-hint">The evidence usually has to name these people. Leave your name blank and we will look for it in the letter.</div>
+          <div class="govuk-form-group">
+            <label class="govuk-label" for="client">Name of the person applying for legal aid</label>
+            <input class="govuk-input govuk-!-width-two-thirds" id="client" type="text" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="govuk-form-group" id="other-group">
+            <label class="govuk-label" for="other">Name of the person who abused you or the child</label>
+            <input class="govuk-input govuk-!-width-two-thirds" id="other" type="text" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="govuk-form-group" id="child-group" hidden>
+            <label class="govuk-label" for="child">Name of the child</label>
+            <input class="govuk-input govuk-!-width-two-thirds" id="child" type="text" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="govuk-form-group govuk-!-margin-bottom-0" id="date-group" hidden>
+            <label class="govuk-label" for="appdate">Date of the legal aid application</label>
+            <div class="govuk-hint" id="appdate-hint">For example, 5 October 2026. Used to check the evidence came first.</div>
+            <input class="govuk-input govuk-input--width-20" id="appdate" type="text" autocomplete="off" aria-describedby="appdate-hint">
+          </div>
+        </fieldset>
       </div>
 
       <div class="govuk-form-group" id="letter-group">

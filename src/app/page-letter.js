@@ -1,8 +1,8 @@
-import { checkLetter, LETTER_TYPES } from './rules.js';
+import { check, getCategory, Label } from './checker/index.js';
+import { categoryOptions, guessCategory, resultHtml, markupHtml, OLD_TYPES, NEEDS_DATE } from './checker-ui.js';
 import { SAMPLES } from './samples.js';
 import { SYNTHETIC } from './synthetic.js';
 import { escapeHtml } from './chat.js';
-import { resultHtml } from './render.js';
 import { extractText } from './ocr.js';
 import { mountCamera } from './camera.js';
 import { secondOpinion, MODEL, MEASURED } from './model.js';
@@ -15,7 +15,17 @@ const file = document.getElementById('file');
 const fileStatus = document.getElementById('file-status');
 const examples = [...SAMPLES, ...SYNTHETIC];
 
-type.insertAdjacentHTML('beforeend', Object.entries(LETTER_TYPES).map(([k, v]) => `<option value="${k}">${escapeHtml(v)}</option>`).join(''));
+type.insertAdjacentHTML('beforeend', categoryOptions());
+
+// Show only the names the chosen type of evidence needs.
+function showInputs() {
+  const cat = type.value ? getCategory(type.value) : null;
+  const needs = cat ? cat.inputs : ['client', 'other_party'];
+  document.getElementById('other-group').hidden = !needs.includes('other_party');
+  document.getElementById('child-group').hidden = !needs.includes('child');
+  document.getElementById('date-group').hidden = !(cat && NEEDS_DATE.has(cat.id));
+}
+type.addEventListener('change', showInputs);
 sample.insertAdjacentHTML('beforeend', `<optgroup label="From the hackathon evidence pack">${SAMPLES.map((s) => `<option value="${s.id}">${escapeHtml(s.label)}</option>`).join('')}</optgroup>
 <optgroup label="Written for this prototype">${SYNTHETIC.map((s) => `<option value="${s.id}">${escapeHtml(s.label)}</option>`).join('')}</optgroup>`);
 
@@ -76,11 +86,34 @@ function setError(msg) {
 document.getElementById('letter-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const text = letter.value.trim();
+  const typeError = document.getElementById('type-error');
+  typeError.hidden = true;
+  document.getElementById('type-group').classList.remove('govuk-form-group--error');
   if (!text) return setError('Paste the text of the letter');
-  const r = checkLetter(text, type.value || undefined);
-  if (r.outcome === 'unknown') return setError('We could not tell what type of letter this is. Choose the type of letter');
+  const guessed = !type.value;
+  const category = type.value || guessCategory(text);
+  if (!category) {
+    setError('');
+    typeError.hidden = false;
+    document.getElementById('type-group').classList.add('govuk-form-group--error');
+    type.focus();
+    return;
+  }
+  const value = (id) => (document.getElementById(`${id}-group`)?.hidden ? '' : document.getElementById(id).value.trim());
+  let r;
+  try {
+    r = check(text, category, {
+      client: document.getElementById('client').value.trim(),
+      other_party: value('other'),
+      child: value('child'),
+      application_date: value('appdate'),
+    });
+  } catch (err) {
+    return setError(err.message);
+  }
   setError('');
-  result.innerHTML = `${resultHtml(r)}
+  result.innerHTML = `${resultHtml(r, { guessed })}
+${markupHtml(text, r)}
 <details class="govuk-details app-no-print" id="opinion">
   <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Get a second opinion from an AI model (optional)</span></summary>
   <div class="govuk-details__text">
@@ -97,7 +130,7 @@ document.getElementById('letter-form').addEventListener('submit', (e) => {
     <div id="model-result"></div>
   </div>
 </details>
-<div class="govuk-inset-text">This is a screening check based on example letters. It does not decide whether you get legal aid.</div>`;
+<div class="govuk-inset-text">This is a screening check. It matches wording, so it can be wrong in both directions. It does not decide whether you get legal aid.</div>`;
   wireModel(text, r);
   result.focus();
 });
@@ -113,7 +146,7 @@ function wireModel(text, r) {
     status.textContent = 'Starting the model';
     try {
       const opinions = await secondOpinion(text, (m) => { status.textContent = m; });
-      const rulesFail = r.checks.some((c) => c.status === 'fail' && /hedged/.test(c.detail));
+      const rulesFail = r.label !== Label.COMPLETE;
       const modelUnsure = opinions.some((o) => o.label === 'uncertain');
       status.textContent = !opinions.length ? 'The model did not find any key sentences to read.'
         : rulesFail === modelUnsure ? 'The model agrees with the check above.'
@@ -133,6 +166,9 @@ if (new URLSearchParams(location.search).get('sample')) {
   sample.dispatchEvent(new Event('change'));
 }
 
-// Links in evidence request emails choose the letter type: ?type=p11
+// Links in evidence request emails choose the type: ?type=p11 (older keys) or ?type=sch1-para11
 const typeParam = new URLSearchParams(location.search).get('type');
-if (typeParam && LETTER_TYPES[typeParam]) type.value = typeParam;
+if (typeParam) {
+  try { type.value = getCategory(OLD_TYPES[typeParam] || typeParam).id; } catch { /* unknown type: leave it to be worked out */ }
+}
+showInputs();
