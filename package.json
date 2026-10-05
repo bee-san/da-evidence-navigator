@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/rules.test.mjs",
+    "test": "node --test test/rules.test.mjs test/flow.test.mjs",
     "build": "node build.mjs",
     "test:browser": "node test/browser.mjs"
   },

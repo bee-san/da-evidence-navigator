@@ -72,6 +72,54 @@ await step('keyboard: skip link first, then Exit this page is reachable', async 
   assert.notEqual(outline, 'nonenone', 'focus is visible');
 });
 
+await step('home page has one button, which starts the find-a-solicitor flow', async () => {
+  await go('index.html');
+  const buttons = await page.$$eval('main .govuk-button, header nav a', (b) => b.map((x) => x.textContent.trim()));
+  assert.deepEqual(buttons, ['Start now']);
+  await Promise.all([page.waitForNavigation(), page.click('.govuk-button--start')]);
+  await until(() => document.querySelector('#flow h1'));
+  assert.equal(await text('#flow h1'), 'Do you have a solicitor for your family case?');
+});
+
+await step('find a solicitor: error, keyboard answers, back link, finder search', async () => {
+  await go('find-solicitor.html');
+  await until(() => document.querySelector('#flow form'));
+  await page.click('#flow .govuk-button');
+  await until(() => document.querySelector('.govuk-error-summary'));
+  assert.equal(await page.evaluate(() => document.activeElement.className), 'govuk-error-summary');
+  assert.match(await page.title(), /^Error: /);
+  await audit('flow error');
+  await page.click('.govuk-error-summary a');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'have-0');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await until(() => document.querySelector('#flow h1')?.textContent === 'Are you at risk of harm now?');
+  assert.equal(await page.evaluate(() => document.activeElement.tagName), 'H1', 'focus moves to the new question');
+  await page.click('#risk-1');
+  await page.click('#flow .govuk-button');
+  await until(() => document.querySelector('#flow h1')?.textContent === 'Find a legal aid solicitor');
+  await audit('flow result');
+  await page.goBack();
+  await until(() => document.querySelector('#flow h1')?.textContent === 'Are you at risk of harm now?');
+  await page.click('.govuk-back-link');
+  await until(() => document.querySelector('#flow h1')?.textContent === 'Do you have a solicitor for your family case?');
+  await page.goto(`${base}find-solicitor.html#have/risk/urgent`, { waitUntil: 'networkidle0' });
+  await until(() => document.querySelector('#flow h1')?.textContent === 'Get help now');
+  // The search goes to the GOV.UK finder with Family chosen. Stop the request
+  // rather than leave the test site.
+  await page.setRequestInterception(true);
+  let finder;
+  const stop = (r) => { if (r.url().startsWith('https://find-legal-advice')) { finder = r.url(); r.abort(); } else r.continue(); };
+  page.on('request', stop);
+  await page.type('#postcode', 'SW1H 9AJ');
+  await page.click('form[action*="find-legal-advice"] button');
+  await new Promise((r) => setTimeout(r, 500));
+  page.off('request', stop);
+  await page.setRequestInterception(false);
+  assert.equal(finder, 'https://find-legal-advice.justice.gov.uk/search?categories=mat&postcode=SW1H+9AJ');
+  errors.splice(0, errors.length, ...errors.filter((e) => !e.includes('find-legal-advice')));
+});
+
 await step('find evidence: keyboard only, results include new routes', async () => {
   await go('check.html');
   await page.focus('#route-0');
