@@ -2,7 +2,7 @@ import { checkLetter, changeRequest } from './rules.js';
 import { SAMPLES } from './samples.js';
 import { evaluate } from './evaluate.js';
 import { escapeHtml } from './chat.js';
-import { checksList, OUTCOME } from './render.js';
+import { checksList, confidenceText, OUTCOME } from './render.js';
 
 const before = SAMPLES.find((s) => s.id === 'p11-bad-5').text;
 const after = before.replace('might be consistent', 'is consistent');
@@ -10,10 +10,10 @@ const rb = checkLetter(before);
 const ra = checkLetter(after);
 const mark = (t, w) => escapeHtml(t).replace(w, `<mark>${w}</mark>`);
 document.getElementById('demo-before').innerHTML = mark(before, 'might be consistent');
-document.getElementById('demo-before-result').innerHTML = `<p class="govuk-body">Result: ${OUTCOME[rb.outcome].tag}</p>${checksList({ checks: rb.checks.filter((c) => c.status !== 'pass') })}`;
+document.getElementById('demo-before-result').innerHTML = `<p class="govuk-body">Result: ${OUTCOME[rb.outcome].tag} Confidence ${confidenceText(rb)}</p>${checksList({ checks: rb.checks.filter((c) => c.status !== 'pass') })}`;
 document.getElementById('demo-message').textContent = changeRequest(rb);
 document.getElementById('demo-after').innerHTML = mark(after, 'is consistent');
-document.getElementById('demo-after-result').innerHTML = `<p class="govuk-body">Result: ${OUTCOME[ra.outcome].tag}</p>`;
+document.getElementById('demo-after-result').innerHTML = `<p class="govuk-body">Result: ${OUTCOME[ra.outcome].tag} Confidence ${confidenceText(ra)}</p>`;
 
 const { rows, summary } = evaluate();
 const names = { pack: 'Hackathon evidence pack', synthetic: 'Fictional letters for other types', variation: 'Variations of the pack letters', all: 'All letters' };

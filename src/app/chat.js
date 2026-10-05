@@ -54,7 +54,7 @@ const INTENTS = [
       if (r.outcome === 'unknown') {
         return `<p class="govuk-body">That looks like a letter, but I could not tell which type it is. Try the ${a('letter-checker.html', 'letter checker')}, where you can choose the letter type.</p>`;
       }
-      const verdict = { ready: 'This letter looks ready to send to your solicitor.', check: 'This letter may need a small change – check with your solicitor.', changes: 'This letter needs changes before it is likely to be accepted.' }[r.outcome];
+      const verdict = `${{ ready: 'This letter looks ready to send to your solicitor.', check: 'This letter may need a change – check with your solicitor.', changes: 'This letter needs changes before it is likely to be accepted.' }[r.outcome]} Confidence: ${r.confidence.score}% (${r.confidence.level}).`;
       const issues = r.checks.filter((c) => c.status !== 'pass');
       const req = changeRequest(r);
       return `<p class="govuk-body">This looks like a <strong>${escapeHtml(LETTER_TYPES[r.type])}</strong>.</p>

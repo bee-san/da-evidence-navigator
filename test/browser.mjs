@@ -241,7 +241,7 @@ await step('professionals: batch check summarises all example letters', async ()
   await page.click('#batch-examples');
   await page.click('#batch-form button[type=submit]');
   await until(() => document.querySelector('#batch-result table'));
-  assert.match(await text('#batch-result p'), /^11 look ready, 0 need checking, 9 need changes, 0 could not be read\.$/);
+  assert.match(await text('#batch-result p'), /^11 look ready, 1 need checking, 8 need changes, 0 could not be read\.$/);
   await audit('batch results');
 });
 

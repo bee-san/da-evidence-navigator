@@ -51,6 +51,8 @@ Four more (MARAC, refuge admission, social services, financial abuse) come from 
 | Fictional (other types) | 8 | 8 |
 | Variations | 46 | 46 |
 
+`scripts/generate-dataset.mjs` writes 1,000 fictional evidence documents (500 that meet the June 2026 LAA evidence guidance, 500 that each fail one named requirement) across every Schedule 1 and 2 paragraph; `scripts/evaluate-dataset.mjs` scores the rules against them. The rules were tuned on seed 2026 and scored once on a held-out set (seed 7): 402 of 404 letters of supported types correct (99.5%), up from 62.1% before tuning, with no good letters flagged. Both sets come from the same templates and the labels are our reading of the guidance, not caseworker decisions, so this shows the rules follow the guidance, not how often they agree with assessors. On `data/demo16.jsonl` – 16 letters in varied wording from a separate review pack (`data/Demo-16-review.pdf`), with labels proposed by an AI model and not yet human-reviewed – the rules got 0 of the 13 decisive letters right: they look for sample-letter wording and miss paraphrases. Each result now has a confidence rating (0–100%, high/medium/low); see `src/pages/rules.html`.
+
 Measured on the 45 pack, fictional and edited letters, the rules found 16 of 16 hedged letters and flagged none of 29 firm ones. The optional AI model (DeBERTa v3 xsmall, zero-shot, 90% threshold) found 11 of 16 and also flagged none. The rules were written from these letters, so their results show consistency, not real-world accuracy. Measuring that needs real, anonymised Legal Aid Agency decisions.
 
 ## Run locally

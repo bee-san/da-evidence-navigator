@@ -1,0 +1,213 @@
+<!-- title: How the letter checks work -->
+<!-- nav: about -->
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <span class="govuk-caption-l">About this prototype</span>
+    <h1 class="govuk-heading-l">How the letter checks work</h1>
+    <p class="govuk-body-l">The letter checker reads an evidence letter, works out what type it is, and runs 42 checks taken from the Legal Aid Agency's evidence guidance. It then gives a confidence rating that the letter meets the requirements.</p>
+    <p class="govuk-body">It is a screening aid. The Legal Aid Agency makes every decision.</p>
+
+    <h2 class="govuk-heading-m">1. Working out the letter type</h2>
+    <p class="govuk-body">Each type of evidence has different requirements, so the checker first looks for wording that identifies the type. It tries the types in this order and uses the first match:</p>
+    <ol class="govuk-list govuk-list--number">
+      <li>Refuge refusal – mentions a refuge and a refusal, or someone seeking admission to a refuge</li>
+      <li>Refuge stay – mentions a refuge and someone being admitted or staying there</li>
+      <li>Support organisation – mentions six months of operation, where the organisation is situated, or "the matters I have relied upon"</li>
+      <li>MARAC – mentions a MARAC, a risk panel or a safeguarding forum</li>
+      <li>Health professional – says the injuries or condition are consistent with domestic abuse, or that the person was examined</li>
+      <li>Social services – the letter describes itself as from social services, a social worker or children's services</li>
+      <li>Financial abuse – mentions financial abuse, a bank, a loan or a credit card</li>
+      <li>Public authority – mentions a family relationship, an assessment, or "domestic abuse by" someone</li>
+      <li>IDVA or ISVA – mentions an IDVA or ISVA, or someone providing support</li>
+    </ol>
+    <p class="govuk-body">Support organisation letters are recognised before MARAC letters because they often mention a MARAC referral as one of the reasons for their judgement.</p>
+    <p class="govuk-body">If none of these match, the checker says it does not recognise the letter and the person can choose the type themselves. Police records, court orders and Home Office letters are not checked.</p>
+
+    <h2 class="govuk-heading-m">2. Running the checks</h2>
+    <p class="govuk-body">Every check gives one of three results:</p>
+    <dl class="govuk-summary-list">
+      <div class="govuk-summary-list__row"><dt class="govuk-summary-list__key"><strong class="govuk-tag govuk-tag--green">OK</strong></dt><dd class="govuk-summary-list__value">The letter has what the guidance asks for.</dd></div>
+      <div class="govuk-summary-list__row"><dt class="govuk-summary-list__key"><strong class="govuk-tag govuk-tag--red">Change needed</strong></dt><dd class="govuk-summary-list__value">The letter is missing something the guidance requires, or says it in a way the guidance does not accept.</dd></div>
+      <div class="govuk-summary-list__row"><dt class="govuk-summary-list__key"><strong class="govuk-tag govuk-tag--yellow">Check</strong></dt><dd class="govuk-summary-list__value">Something worth checking that would not on its own stop the letter being accepted, such as the author's role not being stated.</dd></div>
+    </dl>
+    <p class="govuk-body">When a check finds a problem, it also says how sure it is:</p>
+    <table class="govuk-table">
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">How sure</th><th scope="col" class="govuk-table__header">Meaning</th><th scope="col" class="govuk-table__header">Example</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row"><th scope="row" class="govuk-table__header">Certain</th><td class="govuk-table__cell">The letter contains wording that the guidance does not accept.</td><td class="govuk-table__cell">"might be consistent with domestic abuse", "we provided support"</td></tr>
+        <tr class="govuk-table__row"><th scope="row" class="govuk-table__header">Probably</th><td class="govuk-table__cell">Required wording was not found. It may be there in words the checker does not know.</td><td class="govuk-table__cell">No date of the refuge refusal</td></tr>
+        <tr class="govuk-table__row"><th scope="row" class="govuk-table__header">Possibly</th><td class="govuk-table__cell">A judgement call that a person should look at.</td><td class="govuk-table__cell">The matters relied on look too general</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="govuk-heading-m">3. The confidence rating</h2>
+    <p class="govuk-body">The rating starts at 100% and goes down for each problem found:</p>
+    <table class="govuk-table">
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Finding</th><th scope="col" class="govuk-table__header govuk-table__header--numeric">Rating is multiplied by</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row"><td class="govuk-table__cell">Change needed – certain</td><td class="govuk-table__cell govuk-table__cell--numeric">0.05</td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell govuk-table__cell--numeric">0.25</td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell">Change needed – possibly</td><td class="govuk-table__cell govuk-table__cell--numeric">0.6</td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell">Check</td><td class="govuk-table__cell govuk-table__cell--numeric">0.9</td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell">Letter type with no real examples to test against (MARAC, refuge stay, social services, financial abuse)</td><td class="govuk-table__cell govuk-table__cell--numeric">0.9</td></tr>
+      </tbody>
+    </table>
+    <table class="govuk-table">
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Rating</th><th scope="col" class="govuk-table__header">Level</th><th scope="col" class="govuk-table__header">Result shown</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row"><td class="govuk-table__cell">80% or more</td><td class="govuk-table__cell">High</td><td class="govuk-table__cell"><strong class="govuk-tag govuk-tag--green">Looks ready</strong> if no check needs a change</td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell">40% to 79%</td><td class="govuk-table__cell">Medium</td><td class="govuk-table__cell"><strong class="govuk-tag govuk-tag--yellow">Check</strong> – ask your solicitor</td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell">Under 40%</td><td class="govuk-table__cell">Low</td><td class="govuk-table__cell"><strong class="govuk-tag govuk-tag--red">Needs changes</strong></td></tr>
+      </tbody>
+    </table>
+    <p class="govuk-body">For example, a refuge letter with no perpetrator named and no family relationship gets 100% × 0.25 × 0.25 = 6% (low). A support organisation letter whose matters look too general gets 100% × 0.6 = 60% (medium).</p>
+    <div class="govuk-warning-text">
+      <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+      <strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>The rating is not a measured probability. The numbers were chosen by hand from the guidance, not fitted to Legal Aid Agency decisions. A rating of 60% shows the checker is less sure than at 90%, not that 6 in 10 such letters are accepted.</strong>
+    </div>
+  </div>
+</div>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <h2 class="govuk-heading-l">The checks</h2>
+    <p class="govuk-body">The paragraph numbers refer to Schedule 1 of the Civil Legal Aid (Procedure) Regulations 2012 and the LAA guidance "Evidence Requirements for Private Family Law Matters" (version 15, June 2026).</p>
+
+    <table class="govuk-table app-rules-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">Every letter (2 checks)</caption>
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Check</th><th scope="col" class="govuk-table__header">Not met when</th><th scope="col" class="govuk-table__header">Result</th><th scope="col" class="govuk-table__header">Source</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row" data-check="all:reg33"><th scope="row" class="govuk-table__header">Refers to regulation 33</th><td class="govuk-table__cell">The letter does not mention regulation 33 of the Civil Legal Aid (Procedure) Regulations 2012</td><td class="govuk-table__cell">Check</td><td class="govuk-table__cell">GOV.UK sample letters</td></tr>
+        <tr class="govuk-table__row" data-check="all:dates"><th scope="row" class="govuk-table__header">Dates in the letter</th><td class="govuk-table__cell">The latest date is in the future or more than 5 years ago</td><td class="govuk-table__cell">Check</td><td class="govuk-table__cell">Prompt to ask a solicitor, not a time limit</td></tr>
+      </tbody>
+    </table>
+
+    <table class="govuk-table app-rules-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">Health professional – paragraph 11 (4 checks)</caption>
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Check</th><th scope="col" class="govuk-table__header">Not met when</th><th scope="col" class="govuk-table__header">Result</th><th scope="col" class="govuk-table__header">Source</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row" data-check="p11:author"><th scope="row" class="govuk-table__header">Written by an appropriate health professional</th><td class="govuk-table__cell">Signed by someone who is not one, such as a pharmacist, counsellor or receptionist; or from a professional overseas with no registration given. Only checked when the letter says who wrote it.</td><td class="govuk-table__cell">Change needed – certain (role) or probably (overseas)</td><td class="govuk-table__cell">Guidance 2.52, 2.59</td></tr>
+        <tr class="govuk-table__row" data-check="p11:examined"><th scope="row" class="govuk-table__header">Says the professional examined the applicant</th><td class="govuk-table__cell">No mention of examining, assessing or treating the applicant (in person, by phone or by video)</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 11(a); guidance 2.55</td></tr>
+        <tr class="govuk-table__row" data-check="p11:condition"><th scope="row" class="govuk-table__header">Refers to injuries or a condition</th><td class="govuk-table__cell">No injuries or condition mentioned</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 11(b)</td></tr>
+        <tr class="govuk-table__row" data-check="p11:judgement"><th scope="row" class="govuk-table__header">States the condition is consistent with domestic abuse</th><td class="govuk-table__cell">Hedged ("might be", "may be", "could be", "possibly", "appears to") or missing. "Consistent with being a victim of domestic abuse" is accepted.</td><td class="govuk-table__cell">Change needed – certain (hedged) or probably (missing)</td><td class="govuk-table__cell">Guidance 2.56; pack example rejected for "might be consistent"</td></tr>
+      </tbody>
+    </table>
+
+    <table class="govuk-table app-rules-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">IDVA or ISVA – paragraphs 14 and 15 (5 checks)</caption>
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Check</th><th scope="col" class="govuk-table__header">Not met when</th><th scope="col" class="govuk-table__header">Result</th><th scope="col" class="govuk-table__header">Source</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row" data-check="p14:role"><th scope="row" class="govuk-table__header">Written by an IDVA or ISVA</th><td class="govuk-table__cell">Signed with another role, such as support worker or housing officer. Working for an "IDVA service" does not count. If no role is given at all, this is a Check.</td><td class="govuk-table__cell">Change needed – probably, or Check</td><td class="govuk-table__cell">Guidance 2.68, 2.69</td></tr>
+        <tr class="govuk-table__row" data-check="p14:named"><th scope="row" class="govuk-table__header">Names the applicant</th><td class="govuk-table__cell">Says "the client" or "the applicant" instead of a name</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Guidance 2.68</td></tr>
+        <tr class="govuk-table__row" data-check="p14:support"><th scope="row" class="govuk-table__header">Confirms the IDVA is providing or has provided support</th><td class="govuk-table__cell">Says "we provided" or "our service provided" rather than "I am providing" or "I have provided"; or support is only planned</td><td class="govuk-table__cell">Change needed – certain ("we") or probably</td><td class="govuk-table__cell">Para 14; pack example rejected for "we provided"</td></tr>
+        <tr class="govuk-table__row" data-check="p14:perpetrator"><th scope="row" class="govuk-table__header">ISVA letters: names the perpetrator</th><td class="govuk-table__cell">No "Name of perpetrator" line or "sexual violence by [name]"</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 15; guidance 2.69</td></tr>
+        <tr class="govuk-table__row" data-check="p14:sexual"><th scope="row" class="govuk-table__header">ISVA letters: support relates to sexual violence</th><td class="govuk-table__cell">The support is not said to relate to sexual violence</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 15; guidance 2.69</td></tr>
+      </tbody>
+    </table>
+
+    <table class="govuk-table app-rules-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">Domestic abuse support organisation – paragraph 17 (6 checks)</caption>
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Check</th><th scope="col" class="govuk-table__header">Not met when</th><th scope="col" class="govuk-table__header">Result</th><th scope="col" class="govuk-table__header">Source</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row" data-check="p17:location"><th scope="row" class="govuk-table__header">Organisation is in the United Kingdom</th><td class="govuk-table__cell">Does not say it is situated in the UK, England, Wales, Scotland or Northern Ireland</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 17(2)(a); guidance 2.75</td></tr>
+        <tr class="govuk-table__row" data-check="p17:operating"><th scope="row" class="govuk-table__header">Operating for six months or more</th><td class="govuk-table__cell">Does not confirm an uninterrupted period of six months or more</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 17(2)(b); guidance 2.75</td></tr>
+        <tr class="govuk-table__row" data-check="p17:judgement"><th scope="row" class="govuk-table__header">States the professional judgement</th><td class="govuk-table__cell">No "reasonable professional judgement" sentence, or it is hedged</td><td class="govuk-table__cell">Change needed – certain (hedged) or probably (missing)</td><td class="govuk-table__cell">Para 17(3)(a)</td></tr>
+        <tr class="govuk-table__row" data-check="p17:matters"><th scope="row" class="govuk-table__header">Explains the matters relied upon</th><td class="govuk-table__cell">Missing, or too general – fewer than 6 words or nothing specific such as the type of abuse, a DASH score, police, refuge or MARAC involvement, or injuries</td><td class="govuk-table__cell">Change needed – probably (missing) or possibly (too general)</td><td class="govuk-table__cell">Para 17(3)(b); pack example rejected for "victim testimony and referral"</td></tr>
+        <tr class="govuk-table__row" data-check="p17:support"><th scope="row" class="govuk-table__header">Describes the support provided</th><td class="govuk-table__cell">No description of the support. "Support in relation to their needs" confirms support but does not describe it.</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 17(3)(c)</td></tr>
+        <tr class="govuk-table__row" data-check="p17:reason"><th scope="row" class="govuk-table__header">Explains why support was needed</th><td class="govuk-table__cell">No "[name] needed this support because…"</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 17(3)(d)</td></tr>
+      </tbody>
+    </table>
+
+    <table class="govuk-table app-rules-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">Refuge refusal – paragraph 18 (5 checks)</caption>
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Check</th><th scope="col" class="govuk-table__header">Not met when</th><th scope="col" class="govuk-table__header">Result</th><th scope="col" class="govuk-table__header">Source</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row" data-check="p18:perpetrator"><th scope="row" class="govuk-table__header">Names the perpetrator</th><td class="govuk-table__cell">No "Name of perpetrator" line or "domestic abuse by [name]"</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 18(1); pack example rejected for no perpetrator</td></tr>
+        <tr class="govuk-table__row" data-check="p18:relationship"><th scope="row" class="govuk-table__header">Confirms a family relationship</th><td class="govuk-table__cell">No family relationship, and no named relationship such as "married to" or "her former partner"</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 18(1); section 62 Family Law Act 1996</td></tr>
+        <tr class="govuk-table__row" data-check="p18:refused"><th scope="row" class="govuk-table__header">Confirms refusal of a refuge place</th><td class="govuk-table__cell">Does not say the applicant "was refused admission to a refuge"</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 18(1)</td></tr>
+        <tr class="govuk-table__row" data-check="p18:date"><th scope="row" class="govuk-table__header">Gives the date of refusal</th><td class="govuk-table__cell">No date in the sentence about the refusal. The date the letter was written does not count.</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 18(2)</td></tr>
+        <tr class="govuk-table__row" data-check="p18:reason"><th scope="row" class="govuk-table__header">Says refuge was sought because of domestic abuse</th><td class="govuk-table__cell">Does not say admission was sought "because of allegations of domestic abuse"</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 18(3)</td></tr>
+      </tbody>
+    </table>
+
+    <table class="govuk-table app-rules-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">Public authority – paragraph 19 (4 checks)</caption>
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Check</th><th scope="col" class="govuk-table__header">Not met when</th><th scope="col" class="govuk-table__header">Result</th><th scope="col" class="govuk-table__header">Source</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row" data-check="p19:perpetrator"><th scope="row" class="govuk-table__header">Names the perpetrator</th><td class="govuk-table__cell">No "Name of perpetrator" line or "domestic abuse by [name]"</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Guidance 2.84</td></tr>
+        <tr class="govuk-table__row" data-check="p19:relationship"><th scope="row" class="govuk-table__header">Confirms a family relationship</th><td class="govuk-table__cell">As for refuge refusal letters</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Para 19; guidance 2.83</td></tr>
+        <tr class="govuk-table__row" data-check="p19:assessment"><th scope="row" class="govuk-table__header">Confirms the applicant was assessed as a victim</th><td class="govuk-table__cell">Hedged ("might be a victim") or no assessment confirmed</td><td class="govuk-table__cell">Change needed – certain (hedged) or probably (missing)</td><td class="govuk-table__cell">Para 19; pack example rejected for "might be a victim"</td></tr>
+        <tr class="govuk-table__row" data-check="p19:org"><th scope="row" class="govuk-table__header">From a public authority</th><td class="govuk-table__cell">Signed by a private company (Ltd, LLP, plc, a letting agent). If no authority is named at all, this is a Check.</td><td class="govuk-table__cell">Change needed – probably, or Check</td><td class="govuk-table__cell">Guidance 2.85; section 6 Human Rights Act 1998</td></tr>
+      </tbody>
+    </table>
+
+    <table class="govuk-table app-rules-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">MARAC or other local safeguarding forum – paragraph 13 (5 checks)</caption>
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Check</th><th scope="col" class="govuk-table__header">Not met when</th><th scope="col" class="govuk-table__header">Result</th><th scope="col" class="govuk-table__header">Source</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row" data-check="marac:forum"><th scope="row" class="govuk-table__header">From a multi-agency forum</th><td class="govuk-table__cell">Nothing shows the forum involves more than one agency (MARAC, multi-agency, safeguarding forum or hub, MASH)</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Guidance 2.66</td></tr>
+        <tr class="govuk-table__row" data-check="marac:role"><th scope="row" class="govuk-table__header">Written by a MARAC member</th><td class="govuk-table__cell">Does not say the author is a member</td><td class="govuk-table__cell">Check</td><td class="govuk-table__cell">Para 13</td></tr>
+        <tr class="govuk-table__row" data-check="marac:referral"><th scope="row" class="govuk-table__header">Confirms a MARAC referral</th><td class="govuk-table__cell">Does not say the case was referred to, discussed at or heard at the MARAC</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">GOV.UK sample letter</td></tr>
+        <tr class="govuk-table__row" data-check="marac:risk"><th scope="row" class="govuk-table__header">Confirms the applicant is or was at risk</th><td class="govuk-table__cell">Hedged ("may be at risk") or missing</td><td class="govuk-table__cell">Change needed – certain (hedged) or probably (missing)</td><td class="govuk-table__cell">Para 13</td></tr>
+        <tr class="govuk-table__row" data-check="marac:perpetrator"><th scope="row" class="govuk-table__header">Names the perpetrator</th><td class="govuk-table__cell">No "Name of perpetrator" line or "domestic abuse by [name]"</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell">Guidance checklist, para 13</td></tr>
+      </tbody>
+    </table>
+
+    <table class="govuk-table app-rules-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">Refuge stay (5 checks)</caption>
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Check</th><th scope="col" class="govuk-table__header">Not met when</th><th scope="col" class="govuk-table__header">Result</th><th scope="col" class="govuk-table__header">Source</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row" data-check="refugeStay:perpetrator"><th scope="row" class="govuk-table__header">Names the perpetrator</th><td class="govuk-table__cell">No "Name of perpetrator" line or "domestic abuse by [name]"</td><td class="govuk-table__cell">Change needed – probably</td><td class="govuk-table__cell" rowspan="5">Guidance 2.74 (refuge letters follow the paragraph 17 rules); no real examples</td></tr>
+        <tr class="govuk-table__row" data-check="refugeStay:relationship"><th scope="row" class="govuk-table__header">Confirms a family relationship</th><td class="govuk-table__cell">As for refuge refusal letters</td><td class="govuk-table__cell">Change needed – probably</td></tr>
+        <tr class="govuk-table__row" data-check="refugeStay:admitted"><th scope="row" class="govuk-table__header">Confirms a stay in a refuge</th><td class="govuk-table__cell">Does not say the applicant was admitted to or stayed in the refuge</td><td class="govuk-table__cell">Change needed – probably</td></tr>
+        <tr class="govuk-table__row" data-check="refugeStay:dates"><th scope="row" class="govuk-table__header">Gives the dates of the stay</th><td class="govuk-table__cell">No dates</td><td class="govuk-table__cell">Change needed – probably</td></tr>
+        <tr class="govuk-table__row" data-check="refugeStay:reason"><th scope="row" class="govuk-table__header">Says the stay was because of domestic abuse</th><td class="govuk-table__cell">No reason given</td><td class="govuk-table__cell">Change needed – probably</td></tr>
+      </tbody>
+    </table>
+
+    <table class="govuk-table app-rules-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">Social services (3 checks)</caption>
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Check</th><th scope="col" class="govuk-table__header">Not met when</th><th scope="col" class="govuk-table__header">Result</th><th scope="col" class="govuk-table__header">Source</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row" data-check="social:org"><th scope="row" class="govuk-table__header">From social services</th><td class="govuk-table__cell">No social services department or local authority named</td><td class="govuk-table__cell">Check</td><td class="govuk-table__cell" rowspan="3">Guidance 2.85 (public authority); no real examples</td></tr>
+        <tr class="govuk-table__row" data-check="social:assessment"><th scope="row" class="govuk-table__header">Confirms the assessment about domestic abuse</th><td class="govuk-table__cell">Hedged ("may have been at risk") or missing</td><td class="govuk-table__cell">Change needed – certain (hedged) or probably (missing)</td></tr>
+        <tr class="govuk-table__row" data-check="social:perpetrator"><th scope="row" class="govuk-table__header">Names the perpetrator</th><td class="govuk-table__cell">No "Name of perpetrator" line or "domestic abuse by [name]"</td><td class="govuk-table__cell">Change needed – probably</td></tr>
+      </tbody>
+    </table>
+
+    <table class="govuk-table app-rules-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">Financial abuse – paragraph 21 (3 checks)</caption>
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Check</th><th scope="col" class="govuk-table__header">Not met when</th><th scope="col" class="govuk-table__header">Result</th><th scope="col" class="govuk-table__header">Source</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row" data-check="financial:org"><th scope="row" class="govuk-table__header">From a bank, employer or benefits provider</th><td class="govuk-table__cell">No such organisation named</td><td class="govuk-table__cell">Check</td><td class="govuk-table__cell" rowspan="3">Guidance 2.87–2.93; no real examples. Economic abuse evidence is judged case by case, so these checks are only a guide.</td></tr>
+        <tr class="govuk-table__row" data-check="financial:records"><th scope="row" class="govuk-table__header">Refers to specific financial records</th><td class="govuk-table__cell">No accounts, statements, loans or payments mentioned</td><td class="govuk-table__cell">Change needed – probably</td></tr>
+        <tr class="govuk-table__row" data-check="financial:abuse"><th scope="row" class="govuk-table__header">Confirms what the records show</th><td class="govuk-table__cell">Hedged ("may indicate") or missing</td><td class="govuk-table__cell">Change needed – certain (hedged) or probably (missing)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h2 class="govuk-heading-l">How well it works</h2>
+    <div class="govuk-inset-text">The checks work on letters that use the wording in the GOV.UK sample letters. They do not yet work on letters written in the author's own words.</div>
+    <table class="govuk-table">
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Tested against</th><th scope="col" class="govuk-table__header govuk-table__header--numeric">Correct</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row"><td class="govuk-table__cell">12 example letters from the hackathon evidence pack</td><td class="govuk-table__cell govuk-table__cell--numeric">12 of 12</td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell">46 edited versions of the example letters, and 8 fictional letters</td><td class="govuk-table__cell govuk-table__cell--numeric">54 of 54</td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell">404 fictional letters from our own templates, kept back while the checks were tuned</td><td class="govuk-table__cell govuk-table__cell--numeric">402 of 404</td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell">13 fictional GP and support service letters in varied wording, from a separate review pack</td><td class="govuk-table__cell govuk-table__cell--numeric">0 of 13</td></tr>
+      </tbody>
+    </table>
+    <p class="govuk-body">Here "correct" means the checker recognised the letter type, gave a high rating to a letter that meets the requirements, and a medium or low rating to one that does not.</p>
+    <p class="govuk-body">The review pack shows the main weakness. Its letters say the same things in different words – "consistent with the effects of domestic abuse", "has operated continuously since 2014" – and the checks look for the sample-letter wording. All 8 complete letters were rated low or not recognised, and 4 of the 5 incomplete letters were not recognised.</p>
+    <h3 class="govuk-heading-s">What these numbers do not show</h3>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>Our fictional letters come from the same templates as the letters used for tuning, so they are much easier than real letters.</li>
+      <li>The review pack's labels were proposed by an AI model, not checked by caseworkers. 3 of its 16 letters are marked as needing human review and are not counted.</li>
+      <li>None of these numbers measure agreement with Legal Aid Agency caseworkers. That needs a sample of real, anonymised letters with caseworker decisions.</li>
+    </ul>
+    <p class="govuk-body">The <a class="govuk-link" href="demo.html">demo page</a> runs the example and edited letters in your browser. You can read more <a class="govuk-link" href="about.html">about this prototype</a>.</p>
+  </div>
+</div>

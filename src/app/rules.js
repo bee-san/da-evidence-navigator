@@ -36,7 +36,25 @@ function hedge(sentence) {
   return m ? m[0] : null;
 }
 
-const ABUSE_INDICATORS = /\b(physical|emotional|psychological|coerci\w*|controll\w*|sexual|financial|economic|threat\w*|dash|refuge|police|injur\w*|isolat\w*|stalk\w*|harass\w*|assault\w*|violen\w*|fled|fear|belittl\w*|shout\w*|smash\w*|strangl\w*|hit|punch\w*|kick\w*)\b/;
+const ABUSE_INDICATORS = /\b(physical|emotional|psychological|coerci\w*|controll\w*|sexual|financial|economic|threat\w*|dash|refuge|police|injur\w*|isolat\w*|stalk\w*|harass\w*|assault\w*|violen\w*|fled|fear|belittl\w*|shout\w*|smash\w*|strangl\w*|hit|punch\w*|kick\w*|marac|prevent\w*|money|bank|track\w*|monitor\w*|rape\w*|bruis\w*)\b/;
+
+// Paragraph 2.56: no set form of words, so "consistent with being a victim of
+// domestic abuse" counts as well as "consistent with domestic abuse".
+const CONSISTENT = /consistent with (being )?(those of )?(a victim of )?domestic (abuse|violence)/;
+
+// Section 62 Family Law Act 1996 (guidance 2.3): naming the relationship is
+// enough; the words "family relationship" are not required.
+const RELATIONSHIP = /family relationship|\bmarried to\b|\b(were|was|are|is) married\b|lived together|civil partnership|(\'s|\bhis|\bher|\btheir) (former |ex-?)?(husband|wife|spouse|civil partner|partner|cohabitant|fianc[eé]e?|boyfriend|girlfriend)\b|parents of/;
+
+const DATE = /\b\d{1,2}(st|nd|rd|th)? (of )?(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*,? \d{4}\b|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/;
+
+// Where the author signs and gives their role: the lines after the sign-off,
+// or the last three lines if there is none.
+function signature(raw) {
+  const lines = String(raw).split(/\n/).map((l) => l.trim()).filter(Boolean);
+  const off = lines.findLastIndex((l) => /^(yours|kind regards|best regards|regards|many thanks|signed)\b/i.test(l));
+  return normalise((off >= 0 ? lines.slice(off + 1) : lines.slice(-3)).join(' \n '));
+}
 
 export function normalise(text) {
   return String(text)
@@ -53,21 +71,29 @@ function sentences(t) {
 
 export function detectType(text) {
   const t = normalise(text);
-  if (/refuge/.test(t) && /refused|not (given|offered) a (place|space)|could not (offer|give)|no (space|room|place)/.test(t)) return 'p18';
+  if (/refuge/.test(t) && (/refused|not (given|offered) a (place|space)|could not (offer|give)|no (space|room|place)/.test(t) || /sought admission to (a|the) refuge/.test(t))) return 'p18';
   if (/refuge/.test(t) && /\b(admitted|resident|stayed|staying|accommodated)\b/.test(t)) return 'refugeStay';
-  if (/\bmarac\b|multi-agency risk assessment conference/.test(t)) return 'marac';
-  if (/consistent with domestic (abuse|violence)/.test(t) || (/\bexamined\b/.test(t) && /\bcondition\b/.test(t))) return 'p11';
-  if (/uninterrupted period|(six|6) months|situated in england and wales|matters? (that )?i have relied upon/.test(t)) return 'p17';
-  if (/social services|children's services|social worker|safeguarding/.test(t)) return 'social';
+  // Support organisation letters often mention a MARAC referral among the
+  // matters relied on, so they are recognised before MARAC letters.
+  if (/uninterrupted period|(six|6) months|situated in (england|wales|scotland|northern ireland|the united kingdom|the uk)|matters? (that )?i have relied upon/.test(t)) return 'p17';
+  if (/\bmarac\b|multi-agency risk assessment conference|risk (assessment )?(panel|forum)|safeguarding forum/.test(t)) return 'marac';
+  if (CONSISTENT.test(t) || (/\bexamined\b/.test(t) && /\b(condition|injur\w*|gmc|nmc|gdc|hcpc|medical records)\b/.test(t))) return 'p11';
+  // Social services describe themselves; a council signature alone is a
+  // public authority letter (paragraph 19).
+  if (/social services|social worker|\b(in|by|from) children's services/.test(t)) return 'social';
   if (/financial(ly)? (abuse|control)|\b(bank|building society|credit card|loan)\b/.test(t)) return 'financial';
-  if (/family relationship/.test(t) || /victim of domestic abuse by/.test(t)) return 'p19';
+  if (/family relationship/.test(t) || /victim of domestic abuse by/.test(t) || /assessed as (being|a victim|at risk)/.test(t)) return 'p19';
   if (/\b(idva|isva)\b|independent (domestic|sexual) violence advis/.test(t) || /(providing|provided) .{0,40}support/.test(t)) return 'p14';
   return null;
 }
 
+// How sure a failed check is about its finding:
+//   definite – the letter has wording that rules it out ("might be", "we provided")
+//   likely   – required wording was not found, but may be phrased in a way the rules miss
+//   possible – a judgement call, such as whether the matters relied on are specific enough
 const pass = (id, label, detail) => ({ id, label, status: 'pass', detail });
-const fail = (id, label, detail, fix) => ({ id, label, status: 'fail', detail, fix });
-const warn = (id, label, detail, fix) => ({ id, label, status: 'warn', detail, fix });
+const fail = (id, label, detail, fix, certainty = 'likely') => ({ id, label, status: 'fail', certainty, detail, fix });
+const warn = (id, label, detail, fix) => ({ id, label, status: 'warn', certainty: 'possible', detail, fix });
 
 function check(cond, id, label, okDetail, badDetail, fix, severity = 'fail') {
   if (cond) return pass(id, label, okDetail);
@@ -77,19 +103,19 @@ function check(cond, id, label, okDetail, badDetail, fix, severity = 'fail') {
 function judgementNotHedged(sentence, id, label, fix) {
   if (!sentence) return fail(id, label, 'The letter does not state the professional judgement.', fix);
   const h = hedge(sentence);
-  if (h) return fail(id, label, `The judgement is hedged ("${h}"). The letter must state it as a firm professional view.`, fix);
+  if (h) return fail(id, label, `The judgement is hedged ("${h}"). The letter must state it as a firm professional view.`, fix, 'definite');
   return pass(id, label, 'The professional judgement is stated firmly.');
 }
 
 const perpetratorCheck = (t) => check(
-  /name of perpetrator:\s*\S+/.test(t) || /domestic abuse by [a-z]/.test(t),
+  /name of perpetrator:\s*\S+/.test(t) || /(domestic abuse|domestic violence|sexual violence) by [a-z]/.test(t),
   'perpetrator', 'Names the person who carried out the abuse',
   'The perpetrator is named.',
   'The letter does not name the person who carried out the abuse.',
   'Name the person who carried out the abuse (for example "Name of perpetrator: …" and "domestic abuse by …").');
 
 const relationshipCheck = (t) => check(
-  /family relationship/.test(t),
+  RELATIONSHIP.test(t),
   'relationship', 'Confirms a family relationship',
   'The letter confirms the applicant is or was in a family relationship with the perpetrator.',
   'The letter does not confirm that the applicant is or was in a family relationship with the perpetrator.',
@@ -100,14 +126,46 @@ function firmConfirmation(t, about, id, label, fix) {
   const s = sentences(t).filter((x) => /\bconfirm/.test(x) && about.test(x) && !/asked to (confirm|provide)/.test(x));
   if (!s.length) return fail(id, label, 'The letter does not clearly confirm this.', fix);
   const hedged = s.map(hedge).find(Boolean);
-  if (hedged) return fail(id, label, `The confirmation is hedged ("${hedged}"). It must be stated firmly.`, fix);
+  if (hedged) return fail(id, label, `The confirmation is hedged ("${hedged}"). It must be stated firmly.`, fix, 'definite');
   return pass(id, label, 'This is confirmed firmly.');
 }
 
+// Schedule 1 paragraph 22 and guidance 2.52: the professionals who count as an
+// "appropriate health professional". Only checked when the letter says who
+// wrote it; letters without a role are not failed for that.
+const HP_ROLE = /\b(gmc|nmc|gdc|hcpc|general medical council|nursing and midwifery council|general dental council|health and care professions council|social work england|social care wales|dr|doctor|gp|general practitioner|consultant|registrar|nurse|midwife|health visitor|dentist|dental|paramedic|psychologist|psychiatrist|radiographer|social worker)\b/;
+const NOT_HP = /\b(counsellor|counselor|pharmacist|chiropractor|osteopath|receptionist|therapist|psychotherapist|support worker|life coach|nutritionist|homeopath)\b/;
+const OVERSEAS = /\b(afghanistan|albania|algeria|bangladesh|brazil|bulgaria|china|czech republic|egypt|eritrea|ethiopia|france|germany|ghana|greece|hungary|india|iran|iraq|italy|jamaica|kenya|latvia|lithuania|morocco|netherlands|nigeria|pakistan|philippines|poland|portugal|(?<!northern )ireland|romania|russia|slovakia|somalia|south africa|spain|sri lanka|sudan|syria|turkey|uganda|ukraine|united states|usa|vietnam|zimbabwe)\b/;
+
+// Guidance 2.85: a public authority under section 6 of the Human Rights Act 1998.
+const PUBLIC = /council|local authority|housing|\bnhs\b|police|constabulary|probation|cafcass|children's services|social services|government|home office|department|hmcts|\bcourt\b|\btrust\b|prison/;
+const PRIVATE = /\b(ltd|limited|llp|plc|& co|accountants|lettings|estate agents?)\b/;
+function publicAuthorityCheck(t, sig) {
+  const label = 'From a public authority';
+  if (PRIVATE.test(sig) && !PUBLIC.test(sig)) {
+    return fail('org', label, 'The letter appears to come from a private company, which is not a public authority.', 'The letter must come from a public authority, such as a council, the police, the NHS, probation or Cafcass.');
+  }
+  return PUBLIC.test(t) ? pass('org', label, 'The letter appears to come from a public authority.')
+    : warn('org', label, 'The letter does not show which public authority it comes from.', 'Include the name of the public authority, such as the council, police force or NHS trust.');
+}
+
+function healthProfessionalCheck(t, sig) {
+  const label = 'Written by an appropriate health professional';
+  const fix = 'The letter must come from a doctor, nurse, midwife, dentist, paramedic, practitioner psychologist, radiographer or social worker, with their registration number.';
+  if (OVERSEAS.test(t) && !/regist|licen[cs]ed/.test(t)) {
+    return fail('author', label, 'The letter appears to come from a health professional overseas but does not give their professional registration.', 'Health professionals overseas must give the professional body they are registered and licensed with, and their number.');
+  }
+  if (NOT_HP.test(sig) && !HP_ROLE.test(sig)) {
+    return fail('author', label, `The author's role ("${sig.match(NOT_HP)[0]}") is not an appropriate health professional under Schedule 1, paragraph 22.`, fix, 'definite');
+  }
+  return HP_ROLE.test(t) ? pass('author', label, 'The author is an appropriate health professional.') : null;
+}
+
 const RULES = {
-  p11(t) {
-    const judgement = sentences(t).find((s) => /consistent with domestic (abuse|violence)/.test(s));
+  p11(t, raw) {
+    const judgement = sentences(t).find((s) => CONSISTENT.test(s));
     return [
+      healthProfessionalCheck(t, signature(raw)),
       check(/\b(examined|assessed|treated)\b/.test(t), 'examined', 'Says the professional examined the applicant',
         'The professional confirms they examined the applicant.',
         'The letter does not say the professional examined, assessed or treated the applicant.',
@@ -120,20 +178,35 @@ const RULES = {
         'Say the injuries or condition "are consistent with domestic abuse" – not "might be" or "may be".'),
     ];
   },
-  p14(t) {
+  p14(t, raw) {
     const confirms = sentences(t).filter((s) => /\bconfirm\b/.test(s) && !/asked to confirm/.test(s));
     const ok = confirms.some((s) => /\bi (am|have been) providing\b|\bi have provided\b/.test(s));
-    const usesWe = confirms.some((s) => /\bwe (provided|are providing|have provided)\b/.test(s));
+    const usesWe = confirms.some((s) => /\bwe (provided|are providing|have provided)\b|\bour service (provided|has provided|is providing)\b/.test(s));
+    // An organisation called an "IDVA service" does not make the author an IDVA.
+    const isIdva = /\b(idva|isva)s?\b|independent (domestic|sexual) violence advi[sc]/.test(t.replace(/\b(idva|isva) service\b/g, ''));
+    const isva = /\bisvas?\b|independent sexual violence advi[sc]/.test(t);
+    // A signed role that isn't an IDVA or ISVA fails; no role at all is a warning.
+    const otherRole = !isIdva && /\b(worker|officer|befriender|volunteer|practitioner|mentor|coordinator|manager|adviser|advisor)\b/.test(signature(raw));
+    const supportSentence = confirms.find((s) => /providing|provided/.test(s)) || '';
+    const unnamed = /\b(the|my|our|your) (client|service user)\b|\bthe applicant\b/.test(supportSentence) && !/name of applicant:\s*\S+/.test(t);
     return [
-      check(/\b(idva|isva)\b|independent (domestic|sexual) violence advis/.test(t), 'role', 'Written by an IDVA or ISVA',
-        'The author identifies as an IDVA or ISVA.',
-        'The letter does not say the author is an IDVA or ISVA.',
-        'State your role as an Independent Domestic Violence Adviser (IDVA) or Independent Sexual Violence Adviser (ISVA).', 'warn'),
+      isIdva ? pass('role', 'Written by an IDVA or ISVA', 'The author identifies as an IDVA or ISVA.')
+        : (otherRole ? fail : warn)('role', 'Written by an IDVA or ISVA',
+          otherRole ? 'The author signs with a role that is not an IDVA or ISVA.' : 'The letter does not say the author is an IDVA or ISVA.',
+          'The letter must come from an Independent Domestic Violence Adviser (IDVA) or Independent Sexual Violence Adviser (ISVA), and say so.'),
+      unnamed ? fail('named', 'Names the applicant', 'The letter refers to "the client" instead of naming the applicant.', 'Name the applicant, for example "I can confirm that I am providing Jane Doe with support."') : null,
+      // Paragraph 15: ISVA support must relate to sexual violence by the other party.
+      ...(isva ? [
+        perpetratorCheck(t),
+        check(/sexual (violence|abuse|assault)|\brape\b/.test(supportSentence), 'sexual', 'Support relates to sexual violence',
+          'The support relates to sexual violence.', 'The letter does not say the support relates to sexual violence by the other party.',
+          'State that you are providing support "relating to sexual violence by [name]".'),
+      ] : []),
       ok ? pass('support', 'Confirms the IDVA is providing or has provided support', 'The IDVA personally confirms the support.')
         : fail('support', 'Confirms the IDVA is providing or has provided support',
           usesWe ? 'The letter says "we provided", which does not confirm that the IDVA personally is providing or has provided support.'
             : 'The letter does not confirm that the IDVA is providing or has provided support.',
-          'Use the wording "I can confirm that I am providing [name] with support" or "I have provided [name] with support".'),
+          'Use the wording "I can confirm that I am providing [name] with support" or "I have provided [name] with support".', usesWe ? 'definite' : 'likely'),
     ];
   },
   p17(t) {
@@ -143,10 +216,11 @@ const RULES = {
     const words = matters.split(/\s+/).filter(Boolean).length;
     const specific = words >= 6 && ABUSE_INDICATORS.test(matters);
     return [
-      check(/situated in england and wales/.test(t), 'location', 'Organisation is in England and Wales',
-        'The organisation confirms it is in England and Wales.',
-        'The letter does not confirm the organisation is situated in England and Wales.',
-        'Confirm the organisation is situated in England and Wales.'),
+      // Schedule 1 para 17(2)(a) as amended: the United Kingdom.
+      check(/situated in (england|wales|scotland|northern ireland|the united kingdom|the uk)\b/.test(t), 'location', 'Organisation is in the United Kingdom',
+        'The organisation confirms it is situated in the United Kingdom.',
+        'The letter does not confirm the organisation is situated in the United Kingdom.',
+        'Confirm the organisation is situated in the United Kingdom (or England and Wales).'),
       check(/uninterrupted/.test(t) && /(six|6) months/.test(t), 'operating', 'Operating for six months or more',
         'The organisation confirms six months of uninterrupted operation.',
         'The letter does not confirm the organisation has operated for an uninterrupted six months or more.',
@@ -157,10 +231,11 @@ const RULES = {
         ? (specific ? pass('matters', 'Explains the matters relied upon', 'The letter gives specific reasons for the judgement.')
           : fail('matters', 'Explains the matters relied upon',
             `The reasons given ("${matters.slice(0, 80)}") are too general to show why the judgement was reached.`,
-            'List the specific matters relied on – for example the types of abuse disclosed, risk assessment (DASH) results, refuge referrals or police reports.'))
+            'List the specific matters relied on – for example the types of abuse disclosed, risk assessment (DASH) results, refuge referrals or police reports.', 'possible'))
         : fail('matters', 'Explains the matters relied upon', 'The letter does not say what matters the judgement relies on.',
           'Add "The matters I have relied upon to support that judgement are: …" with specific details.'),
-      check(/we have provided .{10,}/.test(t), 'support', 'Describes the support provided',
+      // The "support in relation to their needs" sentence is a confirmation, not a description.
+      check(sentences(t).some((s) => /we have provided .{10,}|following support|support (we|i) (have )?provided/.test(s) && !/in relation to (their|her|his|its) needs/.test(s)), 'support', 'Describes the support provided',
         'The letter describes the support provided.',
         'The letter does not describe the support provided.',
         'Describe the support you have provided.'),
@@ -178,7 +253,7 @@ const RULES = {
         'The letter confirms the applicant was refused admission to a refuge.',
         'The letter does not clearly confirm the applicant was refused admission to a refuge.',
         'State that the applicant "was refused admission to a refuge".'),
-      check(/\b\d{1,2}(st|nd|rd|th)? (of )?[a-z]+ \d{4}\b|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/.test(t), 'date', 'Gives the date of refusal',
+      check(sentences(t).some((s) => /refus/.test(s) && DATE.test(s)), 'date', 'Gives the date of refusal',
         'The date of refusal is given.',
         'The letter does not give the date of the refusal.',
         'Give the date the applicant was refused admission.'),
@@ -188,13 +263,13 @@ const RULES = {
         'State that the applicant sought admission "because of allegations of domestic abuse by [perpetrator]".'),
     ];
   },
-  p19(t) {
+  p19(t, raw) {
     const assessed = sentences(t).find((s) => /victim of domestic abuse/.test(s) && /\bconfirm\b/.test(s));
     let assessment;
     if (assessed && hedge(assessed)) {
       assessment = fail('assessment', 'Confirms the applicant was assessed as a victim',
         `The assessment is hedged ("${hedge(assessed)}"). It must confirm the applicant was assessed as being, or at risk of being, a victim.`,
-        'Use "was assessed as being, or at risk of being, a victim of domestic abuse by [perpetrator]".');
+        'Use "was assessed as being, or at risk of being, a victim of domestic abuse by [perpetrator]".', 'definite');
     } else if (/assessed as (being|a victim|at risk)/.test(t)) {
       assessment = pass('assessment', 'Confirms the applicant was assessed as a victim', 'The assessment is stated firmly.');
     } else {
@@ -206,14 +281,16 @@ const RULES = {
       perpetratorCheck(t),
       relationshipCheck(t),
       assessment,
-      check(/council|local authority|housing/.test(t), 'org', 'From a local authority or housing provider',
-        'The letter appears to come from a local authority or housing provider.',
-        'The letter does not show it comes from a local authority or housing provider.',
-        'Include the local authority or housing provider name.', 'warn'),
+      publicAuthorityCheck(t, signature(raw)),
     ];
   },
   marac(t) {
     return [
+      // Guidance 2.66: the forum must involve more than one agency.
+      check(/\bmarac\b|multi-agency|multi agency|safeguarding (forum|hub)|\bmash\b/.test(t), 'forum', 'From a multi-agency forum',
+        'The letter comes from a multi-agency forum.',
+        'The letter does not show the forum involves more than one agency.',
+        'The letter must come from a member of a MARAC or another multi-agency local safeguarding forum.'),
       check(/member of (the |a )?([a-z'-]+ ){0,3}(marac|multi-agency risk assessment conference)|marac (coordinator|chair|representative)/.test(t), 'role', 'Written by a MARAC member',
         'The author says they are a member of the MARAC.',
         'The letter does not say the author is a member of the MARAC.',
@@ -308,9 +385,33 @@ function dateCheck(text, today) {
   return pass('dates', label, `The latest date in the letter is ${fmt}.`);
 }
 
+// Each finding lowers the score. These weights are set by hand from the
+// guidance, not fitted to caseworker decisions, so the score is a ranking of
+// how sure the checker is, not a measured probability.
+export const CONFIDENCE = {
+  factor: { definite: 0.05, likely: 0.25, possible: 0.6 },
+  warn: 0.9,
+  // Letter types with no real accepted or rejected examples to test against.
+  guidanceOnly: 0.9,
+  high: 80,
+  medium: 40,
+};
+
+export function confidence(type, checks) {
+  let score = 1;
+  for (const c of checks) {
+    if (c.status === 'fail') score *= CONFIDENCE.factor[c.certainty];
+    if (c.status === 'warn') score *= CONFIDENCE.warn;
+  }
+  if (TYPE_SOURCE[type] === 'guidance') score *= CONFIDENCE.guidanceOnly;
+  const pct = Math.round(score * 100);
+  const level = pct >= CONFIDENCE.high ? 'high' : pct >= CONFIDENCE.medium ? 'medium' : 'low';
+  return { score: pct, level };
+}
+
 export function checkLetter(text, type = detectType(text), { today = new Date() } = {}) {
   if (!type || !RULES[type]) {
-    return { type: null, outcome: 'unknown', checks: [] };
+    return { type: null, outcome: 'unknown', confidence: null, checks: [] };
   }
   const t = normalise(text);
   const checks = [
@@ -318,13 +419,15 @@ export function checkLetter(text, type = detectType(text), { today = new Date() 
       'The letter refers to regulation 33 of the Civil Legal Aid (Procedure) Regulations 2012.',
       'The letter does not refer to regulation 33 of the Civil Legal Aid (Procedure) Regulations 2012.',
       'Mention that the letter is provided in accordance with regulation 33 of the Civil Legal Aid (Procedure) Regulations 2012.', 'warn'),
-    ...RULES[type](t),
+    ...RULES[type](t, text).filter(Boolean),
   ];
   const dated = dateCheck(text, today);
   if (dated) checks.push(dated);
-  const outcome = checks.some((c) => c.status === 'fail') ? 'changes'
-    : checks.some((c) => c.status === 'warn') ? 'check' : 'ready';
-  return { type, outcome, checks };
+  const conf = confidence(type, checks);
+  // A letter with a failed check is never "ready", however high the score.
+  const outcome = conf.level === 'low' ? 'changes'
+    : conf.level === 'high' && !checks.some((c) => c.status === 'fail') ? 'ready' : 'check';
+  return { type, outcome, confidence: conf, checks };
 }
 
 export function changeRequest(result) {

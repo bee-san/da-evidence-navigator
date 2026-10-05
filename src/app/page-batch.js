@@ -2,7 +2,7 @@ import { checkLetter, LETTER_TYPES } from './rules.js';
 import { SAMPLES } from './samples.js';
 import { SYNTHETIC } from './synthetic.js';
 import { escapeHtml } from './chat.js';
-import { OUTCOME } from './render.js';
+import { OUTCOME, confidenceText } from './render.js';
 import { extractText } from './ocr.js';
 
 const text = document.getElementById('batch-text');
@@ -34,7 +34,7 @@ document.getElementById('batch-form').addEventListener('submit', async (e) => {
   <tbody class="govuk-table__body">${rows.map(({ name, text: t, r }) => `<tr class="govuk-table__row">
     <th scope="row" class="govuk-table__header">${escapeHtml(name)}<br><span class="govuk-body-s">${escapeHtml(t.slice(0, 60))}${t.length > 60 ? '…' : ''}</span></th>
     <td class="govuk-table__cell">${r.type ? escapeHtml(LETTER_TYPES[r.type]) : 'Not recognised'}</td>
-    <td class="govuk-table__cell">${r.outcome === 'unknown' ? '<strong class="govuk-tag govuk-tag--grey">Not checked</strong>' : OUTCOME[r.outcome].tag}</td>
+    <td class="govuk-table__cell">${r.outcome === 'unknown' ? '<strong class="govuk-tag govuk-tag--grey">Not checked</strong>' : `${OUTCOME[r.outcome].tag}<br><span class="govuk-body-s">Confidence ${confidenceText(r)}</span>`}</td>
     <td class="govuk-table__cell">${r.outcome === 'unknown' ? 'Check this letter on its own and choose its type.' : `<ul class="govuk-list govuk-list--bullet govuk-!-margin-bottom-0">${r.checks.filter((c) => c.status !== 'pass').map((c) => `<li>${escapeHtml(c.fix)}</li>`).join('') || '<li>Nothing</li>'}</ul>`}</td>
   </tr>`).join('')}</tbody>
 </table>`;
