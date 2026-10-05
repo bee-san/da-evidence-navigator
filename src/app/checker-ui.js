@@ -18,9 +18,9 @@ export const guessCategory = (text) => OLD_TYPES[detectType(text)] || null;
 
 const paraLabel = (c) => `Paragraph ${c.para.toUpperCase()}`;
 
-export function categoryOptions() {
+export function categoryOptions(selected = '') {
   const group = (schedule, title) => `<optgroup label="${title}">${CATEGORIES.filter((c) => c.schedule === schedule)
-    .map((c) => `<option value="${c.id}">${paraLabel(c)}: ${escapeHtml(c.name)}</option>`).join('')}</optgroup>`;
+    .map((c) => `<option value="${c.id}"${c.id === selected ? ' selected' : ''}>${paraLabel(c)}: ${escapeHtml(c.name)}</option>`).join('')}</optgroup>`;
   return group(1, 'Domestic abuse (Schedule 1)') + group(2, 'Child abuse (Schedule 2)');
 }
 
@@ -72,6 +72,7 @@ const RANK = { [Status.MISSING]: 3, [Status.UNCLEAR]: 2, [Status.PASS]: 1 };
 const MARK_NAMES = { [Status.PASS]: 'meets', [Status.UNCLEAR]: 'needs checking for', [Status.MISSING]: 'is the problem for' };
 
 // The letter, sentence by sentence, with the sentences each requirement relied on marked by status.
+// Shown in place of the letter text, with a button to go back and edit it.
 export function markupHtml(text, r) {
   const doc = new Doc(text);
   const bySentence = new Map();
@@ -82,7 +83,7 @@ export function markupHtml(text, r) {
         if (e === u.text || e.startsWith(`${u.text} `)) {
           const cur = bySentence.get(u.index) || { status: null, ids: [] };
           if (!cur.status || RANK[c.status] > RANK[cur.status]) cur.status = c.status;
-          cur.ids.push(`${c.id} ${c.label}`);
+          cur.ids.push(c.label);
           bySentence.set(u.index, cur);
         }
       }
@@ -95,21 +96,22 @@ export function markupHtml(text, r) {
     words.push(...notes);
     const m = bySentence.get(u.index);
     const piece = m
-      ? `<span class="app-mark app-mark--${m.status === 'n/a' ? 'pass' : m.status}" title="${escapeHtml(m.ids.join('; '))}">${html}</span><span class="govuk-visually-hidden"> (this sentence ${MARK_NAMES[m.status]}: ${escapeHtml(m.ids.join('; '))})</span>`
+      ? `<span class="app-mark app-mark--${m.status}" title="${escapeHtml(m.ids.join('; '))}">${html}</span><span class="govuk-visually-hidden"> (this sentence ${MARK_NAMES[m.status]}: ${escapeHtml(m.ids.join('; '))})</span>`
       : html;
     (blocks[u.block] ||= []).push(piece);
   }
-  return `<h2 class="govuk-heading-m">Your letter, marked up</h2>
-<p class="govuk-body">The highlights show which sentences the check relied on, and words to look at again. They do not change the result.</p>
-<ul class="govuk-list app-mark-key">
+  const uniqueWords = [...new Map(words.map(([w, why]) => [`${w.toLowerCase()}|${why}`, [w, why]])).values()];
+  return `<h2 class="govuk-heading-m">Your letter</h2>
+<ul class="govuk-list app-mark-key" aria-label="What the highlights mean">
   <li><span class="app-mark app-mark--pass">Meets a requirement</span></li>
   <li><span class="app-mark app-mark--unclear">Needs checking</span></li>
   <li><span class="app-mark app-mark--missing">Causes a requirement to fail</span></li>
   <li><mark class="app-mark-word">Word to look at</mark></li>
 </ul>
-<div class="app-markup">${blocks.filter(Boolean).map((b) => `<p class="govuk-body">${b.join(' ')}</p>`).join('')}</div>
-${words.length ? `<h3 class="govuk-heading-s">Words to look at</h3>
-<ul class="govuk-list govuk-list--bullet">${[...new Map(words.map(([w, why]) => [`${w.toLowerCase()}|${why}`, [w, why]])).values()].map(([w, why]) => `<li><strong>${escapeHtml(w)}</strong>: ${escapeHtml(why)}</li>`).join('')}</ul>` : ''}`;
+<div class="app-markup" id="markup">${blocks.filter(Boolean).map((b) => `<p class="govuk-body">${b.join(' ')}</p>`).join('')}</div>
+<button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button" id="edit-letter">Edit the letter</button>
+${uniqueWords.length ? `<h3 class="govuk-heading-s">Words to look at</h3>
+<ul class="govuk-list govuk-list--bullet">${uniqueWords.map(([w, why]) => `<li><strong>${escapeHtml(w)}</strong>: ${escapeHtml(why)}</li>`).join('')}</ul>` : ''}`;
 }
 
 const TAGS = {
@@ -125,18 +127,51 @@ const OUTCOMES = {
   [Label.INCOMPLETE]: { title: 'This letter is missing something it needs', text: 'Ask the person who wrote it to add what is marked “Missing”. You can show them what to ask for below.' },
 };
 
-export function resultHtml(r, { guessed = false } = {}) {
+function scoreHtml(r) {
+  const c = confidence(r);
+  return `<div class="app-score"><p class="govuk-body govuk-!-margin-bottom-1"><span class="govuk-!-font-size-48 govuk-!-font-weight-bold">${c.score}%</span> confidence score</p>
+<p class="govuk-body">${c.met} of ${c.total} requirements met${c.check ? `, ${c.check} to check` : ''}${c.missing ? `, ${c.missing} missing` : ''}. How much to trust the rules for this type of evidence: ${escapeHtml(c.tested)}.</p>
+<p class="govuk-body-s govuk-!-margin-bottom-0">The score shows how complete the letter looks to these rules. It does not predict whether legal aid will be granted.</p></div>`;
+}
+
+// Fields to check again as a different type, or with names the letter must contain. Collapsed.
+function recheckHtml(r, guessed) {
+  const cat = CATEGORIES.find((c) => c.id === r.category);
+  const field = (id, label, hint, hidden = false) => `<div class="govuk-form-group" id="${id}-group"${hidden ? ' hidden' : ''}>
+  <label class="govuk-label" for="${id}">${label}</label>${hint ? `<div class="govuk-hint" id="${id}-hint">${hint}</div>` : ''}
+  <input class="govuk-input govuk-!-width-two-thirds" id="${id}" type="text" autocomplete="off" spellcheck="false"${hint ? ` aria-describedby="${id}-hint"` : ''}>
+</div>`;
+  return `<details class="govuk-details" id="recheck"${guessed ? '' : ' open'}>
+  <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Not the right type of evidence, or a name was missed?</span></summary>
+  <div class="govuk-details__text">
+    <form id="recheck-form" novalidate>
+      <div class="govuk-form-group">
+        <label class="govuk-label" for="recheck-type">Type of evidence</label>
+        <select class="govuk-select" id="recheck-type">${categoryOptions(cat?.id)}</select>
+      </div>
+      ${field('client', 'Name of the person applying for legal aid', 'Leave blank and we will look for it in the letter.')}
+      ${field('other', 'Name of the person who abused you or the child', '')}
+      ${field('child', 'Name of the child', '', true)}
+      ${field('appdate', 'Date of the legal aid application', 'For example, 5 October 2026. Used to check the evidence came first.', true)}
+      <button type="submit" class="govuk-button govuk-!-margin-bottom-0" data-module="govuk-button">Check again</button>
+    </form>
+  </div>
+</details>`;
+}
+
+export function reviewHtml(text, r, { guessed = false } = {}) {
   const o = OUTCOMES[r.label];
   const cat = CATEGORIES.find((c) => c.id === r.category);
   const rows = r.criteria.filter((c) => c.status !== Status.NOT_APPLICABLE);
   const asks = r.criteria.filter((c) => c.ask_for).map((c) => c.ask_for);
   const d = r.detected;
   const found = [
-    d.client && `Name of the person applying: ${d.client}${d.client_source === 'found in the text' ? ' (found in the letter – enter it above if this is wrong)' : ''}`,
+    d.client && `Name of the person applying: ${d.client}${d.client_source === 'found in the text' ? ' (found in the letter)' : ''}`,
     d.organisation && `Organisation: ${d.organisation}`,
     d.letter_date && `Letter dated: ${new Date(`${d.letter_date}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`,
   ].filter(Boolean);
   return `
+<h1 class="govuk-heading-l">Your letter, checked</h1>
 <div class="govuk-notification-banner${o.success ? ' govuk-notification-banner--success' : ''}" role="region" aria-labelledby="result-title">
   <div class="govuk-notification-banner__header"><h2 class="govuk-notification-banner__title" id="result-title">Result</h2></div>
   <div class="govuk-notification-banner__content">
@@ -144,14 +179,10 @@ export function resultHtml(r, { guessed = false } = {}) {
     <p class="govuk-body">${o.text}</p>
   </div>
 </div>
-${(() => {
-    const c = confidence(r);
-    return `<div class="app-score"><p class="govuk-body govuk-!-margin-bottom-1"><span class="govuk-!-font-size-48 govuk-!-font-weight-bold">${c.score}%</span> confidence score</p>
-<p class="govuk-body">${c.met} of ${c.total} requirements met${c.check ? `, ${c.check} to check` : ''}${c.missing ? `, ${c.missing} missing` : ''}. How much to trust the rules for this type of evidence: ${escapeHtml(c.tested)}.</p>
-<p class="govuk-body-s">The score shows how complete the letter looks to these rules. It does not predict whether legal aid will be granted.</p></div>`;
-  })()}
+${scoreHtml(r)}
+${markupHtml(text, r)}
 <h2 class="govuk-heading-m">${escapeHtml(cat ? `${paraLabel(cat)}: ${cat.name}` : r.category_name)}</h2>
-<p class="govuk-body-s">Schedule ${cat?.schedule ?? ''} of the Civil Legal Aid (Procedure) Regulations 2012.${guessed ? ' We worked out the type from the letter. If it is wrong, choose the type above and check again.' : ''}</p>
+<p class="govuk-body-s">Checked as evidence under Schedule ${cat?.schedule ?? ''} of the Civil Legal Aid (Procedure) Regulations 2012.${guessed ? ' We worked out the type from the letter.' : ''}</p>
 ${found.length ? `<ul class="govuk-list govuk-body-s">${found.map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}
 <dl class="govuk-summary-list app-check-result">
 ${rows.map((c) => `  <div class="govuk-summary-list__row">
@@ -167,5 +198,6 @@ ${rows.map((c) => `  <div class="govuk-summary-list__row">
 </dl>
 ${asks.length ? `<h2 class="govuk-heading-m">What to ask the writer for</h2>
 <ul class="govuk-list govuk-list--bullet">${asks.map((a) => `<li>${escapeHtml(a)}</li>`).join('')}</ul>` : ''}
+${recheckHtml(r, guessed)}
 <div class="govuk-inset-text"><ul class="govuk-list govuk-body-s govuk-!-margin-bottom-0">${r.warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join('')}</ul></div>`;
 }

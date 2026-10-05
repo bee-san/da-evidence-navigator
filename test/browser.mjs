@@ -512,25 +512,46 @@ await step('letter checker: each requirement, a confidence score, what to ask fo
   assert.equal(await text('.govuk-notification-banner__heading'), 'This letter is missing something it needs');
   assert.match(await text('#result'), /Paragraph 11: Letter or report from an appropriate health professional/);
   assert.match(await text('#result'), /We worked out the type from the letter/);
+  assert.equal(await page.$eval('#input-view', (e) => e.hidden), true, 'the review replaces the form');
+  assert.equal(await page.$('#type-group:not([hidden]), #client:not(#recheck #client)'), null, 'no type or name fields on the first screen');
   assert.match(await text('.app-score'), /^\d+% confidence score/);
   assert.match(await text('.app-score'), /tested on 29 example letters/);
   assert.match(await text('#result'), /What to ask for:.*registering body/);
   assert.ok(await page.$('.app-markup .app-mark--missing, .app-markup .app-mark--unclear'), 'problem sentences are highlighted');
   assert.deepEqual(await page.$$eval('.app-markup .app-mark-word', (m) => m.map((x) => x.textContent.toLowerCase())), ['might'], 'the hedged word is marked');
   await audit('letter result');
+  await page.click('#edit-letter');
+  assert.equal(await page.$eval('#input-view', (e) => e.hidden), false, 'Edit goes back to the letter');
+  assert.equal(await page.$eval('#result', (e) => e.hidden), true);
+  assert.match(await page.$eval('#letter', (e) => e.value), /might be consistent/, 'with the text kept to edit');
 });
 
-await step('letter checker: names the type needs, and says when rules are untested', async () => {
+await step('letter checker: check again as another type, with the names it needs', async () => {
   await go('letter-checker.html?sample=social-ok');
+  await page.click('#letter-form button[type=submit]');
+  await page.click('#recheck summary');
   assert.equal(await page.$eval('#child-group', (e) => e.hidden), true);
-  await page.select('#type', 'sch2-para7');
+  await page.select('#recheck-type', 'sch2-para7');
   assert.equal(await page.$eval('#child-group', (e) => e.hidden), false, 'Schedule 2 asks for the child');
-  await page.select('#type', 'sch1-para19');
+  await page.select('#recheck-type', 'sch1-para19');
   await page.type('#client', 'Jane Doe');
   await page.type('#other', 'John Doe');
-  await page.click('#letter-form button[type=submit]');
+  await page.click('#recheck-form button[type=submit]');
   assert.match(await text('.app-score'), /low – these rules come from the guidance/);
   assert.doesNotMatch(await text('#result'), /We worked out the type/);
+  assert.equal(await page.$eval('#client', (e) => e.value), 'Jane Doe', 'names are kept for the next check');
+  await audit('check again');
+});
+
+await step('letter checker: asks for the type only when it cannot be worked out', async () => {
+  await go('letter-checker.html');
+  await page.type('#letter', 'Thank you for your recent letter about the parking permit renewal for the residents of Example Road.');
+  await page.click('#letter-form button[type=submit]');
+  assert.equal(await page.$eval('#type-group', (e) => e.hidden), false);
+  await page.select('#type', 'sch1-para17');
+  await page.click('#letter-form button[type=submit]');
+  assert.equal(await page.$eval('#input-view', (e) => e.hidden), true);
+  assert.match(await text('#result'), /Paragraph 17/);
 });
 
 const tmp = await mkdtemp(join(tmpdir(), 'da-files-'));
@@ -615,7 +636,6 @@ await step('letter checker: reads a text-layer PDF', async () => {
   await pdfPage.close();
   await (await page.$('#file')).uploadFile(file);
   await until(() => /Text added/.test(document.getElementById('file-status').textContent));
-  await page.select('#type', 'sch1-para11');
   await page.click('#letter-form button[type=submit]');
   assert.equal(await text('.govuk-notification-banner__heading'), 'Nothing obviously missing');
   assert.match(await text('.app-score'), /^100% confidence score/);

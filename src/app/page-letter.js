@@ -1,5 +1,5 @@
 import { check, getCategory, Label } from './checker/index.js';
-import { categoryOptions, guessCategory, resultHtml, markupHtml, OLD_TYPES, NEEDS_DATE } from './checker-ui.js';
+import { categoryOptions, guessCategory, reviewHtml, OLD_TYPES, NEEDS_DATE } from './checker-ui.js';
 import { SAMPLES } from './samples.js';
 import { SYNTHETIC } from './synthetic.js';
 import { escapeHtml } from './chat.js';
@@ -13,19 +13,16 @@ const letter = document.getElementById('letter');
 const result = document.getElementById('result');
 const file = document.getElementById('file');
 const fileStatus = document.getElementById('file-status');
+const inputView = document.getElementById('input-view');
 const examples = [...SAMPLES, ...SYNTHETIC];
 
 type.insertAdjacentHTML('beforeend', categoryOptions());
 
-// Show only the names the chosen type of evidence needs.
-function showInputs() {
-  const cat = type.value ? getCategory(type.value) : null;
-  const needs = cat ? cat.inputs : ['client', 'other_party'];
-  document.getElementById('other-group').hidden = !needs.includes('other_party');
-  document.getElementById('child-group').hidden = !needs.includes('child');
-  document.getElementById('date-group').hidden = !(cat && NEEDS_DATE.has(cat.id));
-}
-type.addEventListener('change', showInputs);
+// The type of evidence to check as: from a link (?type=) or "Check again", otherwise worked out
+// from the letter. The type list on the first screen only appears if it cannot be worked out.
+let chosenType = '';
+// Names and dates from "Check again", kept for the next check.
+let lastOptions = {};
 sample.insertAdjacentHTML('beforeend', `<optgroup label="From the hackathon evidence pack">${SAMPLES.map((s) => `<option value="${s.id}">${escapeHtml(s.label)}</option>`).join('')}</optgroup>
 <optgroup label="Written for this prototype">${SYNTHETIC.map((s) => `<option value="${s.id}">${escapeHtml(s.label)}</option>`).join('')}</optgroup>`);
 
@@ -33,8 +30,8 @@ sample.addEventListener('change', () => {
   const s = examples.find((x) => x.id === sample.value);
   if (!s) return;
   letter.value = s.text;
-  type.value = '';
-  result.innerHTML = '';
+  chosenType = '';
+  lastOptions = {};
 });
 
 // Photos taken with the camera, page by page, read into the letter text.
@@ -83,37 +80,18 @@ function setError(msg) {
   if (msg) letter.focus();
 }
 
-document.getElementById('letter-form').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const text = letter.value.trim();
-  const typeError = document.getElementById('type-error');
-  typeError.hidden = true;
-  document.getElementById('type-group').classList.remove('govuk-form-group--error');
-  if (!text) return setError('Paste the text of the letter');
-  const guessed = !type.value;
-  const category = type.value || guessCategory(text);
-  if (!category) {
-    setError('');
-    typeError.hidden = false;
-    document.getElementById('type-group').classList.add('govuk-form-group--error');
-    type.focus();
-    return;
-  }
-  const value = (id) => (document.getElementById(`${id}-group`)?.hidden ? '' : document.getElementById(id).value.trim());
+// Runs the check and shows the review in place of the form.
+function review(text, category, guessed, options = {}) {
   let r;
   try {
-    r = check(text, category, {
-      client: document.getElementById('client').value.trim(),
-      other_party: value('other'),
-      child: value('child'),
-      application_date: value('appdate'),
-    });
+    r = check(text, category, options);
   } catch (err) {
     return setError(err.message);
   }
   setError('');
-  result.innerHTML = `${resultHtml(r, { guessed })}
-${markupHtml(text, r)}
+  inputView.hidden = true;
+  result.hidden = false;
+  result.innerHTML = `${reviewHtml(text, r, { guessed })}
 <details class="govuk-details app-no-print" id="opinion">
   <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Get a second opinion from an AI model (optional)</span></summary>
   <div class="govuk-details__text">
@@ -132,7 +110,58 @@ ${markupHtml(text, r)}
 </details>
 <div class="govuk-inset-text">This is a screening check. It matches wording, so it can be wrong in both directions. It does not decide whether you get legal aid.</div>`;
   wireModel(text, r);
+  wireReview(text);
+  window.scrollTo(0, 0);
   result.focus();
+}
+
+// Edit the letter: back to the first screen with the text, ready to change and check again.
+function editLetter() {
+  result.hidden = true;
+  result.innerHTML = '';
+  inputView.hidden = false;
+  window.scrollTo(0, 0);
+  letter.focus();
+}
+
+function wireReview(text) {
+  document.getElementById('edit-letter').addEventListener('click', editLetter);
+  const recheckType = document.getElementById('recheck-type');
+  const showFields = () => {
+    const cat = getCategory(recheckType.value);
+    document.getElementById('other-group').hidden = !cat.inputs.includes('other_party');
+    document.getElementById('child-group').hidden = !cat.inputs.includes('child');
+    document.getElementById('appdate-group').hidden = !NEEDS_DATE.has(cat.id);
+  };
+  for (const [id, key] of [['client', 'client'], ['other', 'other_party'], ['child', 'child'], ['appdate', 'application_date']]) {
+    document.getElementById(id).value = lastOptions[key] || '';
+  }
+  recheckType.addEventListener('change', showFields);
+  showFields();
+  document.getElementById('recheck-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const value = (id) => (document.getElementById(`${id}-group`).hidden ? '' : document.getElementById(id).value.trim());
+    chosenType = recheckType.value;
+    lastOptions = { client: value('client'), other_party: value('other'), child: value('child'), application_date: value('appdate') };
+    review(text, chosenType, false, lastOptions);
+  });
+}
+
+document.getElementById('letter-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = letter.value.trim();
+  if (!text) return setError('Paste the text of the letter');
+  const typeGroup = document.getElementById('type-group');
+  const picked = !typeGroup.hidden && type.value;
+  const category = chosenType || picked || guessCategory(text);
+  if (!category) {
+    setError('');
+    typeGroup.hidden = false;
+    type.focus();
+    return;
+  }
+  typeGroup.hidden = true;
+  review(text, category, !chosenType && !picked, lastOptions);
 });
 
 function wireModel(text, r) {
@@ -169,6 +198,5 @@ if (new URLSearchParams(location.search).get('sample')) {
 // Links in evidence request emails choose the type: ?type=p11 (older keys) or ?type=sch1-para11
 const typeParam = new URLSearchParams(location.search).get('type');
 if (typeParam) {
-  try { type.value = getCategory(OLD_TYPES[typeParam] || typeParam).id; } catch { /* unknown type: leave it to be worked out */ }
+  try { chosenType = getCategory(OLD_TYPES[typeParam] || typeParam).id; } catch { /* unknown type: leave it to be worked out */ }
 }
-showInputs();
