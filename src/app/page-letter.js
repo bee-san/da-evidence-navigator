@@ -68,7 +68,8 @@ file.addEventListener('change', async () => {
       ? 'Text added below. Check it matches the letter, then select "Check the letter".'
       : 'No text was found. Try a clearer photo, or type the letter in.';
   } catch (e) {
-    fileStatus.textContent = e.message === 'Choose a photo, PDF or text file' ? e.message : 'The file could not be read. Try a clearer photo, or type the letter in.';
+    // Messages written for people (wrong file type, old Word files) are shown as they are.
+    fileStatus.textContent = /^(Choose a photo|Older Word|This does not look like a Word)/.test(e.message) ? e.message : 'The file could not be read. Try a clearer photo, or type the letter in.';
   }
   file.value = '';
 });
