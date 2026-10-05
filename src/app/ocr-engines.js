@@ -56,21 +56,40 @@ function dictionary(text) {
   return chars;
 }
 
-const paddleocrJs = once(async () => {
-  const [{ PaddleOcrService }, ort] = await Promise.all([import(`${JSDELIVR}/paddleocr@1.2.0/+esm`), onnxRuntime()]);
-  const base = 'https://huggingface.co/x3zvawq/paddleocr-js-onnx/resolve/main/ppocr_v5_mobile/';
-  const [det, rec, dict] = await Promise.all([
-    buffer(`${base}PP-OCRv5_mobile_det_infer.onnx`),
-    buffer(`${base}PP-OCRv5_mobile_rec_infer.onnx`),
-    textFile(`${base}ppocrv5_dict.txt`),
-  ]);
-  return PaddleOcrService.createInstance({
-    ort,
-    modelPreset: 'PP-OCRv5_mobile',
-    detection: { modelBuffer: det },
-    recognition: { modelBuffer: rec, charactersDictionary: dictionary(dict) },
-  });
-}, (service) => service.destroy());
+// paddleocr.js with a choice of PaddleOCR models, from smallest to largest.
+const HF_PPU = 'https://huggingface.co/snowfluke/ppu-paddle-ocr-models/resolve/main/';
+const PADDLE_MODELS = [
+  { id: 'paddleocr-v6t', name: 'paddleocr.js – PP-OCRv6 tiny', preset: 'PP-OCRv6_tiny', download: 'About 6 MB',
+    det: `${HF_PPU}detection/PP-OCRv6_tiny_det.onnx`, rec: `${HF_PPU}recognition/PP-OCRv6_tiny_rec.onnx`, dict: `${HF_PPU}recognition/ppocrv6_tiny_dict.txt` },
+  { id: 'paddleocr-v6s', name: 'paddleocr.js – PP-OCRv6 small', preset: 'PP-OCRv6_small', download: 'About 31 MB',
+    det: `${HF_PPU}detection/PP-OCRv6_small_det.onnx`, rec: `${HF_PPU}recognition/PP-OCRv6_small_rec.onnx`, dict: `${HF_PPU}recognition/ppocrv6_dict.txt` },
+];
+
+function paddleEngine(m) {
+  const service = once(async () => {
+    const [{ PaddleOcrService }, ort] = await Promise.all([import(`${JSDELIVR}/paddleocr@1.2.0/+esm`), onnxRuntime()]);
+    const [det, rec, dict] = await Promise.all([buffer(m.det), buffer(m.rec), textFile(m.dict)]);
+    return PaddleOcrService.createInstance({
+      ort,
+      modelPreset: m.preset,
+      detection: { modelBuffer: det },
+      recognition: { modelBuffer: rec, charactersDictionary: dictionary(dict) },
+    });
+  }, (instance) => instance.destroy());
+  return {
+    id: m.id,
+    name: m.name,
+    source: `x3zvawq/paddleocr.js 1.2.0 with ${m.preset.replace('_', ' ')} models and ONNX Runtime Web.${m.note ? ` ${m.note}` : ''}`,
+    download: `${m.download} from jsDelivr and Hugging Face`,
+    off: m.off,
+    available: () => true,
+    async read({ canvas }) {
+      const ocr = await service();
+      return ocr.processRecognition(await ocr.recognize(pixels(canvas))).text;
+    },
+    release: () => service.release(),
+  };
+}
 
 const ppu = once(async () => {
   const { PaddleOcrService } = await import(`${JSDELIVR}/ppu-paddle-ocr@6.6.0/web/+esm`);
@@ -126,18 +145,7 @@ export const ENGINES = [
     read: ({ file }) => extractText(file),
     release: () => stopOcr(),
   },
-  {
-    id: 'paddleocr',
-    name: 'paddleocr.js',
-    source: 'x3zvawq/paddleocr.js 1.2.0 with PP-OCRv5 mobile models and ONNX Runtime Web.',
-    download: 'About 30 MB from jsDelivr and Hugging Face',
-    available: () => true,
-    async read({ canvas }) {
-      const service = await paddleocrJs();
-      return service.processRecognition(await service.recognize(pixels(canvas))).text;
-    },
-    release: () => paddleocrJs.release(),
-  },
+  ...PADDLE_MODELS.map(paddleEngine),
   {
     id: 'ppu',
     name: 'ppu-paddle-ocr',
@@ -177,6 +185,30 @@ export const ENGINES = [
       await img.decode();
       const res = await ocr.recognize(img);
       return (Array.isArray(res.text) ? res.text : [res.text]).join('\n');
+    },
+  },
+  {
+    id: 'gpt6sol',
+    name: 'GPT-6 Sol (OpenAI)',
+    source: 'OpenAI’s GPT-6 Sol reads the photo, through this site’s server (api/ocr-openai.js). This sends the photo to OpenAI.',
+    download: 'None, but the photo is uploaded to OpenAI',
+    sendsPhoto: true,
+    off: true,
+    available: () => true,
+    async read({ canvas }) {
+      // Smaller image, fewer tokens; still plenty for letter text.
+      const scale = Math.min(1, 2000 / Math.max(canvas.width, canvas.height));
+      const small = Object.assign(document.createElement('canvas'), { width: Math.round(canvas.width * scale), height: Math.round(canvas.height * scale) });
+      small.getContext('2d').drawImage(canvas, 0, 0, small.width, small.height);
+      const res = await fetch('api/ocr-openai', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        credentials: 'omit',
+        body: JSON.stringify({ image: small.toDataURL('image/jpeg', 0.85) }),
+      });
+      const r = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(r.error || (res.status === 404 ? 'Needs the site’s server (api/ocr-openai.js), for example on Vercel' : `Failed (${res.status})`));
+      return r.text;
     },
   },
   {

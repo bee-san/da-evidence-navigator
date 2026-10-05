@@ -59,6 +59,13 @@
           <label class="govuk-label govuk-checkboxes__label" for="consent">I understand the readers I chose may download code and models from other sites, which may use mobile data</label>
         </div>
       </div>
+      <div class="govuk-checkboxes govuk-checkboxes--small govuk-!-margin-bottom-4">
+        <div class="govuk-checkboxes__item">
+          <input class="govuk-checkboxes__input" id="consent-upload" type="checkbox" aria-describedby="consent-upload-hint">
+          <label class="govuk-label govuk-checkboxes__label" for="consent-upload">I understand GPT-6 Sol sends the photo to OpenAI</label>
+          <div class="govuk-hint govuk-checkboxes__hint" id="consent-upload-hint">Only needed if you choose GPT-6 Sol. Use an example letter, or a letter you are happy to share – a real letter will have names on it.</div>
+        </div>
+      </div>
       <p class="govuk-error-message" id="compare-error" hidden></p>
       <button type="submit" class="govuk-button" data-module="govuk-button">Read with the chosen readers</button>
     </form>
