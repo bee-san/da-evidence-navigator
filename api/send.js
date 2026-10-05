@@ -6,8 +6,15 @@
 // page (src/app/contact.js), so this cannot be used to send any other text.
 // Nothing is logged or stored. Sends with Resend (RESEND_API_KEY) from
 // EMAIL_FROM, for example "Legal aid evidence requests <requests@example.org>".
+// For a letter, the suggested wording is attached as a Word document with the
+// parts to fill in highlighted. Links in the email go to the live site.
+//
+// This is a prototype, so emails go to a test inbox (EMAIL_TEST_TO), with the
+// real recipient in the subject. They only go to the real police, GP or service
+// when EMAIL_LIVE=1. Without either, sending is not offered.
 
-import { buildRequest, looksLikeEmail, looksLikePhone } from '../src/app/contact.js';
+import { buildRequest, suggestedLetter, looksLikeEmail, looksLikePhone, SITE_URL } from '../src/app/contact.js';
+import { textToDocx } from '../src/app/docx-write.js';
 import { EVIDENCE, POLICE_EVENTS, COURT_EVENTS } from '../src/app/evidence.js';
 
 const FIELDS = ['key', 'event', 'applicant', 'other', 'reference', 'profName', 'profEmail', 'replyTo',
@@ -34,7 +41,9 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
 
 // EMAIL_DRY_RUN=1 shows the option and pretends to send, for local demos.
 const dryRun = () => process.env.EMAIL_DRY_RUN === '1';
-const configured = () => dryRun() || !!(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+const live = () => process.env.EMAIL_LIVE === '1';
+const testTo = () => (live() ? '' : (process.env.EMAIL_TEST_TO || '').trim());
+const configured = () => dryRun() || !!(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && (live() || testTo()));
 
 // Returns [details, null] or [null, problem].
 export function readDetails(body) {
@@ -77,20 +86,24 @@ export async function POST(request) {
   const [d, problem] = readDetails(body);
   if (problem) return json({ error: problem }, 400);
 
-  const email = buildRequest(d.key, d, { baseUrl: new URL('/', request.url).href });
-  if (dryRun()) return json({ sent: true, to: email.to, dryRun: true });
+  const email = buildRequest(d.key, d, { baseUrl: process.env.SITE_URL || SITE_URL });
+  const test = testTo();
+  if (dryRun()) return json({ sent: true, to: email.to, ...(test && { testTo: test }), dryRun: true });
+  const letter = suggestedLetter(d.key, d);
+  const real = [`to ${email.to}`, email.cc && `cc ${email.cc}`].filter(Boolean).join(', ');
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'content-type': 'application/json' },
     body: JSON.stringify({
       from: process.env.EMAIL_FROM,
-      to: [email.to],
-      ...(email.cc && { cc: [email.cc] }),
+      to: [test || email.to],
+      ...(email.cc && !test && { cc: [email.cc] }),
       ...(email.replyTo && { reply_to: email.replyTo }),
-      subject: email.subject,
+      subject: test ? `[Test – would go ${real}] ${email.subject}` : email.subject,
       text: email.body,
+      ...(letter && { attachments: [{ filename: 'suggested-letter.docx', content: Buffer.from(textToDocx(letter)).toString('base64') }] }),
     }),
   });
   if (!res.ok) return json({ error: 'The email could not be sent. Try again, or send it from your own email.' }, 502);
-  return json({ sent: true, to: email.to });
+  return json({ sent: true, to: email.to, ...(test && { testTo: test }) });
 }

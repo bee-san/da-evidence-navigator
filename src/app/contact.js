@@ -6,6 +6,9 @@ import { EVIDENCE, POLICE_EVENTS, COURT_EVENTS } from './evidence.js';
 import { BUILDER } from './builder.js';
 import { LETTER_TYPES } from './rules.js';
 
+// Links in the emails go to the live site, wherever the email was written.
+export const SITE_URL = 'https://da-evidence-navigator-rho.vercel.app/';
+
 const clean = (s) => String(s ?? '').trim().replace(/\s+/g, ' ');
 
 // Fills the parts of a template the applicant knows. Placeholders the
@@ -48,8 +51,15 @@ Please could you send me a copy of ${e.record}. It needs to name ${other} and me
   };
 }
 
+// The suggested wording for a letter, personalised, or null for a records request.
+// When this website sends the email, it is also attached as a Word document (api/send.js).
+export function suggestedLetter(key, details) {
+  const ev = EVIDENCE[key];
+  return ev && ev.ask !== 'records' && ev.template ? personalise(ev.template, details) : null;
+}
+
 // Returns { to, cc, subject, body } for a request email.
-export function buildRequest(key, details, { baseUrl = '' } = {}) {
+export function buildRequest(key, details, { baseUrl = SITE_URL } = {}) {
   const ev = EVIDENCE[key];
   const d = details;
   const applicant = clean(d.applicant) || '[your name]';
@@ -93,9 +103,9 @@ The Legal Aid Agency often returns letters because of a few words, so please cou
 ${list(ev.musts)}
 - be signed and dated, on headed paper or sent from an official email address
 
-Suggested wording you can copy and change:
+Suggested wording you can copy and change${sentForMe ? ' (it is also attached as a Word document, with the parts to fill in highlighted)' : ''}:
 
-${personalise(ev.template, d)}
+${suggestedLetter(key, d)}
 ${links.length ? `\nThese free tools can help:\n${links.map((l) => `- ${l}`).join('\n')}\n` : ''}`;
   }
 

@@ -373,7 +373,7 @@ await step('find evidence: send it for me, with a phone call back instead of a r
   const answer = (r) => {
     if (!r.url().endsWith('/api/send')) return r.continue();
     if (r.method() === 'POST') posted = JSON.parse(r.postData());
-    r.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(r.method() === 'POST' ? { sent: true, to: 'support@service.example' } : { enabled: true }) });
+    r.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(r.method() === 'POST' ? { sent: true, to: 'support@service.example', testTo: 'test@example.com' } : { enabled: true }) });
   };
   await page.setRequestInterception(true);
   page.on('request', answer);
@@ -389,11 +389,13 @@ await step('find evidence: send it for me, with a phone call back instead of a r
     await page.click('#contact-form button[type=submit]');
     await until(() => document.querySelector('#send-for-me'), 5000);
     assert.match(await page.$eval('#email-body', (e) => e.textContent), /Please call me on 07700 900982/);
+    assert.match(await page.$eval('#email-body', (e) => e.textContent), /also attached as a Word document/);
     assert.equal(await page.$('#send-app'), null, 'the own-email buttons are not shown');
     await audit('send it for me');
     await page.click('#send-for-me');
     await until(() => document.querySelector('#sfm-sent'), 5000);
     assert.match(await text('#sfm-sent'), /asked to call you on 07700 900982/);
+    assert.match(await text('#sfm-sent'), /Test mode: it went to test@example\.com, not to support@service\.example/);
     assert.equal(posted.contactBy, 'phone');
     assert.equal(posted.key, 'p17');
   } finally {
