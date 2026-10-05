@@ -49,7 +49,7 @@ export const EVIDENCE = {
   police: {
     para: 'Schedule 1, paragraphs 1 to 6A',
     title: 'Confirmation from the police',
-    who: 'The police force that dealt with it. Ask for their "disclosure" or "information rights" team, or use the address on any letter they sent you.',
+    who: 'The police force that dealt with it. Below, we can find the force from your postcode and add their address for these requests.',
     musts: [
       'name the person who abused you',
       'name you, or a family member of theirs, as the victim',

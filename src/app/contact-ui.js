@@ -8,6 +8,8 @@ import { EVIDENCE, needsOtherParty } from './evidence.js';
 import { buildRequest, mailtoUrl, gmailUrl, outlookUrl, looksLikeEmail, MAILTO_SAFE_LENGTH } from './contact.js';
 import { LETTER_TYPES } from './rules.js';
 import { escapeHtml } from './chat.js';
+import { FORCES, findForce } from './police.js';
+import { rememberedPlace } from './location.js';
 
 const input = (id, label, hint, { type = 'text', width = '', autocomplete = 'off' } = {}) => `
 <div class="govuk-form-group" id="${id}-group">
@@ -32,6 +34,7 @@ function formHtml(key) {
   ${input('applicant', 'Your full name', 'Use the name on your legal aid application.', { autocomplete: 'name' })}
   ${needsOtherParty(key) ? input('other', 'Full name of the person who abused you', 'The evidence must name them.') : ''}
   ${records ? input('reference', 'Crime reference or case number (optional)', 'This helps them find the records. It is on any letter they sent you.', { width: 'govuk-input--width-20' }) : ''}
+  ${key === 'police' ? forceFinderHtml() : ''}
   ${input('profName', `Name of the ${records ? 'team or person' : 'person'} you are asking (optional)`, '')}
   ${input('profEmail', 'Their email address (optional)', 'Ask their reception or check their website. You can leave this blank and add it in your email app.', { type: 'email' })}
   <div class="govuk-form-group">
@@ -62,6 +65,74 @@ function formHtml(key) {
   <button type="submit" class="govuk-button" data-module="govuk-button">Write my email</button>
 </form>
 <div id="contact-preview" tabindex="-1"></div>`;
+}
+
+function forceFinderHtml() {
+  const options = Object.entries(FORCES).map(([id, f]) => `<option value="${id}">${escapeHtml(f.name)}</option>`).join('');
+  return `
+<div class="govuk-form-group app-force-finder">
+  <fieldset class="govuk-fieldset">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Which police force dealt with it?</legend>
+    <div class="govuk-form-group">
+      <label class="govuk-label" for="forcePostcode">Postcode where it happened</label>
+      <div class="govuk-hint" id="forcePostcode-hint">Only the first half is used, for example M1. It is sent to postcodes.io and police.uk to find the force.</div>
+      <input class="govuk-input govuk-input--width-10" id="forcePostcode" type="text" autocomplete="off" spellcheck="false" aria-describedby="forcePostcode-hint">
+      <button type="button" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0 app-inline-button" data-module="govuk-button" id="forceFind">Find the police force</button>
+    </div>
+    <div class="govuk-form-group govuk-!-margin-bottom-0">
+      <label class="govuk-label" for="forceId">Or choose the police force</label>
+      <select class="govuk-select" id="forceId"><option value="">Choose a police force</option>${options}</select>
+    </div>
+  </fieldset>
+  <div id="forceResult" aria-live="polite"></div>
+</div>`;
+}
+
+function forceHtml(f) {
+  const source = f.sourceUrl ? `<a class="govuk-link" href="${escapeHtml(f.sourceUrl)}" target="_blank" rel="noreferrer noopener">their website (opens in new tab)</a>` : 'their website';
+  if (f.email) {
+    return `<div class="govuk-inset-text"><p class="govuk-body"><strong>${escapeHtml(f.name)}</strong></p>
+<p class="govuk-body">We have added their address for these requests: <strong>${escapeHtml(f.email)}</strong>. We found it on ${source} in ${escapeHtml(f.checked)}. Check it is still right before you send.</p>
+${f.formUrl ? `<p class="govuk-body">They also have an <a class="govuk-link" href="${escapeHtml(f.formUrl)}" target="_blank" rel="noreferrer noopener">online form (opens in new tab)</a> you can use instead.</p>` : ''}</div>`;
+  }
+  if (f.formUrl) {
+    return `<div class="govuk-inset-text"><p class="govuk-body"><strong>${escapeHtml(f.name)}</strong></p>
+<p class="govuk-body">They ask for these requests through an <a class="govuk-link" href="${escapeHtml(f.formUrl)}" target="_blank" rel="noreferrer noopener">online form (opens in new tab)</a>, not by email. Write your email here, then copy it into their form.</p></div>`;
+  }
+  return `<div class="govuk-inset-text"><p class="govuk-body"><strong>${escapeHtml(f.name)}</strong></p>
+<p class="govuk-body">We could not find an email address for these requests. Call 101 and ask how to request information from police records, or ask your solicitor.</p></div>`;
+}
+
+function mountForceFinder(el) {
+  const postcode = el.querySelector('#forcePostcode');
+  const select = el.querySelector('#forceId');
+  const result = el.querySelector('#forceResult');
+  const button = el.querySelector('#forceFind');
+  const show = (id) => {
+    const f = FORCES[id];
+    if (!f) { result.innerHTML = ''; return; }
+    select.value = id;
+    result.innerHTML = forceHtml(f);
+    el.querySelector('#profName').value = f.name;
+    el.querySelector('#profEmail').value = f.email || '';
+  };
+  const find = async () => {
+    button.disabled = true;
+    result.innerHTML = '<p class="govuk-body">Finding the police force…</p>';
+    try {
+      const r = await findForce(postcode.value);
+      if (r.problem) result.innerHTML = `<p class="govuk-error-message">${escapeHtml(r.problem)}</p>`;
+      else show(r.id);
+    } catch {
+      result.innerHTML = '<p class="govuk-error-message">We could not look this up just now. Choose the police force from the list instead.</p>';
+    }
+    button.disabled = false;
+  };
+  button.addEventListener('click', find);
+  const known = rememberedPlace();
+  if (known) postcode.value = known.outcode;
+  postcode.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); find(); } });
+  select.addEventListener('change', () => show(select.value));
 }
 
 function previewHtml(key, email) {
@@ -118,6 +189,7 @@ export function mountContact(el) {
   const key = el.dataset.contact;
   if (!EVIDENCE[key]) return;
   el.innerHTML = formHtml(key);
+  if (key === 'police') mountForceFinder(el);
   const form = el.querySelector('#contact-form');
   const solicitor = el.querySelector('#solicitor-details');
   for (const r of form.querySelectorAll('input[name=replyTo]')) {

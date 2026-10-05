@@ -170,6 +170,73 @@ await step('find evidence: police caution, sent straight to a solicitor', async 
   assert.match(await page.$eval('#send-app', (a) => a.href), /cc=family%40solicitors\.example/);
 });
 
+await step('find evidence: police force found from the first half of the postcode only', async () => {
+  await go('check.html#police/policeWhat/evArrested');
+  const sent = [];
+  const answer = (r) => {
+    const u = r.url();
+    if (u.startsWith('https://api.postcodes.io/') || u.startsWith('https://data.police.uk/')) {
+      sent.push(u);
+      const body = u.includes('/outcodes/') ? { result: { latitude: 53.47, longitude: -2.23, country: ['England'] } } : { force: 'greater-manchester' };
+      r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
+    } else r.continue();
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await page.$eval('#forcePostcode', (e) => { e.value = ''; });
+    await page.type('#forcePostcode', 'M1 1AE');
+    await page.click('#forceFind');
+    await until(() => document.querySelector('#forceResult strong')?.textContent === 'Greater Manchester Police', 5000);
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+  assert.equal(sent.length, 2);
+  assert.ok(sent.every((u) => !u.includes('1AE')), sent.join(' '));
+  assert.equal(await page.$eval('#forceId', (e) => e.value), 'greater-manchester');
+  assert.equal(await page.$eval('#profName', (e) => e.value), 'Greater Manchester Police');
+  await audit('police force found');
+});
+
+await step('find evidence: MARAC and council pages show who to ask locally', async () => {
+  await go('check.html#police/court/health/services/evMarac');
+  const sent = [];
+  const answer = (r) => {
+    const u = r.url();
+    if (u.startsWith('https://api.postcodes.io/') || u.startsWith('https://data.police.uk/')) {
+      sent.push(u);
+      const body = u.includes('/outcodes/')
+        ? { result: { latitude: 51.75, longitude: -1.25, country: ['England'], admin_district: ['Oxford', 'Vale of White Horse'] } }
+        : { force: 'thames-valley' };
+      r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
+    } else r.continue();
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+  await page.$eval('#localPostcode', (e) => { e.value = ''; });
+  await page.type('#localPostcode', 'OX1 4AA');
+  await page.click('#localFind');
+  await until(() => document.querySelector('#localDetail')?.textContent.includes('Thames Valley Police'), 5000);
+  assert.match(await text('#localResult'), /more than one council area/);
+  assert.match(await text('#localDetail'), /Oxfordshire County Council/);
+  await audit('MARAC local help');
+
+  // Next page on the same visit: the area is remembered and the council named in the email.
+  await page.evaluate(() => { location.hash = 'police/court/health/services/evP19'; });
+  await until(() => document.querySelector('#localDetail'), 5000);
+  await page.click('#council-1');
+  assert.match(await text('#localDetail'), /Vale of White Horse District Council/);
+  assert.equal(await page.$eval('#profName', (e) => e.value), 'Vale of White Horse District Council');
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+  assert.equal(sent.filter((u) => u.includes('postcodes.io')).length, 1, 'the area is looked up once');
+  assert.ok(sent.every((u) => !u.includes('4AA')), sent.join(' '));
+});
+
 await step('letter checker: rejected example needs changes, with a message', async () => {
   await go('letter-checker.html?sample=p11-bad-5');
   await page.click('#letter-form button[type=submit]');

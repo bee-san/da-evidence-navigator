@@ -10,6 +10,10 @@
 import { EVIDENCE, POLICE_EVENTS, COURT_EVENTS } from '../evidence.js';
 import { ROUTES } from '../routes.js';
 import { mountAll } from '../contact-ui.js';
+import { mountLocal } from '../local-ui.js';
+
+// Evidence where knowing the person's area helps them find who to ask.
+const LOCAL = new Set(['marac', 'p14', 'p17', 'p19', 'social']);
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -53,6 +57,7 @@ const letterStep = (key, section, title, intro) => ({
 <p class="govuk-body">This can be evidence under ${esc(EVIDENCE[key].para)} of the legal aid rules.</p>
 <h2 class="govuk-heading-m">Who to ask</h2>
 <p class="govuk-body">${esc(EVIDENCE[key].who)}</p>
+${LOCAL.has(key) ? `<div data-local="${key}"></div>` : ''}
 ${mustsHtml(EVIDENCE[key])}
 ${PHONE(key)}
 <div data-contact="${key}"></div>
@@ -102,12 +107,12 @@ const steps = {
     title: 'What happened to the person who abused you?',
     hint: 'If more than one thing happened, choose the one nearest the top.',
     options: [
-      { label: 'They were convicted', hint: 'Found guilty in court', next: 'evConvicted' },
+      { label: 'They were convicted (found guilty) in court', next: 'evConvicted' },
       { label: 'They were charged and the court case has not finished', next: 'evCharged' },
       { label: 'They were given a police caution', next: 'evCautioned' },
-      { label: 'They were bound over by a court', hint: 'Told by a court to keep the peace', next: 'evBoundOver' },
+      { label: 'They were bound over by a court', next: 'evBoundOver' },
       { label: 'They were arrested', next: 'evArrested' },
-      { label: 'The police gave them a notice to stay away from me', hint: 'A domestic violence protection notice (DVPN) or domestic abuse protection notice (DAPN)', next: 'evNotice' },
+      { label: 'The police gave them a notice to stay away from me', next: 'evNotice' },
       { label: 'None of these, or I do not know', hint: 'A solicitor can ask the police what happened', next: 'court' },
     ],
   },
@@ -123,9 +128,9 @@ const steps = {
   courtWhat: {
     title: 'What did the court do?',
     options: [
-      { label: 'Made an order to protect me', hint: 'For example a non-molestation order, occupation order, restraining order, forced marriage or FGM protection order', next: 'evInjunction' },
-      { label: 'Accepted a promise from them not to contact or harm me', hint: 'This is called an undertaking', next: 'evUndertaking' },
-      { label: 'Decided that the abuse happened', hint: 'This is called a finding of fact', next: 'evFinding' },
+      { label: 'Made an order to protect me, such as a non-molestation order', next: 'evInjunction' },
+      { label: 'Accepted a promise from them not to contact or harm me (an undertaking)', next: 'evUndertaking' },
+      { label: 'Decided that the abuse happened (a finding of fact)', next: 'evFinding' },
       { label: 'Had an expert write a report for the case that says there were signs of abuse', next: 'evExpert' },
       { label: 'None of these, or I do not know', next: 'health' },
     ],
@@ -143,14 +148,14 @@ const steps = {
     title: 'Have you had help from any of these?',
     hint: 'Choose the one you have had most contact with. You can come back and choose another.',
     options: [
-      { label: 'An IDVA', hint: 'Independent domestic violence adviser', next: 'evP14' },
-      { label: 'An ISVA', hint: 'Independent sexual violence adviser', next: 'evP15' },
-      { label: 'A domestic abuse support service or charity', hint: 'For example a helpline, outreach worker or local service', next: 'evP17' },
-      { label: 'A MARAC', hint: 'A meeting where police, health and support services discussed your safety. Your IDVA or support worker can tell you if this happened.', next: 'evMarac' },
+      { label: 'An independent domestic violence adviser (IDVA), often from a local domestic abuse service', next: 'evP14' },
+      { label: 'An independent sexual violence adviser (ISVA), often from a sexual assault referral centre or Rape Crisis', next: 'evP15' },
+      { label: 'A domestic abuse support service or charity, such as Women’s Aid, Refuge, Victim Support or a local service', next: 'evP17' },
+      { label: 'A MARAC (a meeting where services discussed my safety)', next: 'evMarac' },
       { label: 'A refuge that gave me a place', next: 'evRefugeStay' },
       { label: 'A refuge that could not give me a place', next: 'evP18' },
-      { label: 'My council or a housing association', hint: 'For example a housing officer, or a homeless application', next: 'evP19' },
-      { label: 'Social services or children’s services', next: 'evSocial' },
+      { label: 'My council or a housing association, such as a housing officer or homeless team', next: 'evP19' },
+      { label: 'Social services or children’s services, such as a social worker', next: 'evSocial' },
       { label: 'None of these', next: 'immigration' },
     ],
   },
@@ -236,4 +241,6 @@ export default { start: 'police', steps };
 
 export function onRender(root) {
   mountAll(root);
+  // After the contact form, so the council's name can be added to the email.
+  for (const el of root.querySelectorAll('[data-local]')) mountLocal(el, root);
 }
