@@ -93,3 +93,7 @@
 /* Headings get focus by script when a flow step changes, so screen readers
    announce the new question. They are not interactive, so no focus box. */
 #flow h1[tabindex="-1"]:focus { outline: none; }
+
+/* Police force finder: button sits beside the postcode box */
+.app-inline-button { margin-left: 10px; vertical-align: top; }
+@media (max-width: 40.0625em) { .app-inline-button { margin-left: 0; margin-top: 10px; } }

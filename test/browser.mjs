@@ -81,6 +81,25 @@ await step('home page has one button, which starts the find-a-solicitor flow', a
   assert.equal(await text('#flow h1'), 'Do you have a solicitor for your family case?');
 });
 
+await step('home page links to find evidence', async () => {
+  await go('index.html');
+  await Promise.all([page.waitForNavigation(), page.click('main a[href="check.html"]')]);
+  await until(() => document.querySelector('#flow h1'));
+  assert.equal(await text('#flow h1'), 'Do you have a solicitor for your family case?');
+  assert.match(page.url(), /check\.html$/);
+});
+
+await step('find a solicitor leads into find evidence without asking about a solicitor again', async () => {
+  await go('find-solicitor.html#have/risk/find');
+  await until(() => document.querySelector('a[href^="check.html?solicitor="]'));
+  await Promise.all([page.waitForNavigation(), page.click('a[href^="check.html?solicitor="]')]);
+  await until(() => document.querySelector('#flow h1'));
+  assert.equal(await text('#flow h1'), 'Have the police been involved?');
+  await page.evaluate(() => { location.hash = 'solicitor/police/court/health/evP11'; });
+  await until(() => document.querySelector('#contact-form'));
+  assert.equal(await page.$('#replyTo-solicitor'), null, 'not asked about a solicitor again');
+});
+
 await step('find a solicitor: error, keyboard answers, back link, finder search', async () => {
   await go('find-solicitor.html');
   await until(() => document.querySelector('#flow form'));
@@ -120,18 +139,212 @@ await step('find a solicitor: error, keyboard answers, back link, finder search'
   errors.splice(0, errors.length, ...errors.filter((e) => !e.includes('find-legal-advice')));
 });
 
-await step('find evidence: keyboard only, results include new routes', async () => {
+await step('find evidence: no police or court, GP letter, email written on the device', async () => {
   await go('check.html');
-  await page.focus('#route-0');
-  await page.keyboard.press('Space');
-  for (const v of ['marac', 'financial']) await page.click(`input[value=${v}]`);
-  await page.keyboard.press('Enter');
-  await until(() => !document.getElementById('results').hidden);
-  const titles = await page.$$eval('#results h3, #results dt', (els) => els.map((e) => e.textContent));
-  assert.ok(titles.includes('A letter from a health professional'));
-  assert.ok(titles.includes('A letter from a MARAC member'));
-  assert.ok(titles.includes('Financial documents'));
-  await audit('check results');
+  const answer = async (label) => {
+    const h1 = await text('h1');
+    const [radio] = await page.$$(`xpath/.//label[normalize-space()="${label}"]/preceding-sibling::input`);
+    assert.ok(radio, `"${label}" is an option on "${h1}"`);
+    await radio.click();
+    await page.click('form[data-step] button');
+    await page.waitForFunction((prev) => document.querySelector('h1')?.textContent.trim() !== prev, { timeout: 5000 }, h1);
+  };
+  assert.equal(await text('h1'), 'Do you have a solicitor for your family case?');
+  await answer('No');
+  assert.equal(await text('h1'), 'Do you want to find a legal aid solicitor first?');
+  await answer('No, find evidence first');
+  assert.equal(await text('h1'), 'Have the police been involved?');
+  await answer('No');
+  await answer('No');
+  await answer('Yes, they examined or treated me');
+  assert.equal(await text('h1'), 'Ask the health professional for a letter');
+  await audit('evidence result');
+
+  const requests = [];
+  page.on('request', (r) => requests.push(r.url()));
+  await page.click('#contact-form button[type=submit]');
+  assert.match(await text('#contact-errors'), /Enter your full name/);
+  await page.type('#applicant', 'Jane Doe');
+  await page.type('#profName', 'Dr Patel');
+  await page.type('#profEmail', 'surgery@example.nhs.uk');
+  await page.click('#contact-form button[type=submit]');
+  await until(() => document.querySelector('#email-body'), 5000);
+  const body = await page.$eval('#email-body', (e) => e.textContent);
+  assert.match(body, /^Dear Dr Patel,/);
+  assert.match(body, /I can confirm that I have examined Jane Doe/);
+  assert.match(body, /letter-checker\.html\?type=p11/);
+  const mailto = await page.$eval('#send-app', (a) => a.href);
+  assert.ok(mailto.startsWith('mailto:surgery%40example.nhs.uk?subject='), mailto);
+  assert.ok(!requests.some((u) => /Jane|Patel|surgery/.test(u)), 'nothing typed is sent anywhere');
+  await audit('evidence email');
+});
+
+await step('find evidence: a solicitor mentioned at the start is used, not asked about again', async () => {
+  await go('index.html');
+  await go('check.html');
+  for (const label of ['Yes', 'No', 'No', 'Yes, they examined or treated me']) {
+    const h1 = await text('h1');
+    const [radio] = await page.$$(`xpath/.//label[normalize-space()="${label}"]/preceding-sibling::input`);
+    await radio.click();
+    await page.click('form[data-step] button');
+    await page.waitForFunction((prev) => document.querySelector('h1')?.textContent.trim() !== prev, { timeout: 5000 }, h1);
+  }
+  assert.equal(await page.$eval('#replyTo-solicitor', (e) => e.checked), true);
+  assert.equal(await page.$eval('#solicitor-details', (e) => e.hidden), false);
+  assert.match(await text('#contact-form'), /Where should they send the letter\?/);
+  assert.doesNotMatch(await text('#contact-form'), /Straight to my solicitor/);
+});
+
+await step('find evidence: police caution, sent straight to a solicitor', async () => {
+  await go('check.html#solicitor/police/policeWhat/evCautioned');
+  assert.equal(await text('h1'), 'Ask the police to confirm the caution');
+  await page.type('#applicant', 'Jane Doe');
+  await page.type('#other', 'John Doe');
+  await page.click('#replyTo-solicitor');
+  await page.type('#solicitorEmail', 'family@solicitors.example');
+  await page.click('#contact-form button[type=submit]');
+  await until(() => document.querySelector('#email-body'), 5000);
+  const body = await page.$eval('#email-body', (e) => e.textContent);
+  assert.match(body, /paragraph 2 /);
+  assert.match(body, /John Doe was given a police caution/);
+  assert.match(body, /send it to my solicitor at family@solicitors\.example/);
+  assert.match(await page.$eval('#send-app', (a) => a.href), /cc=family%40solicitors\.example/);
+});
+
+await step('find evidence: police force found from the first half of the postcode only', async () => {
+  await go('check.html#solicitor/police/policeWhat/evArrested');
+  const sent = [];
+  const answer = (r) => {
+    const u = r.url();
+    if (u.startsWith('https://api.postcodes.io/') || u.startsWith('https://data.police.uk/')) {
+      sent.push(u);
+      const body = u.includes('/outcodes/') ? { result: { latitude: 53.47, longitude: -2.23, country: ['England'] } } : { force: 'greater-manchester' };
+      r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
+    } else r.continue();
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await page.$eval('#forcePostcode', (e) => { e.value = ''; });
+    await page.type('#forcePostcode', 'M1 1AE');
+    await page.click('#forceFind');
+    await until(() => document.querySelector('#forceResult strong')?.textContent === 'Greater Manchester Police', 5000);
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+  assert.equal(sent.length, 2);
+  assert.ok(sent.every((u) => !u.includes('1AE')), sent.join(' '));
+  assert.equal(await page.$eval('#forceId', (e) => e.value), 'greater-manchester');
+  assert.equal(await page.$eval('#profName', (e) => e.value), 'Greater Manchester Police');
+  await audit('police force found');
+});
+
+await step('find evidence: MARAC and council pages show who to ask locally', async () => {
+  await go('check.html#solicitor/police/court/health/services/evMarac');
+  const sent = [];
+  const answer = (r) => {
+    const u = r.url();
+    if (u.startsWith('https://api.postcodes.io/') || u.startsWith('https://data.police.uk/')) {
+      sent.push(u);
+      const body = u.includes('/outcodes/')
+        ? { result: { latitude: 51.75, longitude: -1.25, country: ['England'], admin_district: ['Oxford', 'Vale of White Horse'] } }
+        : { force: 'thames-valley' };
+      r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
+    } else r.continue();
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+  await page.$eval('#localPostcode', (e) => { e.value = ''; });
+  await page.type('#localPostcode', 'OX1 4AA');
+  await page.click('#localFind');
+  await until(() => document.querySelector('#localDetail')?.textContent.includes('Thames Valley Police'), 5000);
+  assert.match(await text('#localResult'), /more than one council area/);
+  assert.match(await text('#localDetail'), /Oxfordshire County Council/);
+  await audit('MARAC local help');
+
+  // Next page on the same visit: the area is remembered and the council named in the email.
+  await page.evaluate(() => { location.hash = 'solicitor/police/court/health/services/evP19'; });
+  await until(() => document.querySelector('#localDetail'), 5000);
+  await page.click('#council-1');
+  assert.match(await text('#localDetail'), /Vale of White Horse District Council/);
+  assert.equal(await page.$eval('#profName', (e) => e.value), 'Vale of White Horse District Council');
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+  assert.equal(sent.filter((u) => u.includes('postcodes.io')).length, 1, 'the area is looked up once');
+  assert.ok(sent.every((u) => !u.includes('4AA')), sent.join(' '));
+});
+
+await step('find evidence: send it for me, with a phone call back instead of a reply', async () => {
+  await go('index.html'); // fresh page load, so the send check runs again
+  let posted;
+  const answer = (r) => {
+    if (!r.url().endsWith('/api/send')) return r.continue();
+    if (r.method() === 'POST') posted = JSON.parse(r.postData());
+    r.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(r.method() === 'POST' ? { sent: true, to: 'support@service.example' } : { enabled: true }) });
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await go('check.html#solicitor/police/court/health/services/evP17');
+    await page.type('#applicant', 'Jane Doe');
+    await page.type('#profEmail', 'support@service.example');
+    await until(() => document.querySelector('#method-phone'), 5000);
+    await page.click('#method-phone');
+    await page.click('#contact-form button[type=submit]');
+    assert.match(await text('#contact-errors'), /Enter a phone number/);
+    await page.type('#phone', '07700 900982');
+    await page.click('#contact-form button[type=submit]');
+    await until(() => document.querySelector('#send-for-me'), 5000);
+    assert.match(await page.$eval('#email-body', (e) => e.textContent), /Please call me on 07700 900982/);
+    assert.equal(await page.$('#send-app'), null, 'the own-email buttons are not shown');
+    await audit('send it for me');
+    await page.click('#send-for-me');
+    await until(() => document.querySelector('#sfm-sent'), 5000);
+    assert.match(await text('#sfm-sent'), /asked to call you on 07700 900982/);
+    assert.equal(posted.contactBy, 'phone');
+    assert.equal(posted.key, 'p17');
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+});
+
+await step('find evidence: find my GP and add their email', async () => {
+  await go('index.html');
+  const sent = [];
+  const answer = (r) => {
+    const u = r.url();
+    if (u.startsWith('https://directory.spineservices.nhs.uk/')) {
+      sent.push(u);
+      r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ Organisations: [{ OrgId: 'K84016', Name: 'BEAUMONT ELMS PRACTICE', PostCode: 'OX1 2HB' }] }) });
+    } else if (u.includes('/api/gp?code=K84016')) {
+      sent.push(u);
+      r.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ name: 'Beaumont Elms Practice', telephone: '01865240501', email: 'info.nbs@nhs.net', url: 'https://www.beaumontelmspractice.co.uk/' }) });
+    } else r.continue();
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await go('check.html#solicitor/police/court/health/evP11');
+    await page.$eval('#gpSearch', (e) => { e.value = ''; });
+    await page.type('#gpSearch', 'OX1 2HB');
+    await page.click('#gpFind');
+    await until(() => document.querySelector('#gp-0'), 5000);
+    await page.click('#gp-0');
+    await until(() => document.querySelector('#gpDetail strong'), 5000);
+    assert.equal(await page.$eval('#profEmail', (e) => e.value), 'info.nbs@nhs.net');
+    assert.equal(await page.$eval('#profName', (e) => e.value), 'Beaumont Elms Practice');
+    assert.match(await text('#gpDetail'), /01865240501/);
+    assert.ok(sent.every((u) => !u.includes('2HB')), sent.join(' '));
+    await audit('GP found');
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
 });
 
 await step('letter checker: rejected example needs changes, with a message', async () => {
@@ -286,7 +499,10 @@ await step('exit: Shift 3 times leaves and clears what was typed', async () => {
 });
 
 await step('no console errors or missing files', async () => {
-  assert.deepEqual(errors.filter((e) => !e.includes('bbc.co.uk')), []);
+  // api/send is a Vercel function, so the static test server answers 404 and
+  // the page falls back to the person's own email. That is expected.
+  const sendCheck = (e) => e.includes('/api/send') || (e.includes('check.html') && e.includes('status of 404'));
+  assert.deepEqual(errors.filter((e) => !e.includes('bbc.co.uk') && !sendCheck(e)), []);
 });
 
 await browser.close();

@@ -34,6 +34,10 @@ function answers() {
   return Object.fromEntries(BUILDER[select.value].fields.map((f) => [f.id, data.get(f.id) || '']));
 }
 
+// Links in evidence request emails choose the letter type: ?type=p11
+const typeParam = new URLSearchParams(location.search).get('type');
+if (typeParam && BUILDER[typeParam]) select.value = typeParam;
+
 select.addEventListener('change', render);
 document.getElementById('write-example').addEventListener('click', () => {
   const ex = exampleAnswers(select.value);

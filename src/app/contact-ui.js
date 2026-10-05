@@ -1,0 +1,451 @@
+// The "ask for it" part of an evidence result page: a short form, a preview
+// of the email, then either "send it for me" (api/send.js, so it is not in the
+// person's Sent folder) or their own email app.
+// Nothing typed here leaves the device unless the person chooses "send it for me".
+//
+// Mount on <div data-contact="p11"> (or data-contact="police" data-event="arrested").
+
+import { EVIDENCE, needsOtherParty } from './evidence.js';
+import { buildRequest, mailtoUrl, looksLikeEmail, looksLikePhone, MAILTO_SAFE_LENGTH } from './contact.js';
+import { LETTER_TYPES } from './rules.js';
+import { escapeHtml } from './chat.js';
+import { FORCES, findForce } from './police.js';
+import { rememberedPlace } from './location.js';
+import { searchPractices, practiceContact } from './gp.js';
+
+const input = (id, label, hint, { type = 'text', width = '', autocomplete = 'off' } = {}) => `
+<div class="govuk-form-group" id="${id}-group">
+  <label class="govuk-label govuk-label--s" for="${id}">${label}</label>
+  ${hint ? `<div class="govuk-hint" id="${id}-hint">${hint}</div>` : ''}
+  <p class="govuk-error-message" id="${id}-error" hidden><span class="govuk-visually-hidden">Error:</span> <span></span></p>
+  <input class="govuk-input ${width}" id="${id}" name="${id}" type="${type}" autocomplete="${autocomplete}" spellcheck="false"${hint ? ` aria-describedby="${id}-hint"` : ''}>
+</div>`;
+
+const radio = (name, value, label, { checked = false, controls = '', hint = '' } = {}) => `<div class="govuk-radios__item">
+  <input class="govuk-radios__input" id="${name}-${value}" name="${name}" type="radio" value="${value}"${checked ? ' checked' : ''}${controls ? ` aria-controls="${controls}"` : ''}>
+  <label class="govuk-label govuk-radios__label" for="${name}-${value}">${label}</label>
+  ${hint ? `<div class="govuk-hint govuk-radios__hint">${hint}</div>` : ''}
+</div>`;
+
+const SOLICITOR_FIELDS = `<div class="govuk-radios__conditional" id="solicitor-details">
+  ${input('solicitorName', 'Your solicitor’s name (optional)', '')}
+  ${input('solicitorEmail', 'Your solicitor’s email address', '', { type: 'email' })}
+</div>`;
+
+// Where the letter should go. Uses the answer to "Do you have a solicitor?"
+// from the start of the flow, so people are not asked twice.
+function replyToHtml(hasSolicitor) {
+  if (hasSolicitor === 'no' || hasSolicitor === 'unsure') return '<input type="hidden" name="replyTo" value="me">';
+  const yes = hasSolicitor === 'yes';
+  return `<div class="govuk-form-group"><fieldset class="govuk-fieldset">
+  <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Where should they send the letter?</legend>
+  <div class="govuk-radios govuk-radios--small">
+    ${yes ? radio('replyTo', 'solicitor', 'To my solicitor', { checked: true, controls: 'solicitor-details' }) + SOLICITOR_FIELDS : ''}
+    ${radio('replyTo', 'me', 'To me', { checked: !yes })}
+    ${yes ? '' : radio('replyTo', 'solicitor', 'Straight to my solicitor', { controls: 'solicitor-details' }) + SOLICITOR_FIELDS.replace('id="solicitor-details"', 'id="solicitor-details" hidden')}
+  </div>
+</fieldset></div>`;
+}
+
+// How it is sent, and how they get back to the person. Only shown when this
+// site can send email; otherwise it goes from the person's own email.
+function methodHtml(replyTo) {
+  if (replyTo === 'solicitor') {
+    return `<div class="govuk-form-group"><fieldset class="govuk-fieldset">
+  <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">How do you want to send it?</legend>
+  <div class="govuk-radios govuk-radios--small">
+    ${radio('method', 'forMe', 'Send it for me', { checked: true, hint: 'It will not come from your email account or be kept in your Sent folder.' })}
+    ${radio('method', 'own', 'From my own email')}
+  </div>
+</fieldset></div>`;
+  }
+  return `<div class="govuk-form-group"><fieldset class="govuk-fieldset">
+  <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">How should they get back to you?</legend>
+  <div class="govuk-hint">If someone else can see your email, choose a different address or a phone call. We will send the email for you, so it is not in your Sent folder.</div>
+  <div class="govuk-radios govuk-radios--small">
+    ${radio('method', 'altEmail', 'Reply to a different email address', { checked: true, controls: 'method-altEmail-details' })}
+    <div class="govuk-radios__conditional" id="method-altEmail-details">
+      ${input('altEmail', 'Email address for their reply', 'For example, a new address only you use, or the address of someone you trust.', { type: 'email' })}
+    </div>
+    ${radio('method', 'phone', 'Phone me', { controls: 'method-phone-details' })}
+    <div class="govuk-radios__conditional" id="method-phone-details" hidden>
+      ${input('phone', 'Phone number', 'They will call to arrange how you get the letter.', { type: 'tel', width: 'govuk-input--width-20', autocomplete: 'tel' })}
+      ${input('callTimes', 'Best time to call (optional)', 'For example, weekdays between 10am and 2pm.')}
+      <div class="govuk-checkboxes govuk-checkboxes--small">
+        <div class="govuk-checkboxes__item">
+          <input class="govuk-checkboxes__input" id="voicemail" name="voicemail" type="checkbox">
+          <label class="govuk-label govuk-checkboxes__label" for="voicemail">It is safe to leave me a voicemail</label>
+        </div>
+      </div>
+    </div>
+    ${radio('method', 'own', 'Reply to my own email', { hint: 'You send it from your own email app.' })}
+  </div>
+</fieldset></div>`;
+}
+
+function formHtml(key, answers) {
+  const ev = EVIDENCE[key];
+  const records = ev.ask === 'records';
+  return `
+<h2 class="govuk-heading-m">Ask for it by email</h2>
+<p class="govuk-body">Fill this in and we will write the email for you. You can check it before it is sent.</p>
+<div class="govuk-error-summary" data-module="govuk-error-summary" id="contact-errors" hidden tabindex="-1">
+  <div role="alert"><h3 class="govuk-error-summary__title">There is a problem</h3>
+  <div class="govuk-error-summary__body"><ul class="govuk-list govuk-error-summary__list"></ul></div></div>
+</div>
+<form id="contact-form" novalidate>
+  ${input('applicant', 'Your full name', 'Use the name on your legal aid application.', { autocomplete: 'name' })}
+  ${needsOtherParty(key) ? input('other', 'Full name of the person who abused you', 'The evidence must name them.') : ''}
+  ${records ? input('reference', 'Crime reference or case number (optional)', 'This helps them find the records. It is on any letter they sent you.', { width: 'govuk-input--width-20' }) : ''}
+  ${key === 'police' ? forceFinderHtml() : ''}
+  ${key === 'p11' || key === 'p12' ? gpFinderHtml() : ''}
+  ${input('profName', `Name of the ${records ? 'team or person' : 'person'} you are asking (optional)`, '')}
+  ${input('profEmail', 'Their email address', 'Ask their reception or check their website.', { type: 'email' })}
+  ${replyToHtml(answers.hasSolicitor)}
+  <div id="method-block"></div>
+  <div class="govuk-form-group">
+    <label class="govuk-label govuk-label--s" for="note">Anything that will help them find your records (optional)</label>
+    <div class="govuk-hint" id="note-hint">For example, the date of your appointment, or your date of birth. You do not need to say what happened.</div>
+    <textarea class="govuk-textarea" id="note" name="note" rows="2" aria-describedby="note-hint"></textarea>
+  </div>
+  <button type="submit" class="govuk-button" data-module="govuk-button">Preview the email</button>
+</form>
+<div id="contact-preview" tabindex="-1"></div>`;
+}
+
+function forceFinderHtml() {
+  const options = Object.entries(FORCES).map(([id, f]) => `<option value="${id}">${escapeHtml(f.name)}</option>`).join('');
+  return `
+<div class="govuk-form-group app-force-finder">
+  <fieldset class="govuk-fieldset">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Which police force dealt with it?</legend>
+    <div class="govuk-form-group">
+      <label class="govuk-label" for="forcePostcode">Postcode where it happened</label>
+      <div class="govuk-hint" id="forcePostcode-hint">Only the first half is used, for example M1. It is sent to postcodes.io and police.uk to find the force.</div>
+      <input class="govuk-input govuk-input--width-10" id="forcePostcode" type="text" autocomplete="off" spellcheck="false" aria-describedby="forcePostcode-hint">
+      <button type="button" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0 app-inline-button" data-module="govuk-button" id="forceFind">Find the police force</button>
+    </div>
+    <div class="govuk-form-group govuk-!-margin-bottom-0">
+      <label class="govuk-label" for="forceId">Or choose the police force</label>
+      <select class="govuk-select" id="forceId"><option value="">Choose a police force</option>${options}</select>
+    </div>
+  </fieldset>
+  <div id="forceResult" aria-live="polite"></div>
+</div>`;
+}
+
+function gpFinderHtml() {
+  return `
+<div class="govuk-form-group app-force-finder">
+  <fieldset class="govuk-fieldset">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Find your GP practice</legend>
+    <div class="govuk-hint">If it was a hospital, midwife or another health professional, fill in their details below instead.</div>
+    <label class="govuk-label" for="gpSearch">First half of the practice’s postcode, or its name</label>
+    <div class="govuk-hint" id="gpSearch-hint">For example, M13 or Ardwick. This is sent to the NHS to find the practice.</div>
+    <input class="govuk-input govuk-input--width-20" id="gpSearch" type="text" autocomplete="off" spellcheck="false" aria-describedby="gpSearch-hint">
+    <button type="button" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0 app-inline-button" data-module="govuk-button" id="gpFind">Find</button>
+  </fieldset>
+  <div id="gpResults" aria-live="polite"></div>
+</div>`;
+}
+
+function gpHtml(p) {
+  const tel = p.telephone ? `<a class="govuk-link" href="tel:${escapeHtml(p.telephone.replace(/\s/g, ''))}">${escapeHtml(p.telephone)}</a>` : '';
+  const site = p.url ? ` · <a class="govuk-link" href="${escapeHtml(p.url)}" target="_blank" rel="noreferrer noopener">website (opens in new tab)</a>` : '';
+  return `<div class="govuk-inset-text"><p class="govuk-body"><strong>${escapeHtml(p.name)}</strong>${tel ? `<br>Phone ${tel}` : ''}${site}</p>
+${p.email
+    ? `<p class="govuk-body">We have added their email address, <strong>${escapeHtml(p.email)}</strong>, below. It comes from the NHS website – check it is right before you send.</p>`
+    : `<p class="govuk-body">They do not list an email address.${tel ? ` Call ${tel} and ask where to send a request for a letter, then add it below.` : ''}</p>`}
+<p class="govuk-body-s">Some GPs charge a fee for a letter. You can ask when you contact them.</p></div>`;
+}
+
+function mountGpFinder(el) {
+  const search = el.querySelector('#gpSearch');
+  const button = el.querySelector('#gpFind');
+  const results = el.querySelector('#gpResults');
+  const known = rememberedPlace();
+  if (known) search.value = known.outcode;
+  const set = (sel, value) => {
+    const f = el.querySelector(sel);
+    if (f && (!f.value || f.dataset.prefilled)) { f.value = value; f.dataset.prefilled = value ? 'true' : ''; }
+  };
+  const choose = async (code) => {
+    const detail = results.querySelector('#gpDetail');
+    detail.innerHTML = '<p class="govuk-body">Getting their contact details…</p>';
+    try {
+      const p = await practiceContact(code);
+      detail.innerHTML = gpHtml(p);
+      set('#profName', p.name);
+      set('#profEmail', p.email);
+    } catch {
+      detail.innerHTML = '<p class="govuk-error-message">We could not get their contact details just now. Fill them in below instead.</p>';
+    }
+  };
+  const find = async () => {
+    button.disabled = true;
+    results.innerHTML = '<p class="govuk-body">Finding GP practices…</p>';
+    try {
+      const list = await searchPractices(search.value);
+      if (list.problem) { results.innerHTML = `<p class="govuk-error-message">${escapeHtml(list.problem)}</p>`; return; }
+      results.innerHTML = `<div class="govuk-form-group govuk-!-margin-top-4"><fieldset class="govuk-fieldset">
+  <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Choose your GP practice</legend>
+  <div class="govuk-radios govuk-radios--small">${list.map((p, i) => `<div class="govuk-radios__item">
+    <input class="govuk-radios__input" id="gp-${i}" name="gp" type="radio" value="${escapeHtml(p.code)}">
+    <label class="govuk-label govuk-radios__label" for="gp-${i}">${escapeHtml(p.name)}, ${escapeHtml(p.postcode)}</label>
+  </div>`).join('')}</div>
+</fieldset></div>
+<div id="gpDetail"></div>`;
+      for (const r of results.querySelectorAll('input[name=gp]')) r.addEventListener('change', () => choose(r.value));
+    } catch {
+      results.innerHTML = '<p class="govuk-error-message">We could not search for GP practices just now. Fill in their details below instead.</p>';
+    } finally {
+      button.disabled = false;
+    }
+  };
+  button.addEventListener('click', find);
+  search.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); find(); } });
+}
+
+function forceHtml(f) {
+  const ext = (url, text) => `<a class="govuk-link" href="${escapeHtml(url)}" target="_blank" rel="noreferrer noopener">${text} (opens in new tab)</a>`;
+  const checked = `We found these details ${f.sourceUrl ? `on ${ext(f.sourceUrl, 'their website')}` : 'on their website'} in ${escapeHtml(f.checked)}. Check them before you send.`;
+  let how;
+  if (f.route === 'legal-aid' && f.email) {
+    how = `They have an email address for legal aid requests: <strong>${escapeHtml(f.email)}</strong>. We have added it below.`;
+  } else if (f.route === 'legal-aid') {
+    how = `They have a ${ext(f.formUrl, 'legal aid request form')}. Write your email here, then copy it into their form.`;
+  } else if (f.formUrl && f.email) {
+    how = `They ask for requests through their ${ext(f.formUrl, 'online form')}, and also accept them by email at <strong>${escapeHtml(f.email)}</strong>, which we have added below.`;
+  } else if (f.email) {
+    how = `Their address for these requests is <strong>${escapeHtml(f.email)}</strong>. We have added it below.`;
+  } else {
+    how = `They only take these requests through their ${ext(f.formUrl, 'online form')}, not by email. Write your email here, then copy it into their form.`;
+  }
+  return `<div class="govuk-inset-text"><p class="govuk-body"><strong>${escapeHtml(f.name)}</strong></p>
+<p class="govuk-body">${how}</p>
+<p class="govuk-body-s">${checked}</p></div>`;
+}
+
+function mountForceFinder(el) {
+  const postcode = el.querySelector('#forcePostcode');
+  const select = el.querySelector('#forceId');
+  const result = el.querySelector('#forceResult');
+  const button = el.querySelector('#forceFind');
+  const show = (id) => {
+    const f = FORCES[id];
+    if (!f) { result.innerHTML = ''; return; }
+    select.value = id;
+    result.innerHTML = forceHtml(f);
+    el.querySelector('#profName').value = f.name;
+    el.querySelector('#profEmail').value = f.email || '';
+  };
+  const find = async () => {
+    button.disabled = true;
+    result.innerHTML = '<p class="govuk-body">Finding the police force…</p>';
+    try {
+      const r = await findForce(postcode.value);
+      if (r.problem) result.innerHTML = `<p class="govuk-error-message">${escapeHtml(r.problem)}</p>`;
+      else show(r.id);
+    } catch {
+      result.innerHTML = '<p class="govuk-error-message">We could not look this up just now. Choose the police force from the list instead.</p>';
+    }
+    button.disabled = false;
+  };
+  button.addEventListener('click', find);
+  const known = rememberedPlace();
+  if (known) postcode.value = known.outcode;
+  postcode.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); find(); } });
+  select.addEventListener('change', () => show(select.value));
+}
+
+// Whether this site can send the email (api/send.js is set up). Checked once.
+let sendCheck;
+const canSend = () => (sendCheck ??= fetch('api/send', { credentials: 'omit' })
+  .then((r) => (r.ok ? r.json() : { enabled: false })).then((r) => !!r.enabled).catch(() => false));
+
+function previewHtml(key, email, d) {
+  const ev = EVIDENCE[key];
+  const checkType = ev.checkType && LETTER_TYPES[ev.checkType] ? ev.checkType : null;
+  const send = d.sentForMe
+    ? `<div class="govuk-inset-text">To send it, your details pass through this website and our email provider. We do not keep a copy, and nothing is sent to your inbox.</div>
+<button type="button" class="govuk-button" data-module="govuk-button" id="send-for-me">Send the email for me</button>`
+    : `<div class="govuk-warning-text">
+  <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+  <strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>A copy will be kept in your Sent folder, and their reply will come to your inbox. If someone else can see your email, delete it from Sent and Deleted items after you send it.</strong>
+</div>
+<div class="govuk-button-group">
+  <a class="govuk-button" data-module="govuk-button" id="send-app" href="#">Open in my email app</a>
+  <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button" id="send-copy">Copy the email</button>
+</div>`;
+  return `
+<h2 class="govuk-heading-m">Check your email</h2>
+<dl class="govuk-summary-list">
+  <div class="govuk-summary-list__row"><dt class="govuk-summary-list__key">To</dt><dd class="govuk-summary-list__value">${email.to ? escapeHtml(email.to) : 'Add their address in your email app'}</dd></div>
+  ${email.cc ? `<div class="govuk-summary-list__row"><dt class="govuk-summary-list__key">Copy to</dt><dd class="govuk-summary-list__value">${escapeHtml(email.cc)}</dd></div>` : ''}
+  ${email.replyTo ? `<div class="govuk-summary-list__row"><dt class="govuk-summary-list__key">Replies go to</dt><dd class="govuk-summary-list__value">${escapeHtml(email.replyTo)}</dd></div>` : ''}
+  <div class="govuk-summary-list__row"><dt class="govuk-summary-list__key">Subject</dt><dd class="govuk-summary-list__value">${escapeHtml(email.subject)}</dd></div>
+</dl>
+<pre class="app-note app-email-body" id="email-body">${escapeHtml(email.body)}</pre>
+<p class="govuk-body">To change anything, change your answers above and preview it again.</p>
+${send}
+<p class="govuk-body govuk-!-font-weight-bold" id="send-status" aria-live="polite"></p>
+<h2 class="govuk-heading-m">When you get it back</h2>
+${checkType
+    ? `<p class="govuk-body">Check the letter before you give it to your solicitor. If anything needs changing, you can ask straight away.</p>
+<a class="govuk-button govuk-button--secondary" data-module="govuk-button" href="letter-checker.html?type=${checkType}">Check the letter</a>`
+    : '<p class="govuk-body">Give a copy to your solicitor. Make sure it names you and the person who abused you.</p>'}`;
+}
+
+function showErrors(root, errors) {
+  const summary = root.querySelector('#contact-errors');
+  for (const g of root.querySelectorAll('.govuk-form-group--error')) g.classList.remove('govuk-form-group--error');
+  for (const p of root.querySelectorAll('#contact-form .govuk-error-message')) p.hidden = true;
+  summary.hidden = !errors.length;
+  summary.querySelector('ul').innerHTML = errors.map(([id, msg]) => `<li><a href="#${id}">${escapeHtml(msg)}</a></li>`).join('');
+  for (const [id, msg] of errors) {
+    root.querySelector(`#${id}-group`).classList.add('govuk-form-group--error');
+    const p = root.querySelector(`#${id}-error`);
+    p.hidden = false;
+    p.querySelector('span:last-child').textContent = msg;
+  }
+  for (const a of summary.querySelectorAll('a')) {
+    a.addEventListener('click', (e) => { e.preventDefault(); root.querySelector(a.getAttribute('href')).focus(); });
+  }
+  if (errors.length) summary.focus();
+}
+
+function readForm(form, el) {
+  const f = Object.fromEntries(new FormData(form));
+  const method = f.method || 'own';
+  return {
+    ...f,
+    event: el.dataset.event,
+    sentForMe: method !== 'own',
+    contactBy: method === 'phone' ? 'phone' : 'email',
+    voicemail: f.voicemail === 'on',
+  };
+}
+
+function check(d, key) {
+  const errors = [];
+  if (!d.applicant?.trim()) errors.push(['applicant', 'Enter your full name']);
+  if ('other' in d && !d.other.trim()) errors.push(['other', 'Enter the name of the person who abused you']);
+  if (d.profEmail?.trim() ? !looksLikeEmail(d.profEmail) : d.sentForMe) errors.push(['profEmail', 'Enter their email address, like name@example.com']);
+  if (d.replyTo === 'solicitor' && !looksLikeEmail(d.solicitorEmail)) errors.push(['solicitorEmail', 'Enter your solicitor’s email address, like name@example.com']);
+  if (d.sentForMe && d.replyTo !== 'solicitor') {
+    if (d.method === 'phone' && !looksLikePhone(d.phone)) errors.push(['phone', 'Enter a phone number, like 07700 900 982']);
+    if (d.method === 'altEmail' && !looksLikeEmail(d.altEmail)) errors.push(['altEmail', 'Enter an email address for their reply, like name@example.com']);
+  }
+  return errors;
+}
+
+async function sendForMe(preview, key, d) {
+  const button = preview.querySelector('#send-for-me');
+  const status = preview.querySelector('#send-status');
+  button.disabled = true;
+  status.textContent = 'Sending…';
+  try {
+    const res = await fetch('api/send', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'omit', body: JSON.stringify({ ...d, key }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok || !r.sent) throw new Error(r.error || 'The email could not be sent. Try again, or send it from your own email.');
+    const how = d.replyTo === 'solicitor' ? `send the letter to your solicitor at ${d.solicitorEmail}`
+      : d.contactBy === 'phone' ? `call you on ${d.phone}` : `reply to ${d.altEmail}`;
+    button.outerHTML = `<div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="sfm-sent-title" tabindex="-1" id="sfm-sent">
+  <div class="govuk-notification-banner__header"><h2 class="govuk-notification-banner__title" id="sfm-sent-title">Success</h2></div>
+  <div class="govuk-notification-banner__content">
+    <p class="govuk-notification-banner__heading">Your email has been sent to ${escapeHtml(r.to)}</p>
+    <p class="govuk-body">They have been asked to ${escapeHtml(how)}. We have not kept a copy, and nothing was sent to your inbox.</p>
+  </div>
+</div>`;
+    status.textContent = '';
+    preview.querySelector('#sfm-sent').focus();
+  } catch (err) {
+    status.textContent = err.message;
+    button.disabled = false;
+  }
+}
+
+// The person's own details, kept in memory for this visit so they do not
+// retype them when they ask a second professional. Never saved, and gone when
+// the page is closed. Who they are writing to is not kept.
+const MINE = ['applicant', 'other', 'solicitorName', 'solicitorEmail', 'altEmail', 'phone', 'callTimes'];
+const mine = {};
+if (typeof addEventListener === 'function') addEventListener('pagehide', () => { for (const k of MINE) delete mine[k]; });
+
+function restoreMine(form) {
+  for (const k of MINE) {
+    const el = form.querySelector(`#${k}`);
+    if (el && mine[k] && !el.value) el.value = mine[k];
+  }
+}
+
+export function mountContact(el, answers = {}) {
+  const key = el.dataset.contact;
+  if (!EVIDENCE[key]) return;
+  el.innerHTML = formHtml(key, answers);
+  if (key === 'police') mountForceFinder(el);
+  if (key === 'p11' || key === 'p12') mountGpFinder(el);
+  const form = el.querySelector('#contact-form');
+  const preview = el.querySelector('#contact-preview');
+  const methodBlock = el.querySelector('#method-block');
+
+  // Show the fields that go with the chosen radio, and swap the "how" question
+  // when the letter is going to a solicitor.
+  let sendEnabled = false;
+  const sync = () => {
+    const replyTo = form.replyTo?.value || 'me';
+    const solicitor = el.querySelector('#solicitor-details');
+    if (solicitor) solicitor.hidden = replyTo !== 'solicitor';
+    if (sendEnabled && methodBlock.dataset.for !== replyTo) {
+      methodBlock.innerHTML = methodHtml(replyTo);
+      methodBlock.dataset.for = replyTo;
+    }
+    const method = form.method?.value;
+    for (const id of ['altEmail', 'phone']) {
+      const x = el.querySelector(`#method-${id}-details`);
+      if (x) x.hidden = method !== id;
+    }
+  };
+  form.addEventListener('change', sync);
+  form.addEventListener('input', (e) => { if (MINE.includes(e.target.id)) mine[e.target.id] = e.target.value; });
+  canSend().then((ok) => {
+    sendEnabled = ok;
+    sync();
+    restoreMine(form);
+    if (mine.phone && form.querySelector('#method-phone')) { form.querySelector('#method-phone').checked = true; sync(); }
+  });
+  sync();
+  restoreMine(form);
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const d = readForm(form, el);
+    const errors = check(d, key);
+    showErrors(el, errors);
+    if (errors.length) return;
+
+    const email = buildRequest(key, d, { baseUrl: new URL('.', location.href).href });
+    preview.innerHTML = previewHtml(key, email, d);
+    const status = preview.querySelector('#send-status');
+    if (d.sentForMe) {
+      preview.querySelector('#send-for-me').addEventListener('click', () => sendForMe(preview, key, d));
+    } else {
+      const mailto = mailtoUrl(email);
+      preview.querySelector('#send-app').href = mailto;
+      if (mailto.length > MAILTO_SAFE_LENGTH) status.textContent = 'This email is long. If your email app opens with it cut off, use Copy the email and paste it in.';
+      preview.querySelector('#send-copy').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(`Subject: ${email.subject}\n\n${email.body}`);
+          status.textContent = 'Email copied. Paste it into a new email.';
+        } catch {
+          status.textContent = 'Could not copy. Select the email above and copy it.';
+        }
+      });
+    }
+    preview.focus();
+  });
+}
+
+export function mountAll(root, answers = {}) {
+  for (const el of root.querySelectorAll('[data-contact]')) mountContact(el, answers);
+}
