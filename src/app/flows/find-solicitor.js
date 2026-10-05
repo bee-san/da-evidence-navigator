@@ -29,6 +29,12 @@ const WHAT_TO_SAY = `<div class="govuk-inset-text">
 </div>
 <p class="govuk-body">You do not have to describe what happened on the first call. Some solicitors are busy – if they cannot help, ask them if they know someone who can, or try the next one.</p>`;
 
+// Every result ends with a way into the find evidence flow, past its
+// "Do you have a solicitor?" question.
+const EVIDENCE = (hasSolicitor) => `<h2 class="govuk-heading-m">Next: find evidence</h2>
+<p class="govuk-body">To get legal aid, you will usually need evidence of domestic abuse, such as a letter from a doctor or a support service. We can help you work out what you could get, and ask for it.</p>
+<p class="govuk-body"><a class="govuk-link" href="check.html?solicitor=${hasSolicitor}#solicitor/police">Find evidence you can use</a></p>`;
+
 const NEXT = `<h2 class="govuk-heading-m">What happens next</h2>
 <p class="govuk-body">The solicitor will check if you can get legal aid. They will tell you which evidence of domestic abuse they need, for example a letter from a doctor or support worker. You do not need to get the evidence before you contact them.</p>`;
 
@@ -65,20 +71,23 @@ export default {
       title: 'Your solicitor can help you with the next steps',
       body: `<p class="govuk-body">Ask your solicitor which evidence of domestic abuse they need for your legal aid application. They can often get police and court records themselves.</p>
 <p class="govuk-body">If you are not happy with your solicitor, you can choose a different legal aid solicitor.</p>
-${finderForm()}`,
+${finderForm()}
+${EVIDENCE('yes')}`,
     },
     ask: {
       title: 'Ask your solicitor if they can do your case on legal aid',
       body: `<p class="govuk-body">You can ask them:</p>
 <div class="govuk-inset-text"><p class="govuk-body">“Are you doing my case on legal aid? If not, could I get legal aid because I have experienced domestic abuse?”</p></div>
 <p class="govuk-body">If they do not do legal aid work, you can find a solicitor who does. You can usually move your case to them.</p>
-${finderForm()}`,
+${finderForm()}
+${EVIDENCE('yes')}`,
     },
     notLegalAid: {
       title: 'You might be able to get legal aid',
       body: `<p class="govuk-body">If you have experienced domestic abuse, you might be able to get legal aid for your family case. Ask your solicitor if they can apply for it. If they do not do legal aid work, find a solicitor who does.</p>
 ${finderForm()}
-${NEXT}`,
+${NEXT}
+${EVIDENCE('yes')}`,
     },
     urgent: {
       title: 'Get help now',
@@ -97,7 +106,8 @@ ${CLA}
 <p class="govuk-body">Men can also call the Men's Advice Line on <strong>0808 801 0327</strong>.</p>
 <h2 class="govuk-heading-m">Search for a solicitor yourself</h2>
 ${finderForm()}
-${WHAT_TO_SAY}`,
+${WHAT_TO_SAY}
+${EVIDENCE('no')}`,
     },
     find: {
       title: 'Find a legal aid solicitor',
@@ -111,7 +121,8 @@ ${finderForm()}
 ${WHAT_TO_SAY}
 ${NEXT}
 <h2 class="govuk-heading-m">If you cannot find a solicitor, or would rather talk to someone</h2>
-${CLA}`,
+${CLA}
+${EVIDENCE('no')}`,
     },
   },
 };

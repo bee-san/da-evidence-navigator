@@ -100,9 +100,25 @@ const steps = {
     hint: 'If you do, we can ask for the evidence to be sent straight to them.',
     options: [
       { label: 'Yes', next: 'police', remember: { hasSolicitor: 'yes' } },
-      { label: 'No', next: 'police', remember: { hasSolicitor: 'no' } },
-      { label: 'I’m not sure', next: 'police', remember: { hasSolicitor: 'unsure' } },
+      { label: 'No', next: 'findSolicitor', remember: { hasSolicitor: 'no' } },
+      { label: 'I’m not sure', next: 'findSolicitor', remember: { hasSolicitor: 'unsure' } },
     ],
+  },
+  findSolicitor: {
+    title: 'Do you want to find a legal aid solicitor first?',
+    hint: 'A solicitor can tell you which evidence they need, and can sometimes get it for you. You can also find evidence first.',
+    options: [
+      { label: 'Yes, help me find a solicitor', next: 'toSolicitor' },
+      { label: 'No, find evidence first', next: 'police' },
+    ],
+  },
+  toSolicitor: {
+    title: 'Find a legal aid solicitor',
+    body: `<p class="govuk-body">Answer a few questions to find out how to get a legal aid solicitor. When you have finished, you can come back and find evidence.</p>
+<a href="find-solicitor.html#have/risk" role="button" draggable="false" class="govuk-button govuk-button--start" data-module="govuk-button">Find a solicitor
+  <svg class="govuk-button__start-icon" xmlns="http://www.w3.org/2000/svg" width="17.5" height="19" viewBox="0 0 33 40" aria-hidden="true" focusable="false"><path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" /></svg>
+</a>
+<p class="govuk-body"><a class="govuk-link" href="#solicitor/findSolicitor/police">Find evidence first instead</a></p>`,
   },
   police: {
     title: 'Have the police been involved?',
@@ -248,6 +264,11 @@ for (const [id, [event, title, intro]] of Object.entries(COURT_RESULTS)) {
 }
 
 const flow = { start: 'solicitor', steps, answers: {} };
+
+// The find-a-solicitor flow links here with ?solicitor=yes or no, so people
+// who have just answered that are not asked again.
+const fromSolicitorFlow = typeof location !== 'undefined' && new URLSearchParams(location.search).get('solicitor');
+if (['yes', 'no'].includes(fromSolicitorFlow)) flow.answers.hasSolicitor = fromSolicitorFlow;
 export default flow;
 
 export function onRender(root) {

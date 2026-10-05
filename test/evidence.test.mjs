@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateFlow, readPath, stepHtml } from '../src/app/flow.js';
 import flow from '../src/app/flows/find-evidence.js';
+import solicitorFlow from '../src/app/flows/find-solicitor.js';
 import { EVIDENCE, POLICE_EVENTS, COURT_EVENTS, needsOtherParty } from '../src/app/evidence.js';
 import { buildRequest, personalise, mailtoUrl } from '../src/app/contact.js';
 
@@ -35,7 +36,7 @@ test('"look for more evidence" links are valid paths into the next section', () 
 
 test('every evidence page can write a request, except ones you already hold', () => {
   for (const [id, s] of results) {
-    if (id === 'none') continue;
+    if (id === 'none' || id === 'toSolicitor') continue;
     const key = (s.body.match(/data-contact="(\w+)"/) || [])[1];
     if (id === 'evP20') { assert.equal(key, undefined); continue; }
     assert.ok(EVIDENCE[key], `${id} has a contact form`);
@@ -99,4 +100,18 @@ test('the other party is asked for only when the evidence must name them', () =>
 test('email links are encoded', () => {
   const email = { to: 'a@b.com', cc: 'c@d.com', subject: 'A & B', body: 'Line 1\nLine 2 & ?' };
   assert.equal(mailtoUrl(email), 'mailto:a%40b.com?cc=c%40d.com&subject=A%20%26%20B&body=Line%201%0ALine%202%20%26%20%3F');
+});
+
+test('no solicitor: offered the find-a-solicitor flow, which skips asking again', () => {
+  assert.deepEqual(readPath(flow, '#solicitor/findSolicitor/toSolicitor').at(-1), 'toSolicitor');
+  assert.match(flow.steps.toSolicitor.body, /href="find-solicitor\.html#have\/risk"/);
+  assert.deepEqual(readPath(solicitorFlow, '#have/risk'), ['have', 'risk'], 'that link is a valid path');
+});
+
+test('every find-a-solicitor result leads into find evidence, past the solicitor question', () => {
+  for (const [id, s] of Object.entries(solicitorFlow.steps).filter(([, x]) => x.body)) {
+    const m = s.body.match(/href="check\.html\?solicitor=(yes|no)#([^"]+)"/);
+    assert.ok(m, id);
+    assert.deepEqual(readPath(flow, `#${m[2]}`).join('/'), m[2], `${id} links to a valid path`);
+  }
 });

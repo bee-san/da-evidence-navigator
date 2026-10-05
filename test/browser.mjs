@@ -89,6 +89,17 @@ await step('home page links to find evidence', async () => {
   assert.match(page.url(), /check\.html$/);
 });
 
+await step('find a solicitor leads into find evidence without asking about a solicitor again', async () => {
+  await go('find-solicitor.html#have/risk/find');
+  await until(() => document.querySelector('a[href^="check.html?solicitor="]'));
+  await Promise.all([page.waitForNavigation(), page.click('a[href^="check.html?solicitor="]')]);
+  await until(() => document.querySelector('#flow h1'));
+  assert.equal(await text('#flow h1'), 'Have the police been involved?');
+  await page.evaluate(() => { location.hash = 'solicitor/police/court/health/evP11'; });
+  await until(() => document.querySelector('#contact-form'));
+  assert.equal(await page.$('#replyTo-solicitor'), null, 'not asked about a solicitor again');
+});
+
 await step('find a solicitor: error, keyboard answers, back link, finder search', async () => {
   await go('find-solicitor.html');
   await until(() => document.querySelector('#flow form'));
@@ -140,6 +151,8 @@ await step('find evidence: no police or court, GP letter, email written on the d
   };
   assert.equal(await text('h1'), 'Do you have a solicitor for your family case?');
   await answer('No');
+  assert.equal(await text('h1'), 'Do you want to find a legal aid solicitor first?');
+  await answer('No, find evidence first');
   assert.equal(await text('h1'), 'Have the police been involved?');
   await answer('No');
   await answer('No');
@@ -294,6 +307,40 @@ await step('find evidence: send it for me, with a phone call back instead of a r
     assert.match(await text('#sfm-sent'), /asked to call you on 07700 900982/);
     assert.equal(posted.contactBy, 'phone');
     assert.equal(posted.key, 'p17');
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+});
+
+await step('find evidence: find my GP and add their email', async () => {
+  await go('index.html');
+  const sent = [];
+  const answer = (r) => {
+    const u = r.url();
+    if (u.startsWith('https://directory.spineservices.nhs.uk/')) {
+      sent.push(u);
+      r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ Organisations: [{ OrgId: 'K84016', Name: 'BEAUMONT ELMS PRACTICE', PostCode: 'OX1 2HB' }] }) });
+    } else if (u.includes('/api/gp?code=K84016')) {
+      sent.push(u);
+      r.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ name: 'Beaumont Elms Practice', telephone: '01865240501', email: 'info.nbs@nhs.net', url: 'https://www.beaumontelmspractice.co.uk/' }) });
+    } else r.continue();
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await go('check.html#solicitor/police/court/health/evP11');
+    await page.$eval('#gpSearch', (e) => { e.value = ''; });
+    await page.type('#gpSearch', 'OX1 2HB');
+    await page.click('#gpFind');
+    await until(() => document.querySelector('#gp-0'), 5000);
+    await page.click('#gp-0');
+    await until(() => document.querySelector('#gpDetail strong'), 5000);
+    assert.equal(await page.$eval('#profEmail', (e) => e.value), 'info.nbs@nhs.net');
+    assert.equal(await page.$eval('#profName', (e) => e.value), 'Beaumont Elms Practice');
+    assert.match(await text('#gpDetail'), /01865240501/);
+    assert.ok(sent.every((u) => !u.includes('2HB')), sent.join(' '));
+    await audit('GP found');
   } finally {
     page.off('request', answer);
     await page.setRequestInterception(false);

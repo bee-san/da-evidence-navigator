@@ -1,49 +1,66 @@
 // Police forces in England and Wales (ids from data.police.uk), with where to
 // send a request for written confirmation from police records.
-// PLACEHOLDER: contact details are filled in from each force website.
+//
+// Researched in October 2026 from each force’s own website. Most force sites
+// block automated reading, so many pages were read from Internet Archive copies
+// of the official pages. Most forces now take these requests through the shared
+// police.uk online form ("Ask for information about yourself"); an email is only
+// given where the force currently offers it for requests. Left out on purpose:
+//   avon-and-somerset: for guidance only; requests by form or post
+//   cheshire: from a 2018 form
+//   city-of-london: FOI enquiries address; requests by post
+//   cleveland: from a 2018 form
+//   cumbria: data protection officer, not requests
+//   derbyshire: FOI address from an older form
+//   humberside: data protection officer contact
+//   merseyside: not confirmed on an official page
+//   norfolk: link went to a different (Suffolk) address
+//   south-yorkshire: from a 2024 page; now form only
+//   west-yorkshire: general enquiries address
+// route "legal-aid" means the force publishes a dedicated legal aid route.
 
 export const FORCES = {
-  "avon-and-somerset": { name: "Avon and Somerset Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "bedfordshire": { name: "Bedfordshire Police", email: null, formUrl: null, sourceUrl: null },
-  "cambridgeshire": { name: "Cambridgeshire Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "cheshire": { name: "Cheshire Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "city-of-london": { name: "City of London Police", email: null, formUrl: null, sourceUrl: null },
-  "cleveland": { name: "Cleveland Police", email: null, formUrl: null, sourceUrl: null },
-  "cumbria": { name: "Cumbria Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "derbyshire": { name: "Derbyshire Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "devon-and-cornwall": { name: "Devon & Cornwall Police", email: null, formUrl: null, sourceUrl: null },
-  "dorset": { name: "Dorset Police", email: null, formUrl: null, sourceUrl: null },
-  "durham": { name: "Durham Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "dyfed-powys": { name: "Dyfed-Powys Police", email: null, formUrl: null, sourceUrl: null },
-  "essex": { name: "Essex Police", email: null, formUrl: null, sourceUrl: null },
-  "gloucestershire": { name: "Gloucestershire Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "greater-manchester": { name: "Greater Manchester Police", email: null, formUrl: null, sourceUrl: null },
-  "gwent": { name: "Gwent Police", email: null, formUrl: null, sourceUrl: null },
-  "hampshire": { name: "Hampshire Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "hertfordshire": { name: "Hertfordshire Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "humberside": { name: "Humberside Police", email: null, formUrl: null, sourceUrl: null },
-  "kent": { name: "Kent Police", email: null, formUrl: null, sourceUrl: null },
-  "lancashire": { name: "Lancashire Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "leicestershire": { name: "Leicestershire Police", email: null, formUrl: null, sourceUrl: null },
-  "lincolnshire": { name: "Lincolnshire Police", email: null, formUrl: null, sourceUrl: null },
-  "merseyside": { name: "Merseyside Police", email: null, formUrl: null, sourceUrl: null },
-  "metropolitan": { name: "Metropolitan Police Service", email: null, formUrl: null, sourceUrl: null },
-  "norfolk": { name: "Norfolk Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "north-wales": { name: "North Wales Police", email: null, formUrl: null, sourceUrl: null },
-  "north-yorkshire": { name: "North Yorkshire Police", email: null, formUrl: null, sourceUrl: null },
-  "northamptonshire": { name: "Northamptonshire Police", email: null, formUrl: null, sourceUrl: null },
-  "northumbria": { name: "Northumbria Police", email: null, formUrl: null, sourceUrl: null },
-  "nottinghamshire": { name: "Nottinghamshire Police", email: null, formUrl: null, sourceUrl: null },
-  "south-wales": { name: "South Wales Police", email: null, formUrl: null, sourceUrl: null },
-  "south-yorkshire": { name: "South Yorkshire Police", email: null, formUrl: null, sourceUrl: null },
-  "staffordshire": { name: "Staffordshire Police", email: null, formUrl: null, sourceUrl: null },
-  "suffolk": { name: "Suffolk Constabulary", email: null, formUrl: null, sourceUrl: null },
-  "surrey": { name: "Surrey Police", email: null, formUrl: null, sourceUrl: null },
-  "sussex": { name: "Sussex Police", email: null, formUrl: null, sourceUrl: null },
-  "thames-valley": { name: "Thames Valley Police", email: null, formUrl: null, sourceUrl: null },
-  "warwickshire": { name: "Warwickshire Police", email: null, formUrl: null, sourceUrl: null },
-  "west-mercia": { name: "West Mercia Police", email: null, formUrl: null, sourceUrl: null },
-  "west-midlands": { name: "West Midlands Police", email: null, formUrl: null, sourceUrl: null },
-  "west-yorkshire": { name: "West Yorkshire Police", email: null, formUrl: null, sourceUrl: null },
-  "wiltshire": { name: "Wiltshire Police", email: null, formUrl: null, sourceUrl: null },
+  "avon-and-somerset": {"name":"Avon and Somerset Constabulary","route":"subject-access","email":null,"formUrl":"https://www.avonandsomerset.police.uk/request/access-to-your-personal-information/apply-for-access-to-your-personal-data-form/","sourceUrl":"https://www.avonandsomerset.police.uk/request/access-to-your-personal-information/","checked":"October 2026"},
+  "bedfordshire": {"name":"Bedfordshire Police","route":"subject-access","email":null,"formUrl":"https://www.beds.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.beds.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/","checked":"October 2026"},
+  "cambridgeshire": {"name":"Cambridgeshire Constabulary","route":"subject-access","email":null,"formUrl":"https://www.cambs.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.cambs.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","checked":"October 2026"},
+  "cheshire": {"name":"Cheshire Constabulary","route":"subject-access","email":null,"formUrl":"https://www.cheshire.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/","sourceUrl":"https://www.cheshire.police.uk/SysSiteAssets/media/downloads/central/services/request/information/cheshire/subject-access-request-form-sa1.doc","checked":"October 2026"},
+  "city-of-london": {"name":"City of London Police","route":"subject-access","email":null,"formUrl":"https://www.cityoflondon.police.uk/SysSiteAssets/media/downloads/central/services/request/information/city-of-london/subject-access-request-form.pdf","sourceUrl":"https://www.cityoflondon.police.uk/SysSiteAssets/media/downloads/central/services/request/information/city-of-london/subject-access-request-form.pdf","checked":"October 2026"},
+  "cleveland": {"name":"Cleveland Police","route":"subject-access","email":null,"formUrl":"https://www.cleveland.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.cleveland.police.uk/SysSiteAssets/media/downloads/central/services/request/information/cleveland/subject-access-request-form.pdf","checked":"October 2026"},
+  "cumbria": {"name":"Cumbria Constabulary","route":"subject-access","email":null,"formUrl":"https://www.cumbria.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.cumbria.police.uk/hyg/fpcumbria/privacy-notice/","checked":"October 2026"},
+  "derbyshire": {"name":"Derbyshire Constabulary","route":"subject-access","email":null,"formUrl":"https://www.derbyshire.police.uk/SysSiteAssets/media/downloads/central/services/request/information/derbyshire/subject-access-request-form2.pdf","sourceUrl":"https://www.derbyshire.police.uk/SysSiteAssets/media/downloads/central/services/request/information/derbyshire/subject-access-request-form2.pdf","checked":"October 2026"},
+  "devon-and-cornwall": {"name":"Devon & Cornwall Police","route":"subject-access","email":null,"formUrl":"https://www.devon-cornwall.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.devon-cornwall.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","checked":"October 2026"},
+  "dorset": {"name":"Dorset Police","route":"subject-access","email":null,"formUrl":"https://www.dorset.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.dorset.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","checked":"October 2026"},
+  "durham": {"name":"Durham Constabulary","route":"subject-access","email":null,"formUrl":"https://www.durham.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.durham.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","checked":"October 2026"},
+  "dyfed-powys": {"name":"Dyfed-Powys Police","route":"subject-access","email":"dataprotection@dyfed-powys.pnn.police.uk","formUrl":"https://www.dyfed-powys.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.dyfed-powys.police.uk/SysSiteAssets/media/downloads/central/services/request/information/dyfed-powys/subject-access-request-form.docx","checked":"October 2026"},
+  "essex": {"name":"Essex Police","route":"legal-aid","email":"info.rights.legal.aid@essex.police.uk","formUrl":null,"sourceUrl":"https://www.essex.police.uk/foi-ai/essex-police/other-information/information-rights/","checked":"October 2026"},
+  "gloucestershire": {"name":"Gloucestershire Constabulary","route":"subject-access","email":"informationdisclosureunit@gloucestershire.police.uk","formUrl":"https://www.gloucestershire.police.uk/SysSiteAssets/media/downloads/central/services/request/information/gloucestershire/subject-access-request-form.docx","sourceUrl":"https://www.gloucestershire.police.uk/SysSiteAssets/media/downloads/central/services/request/information/gloucestershire/subject-access-request-form.docx","checked":"October 2026"},
+  "greater-manchester": {"name":"Greater Manchester Police","route":"subject-access","email":"subjectaccess@gmp.police.uk","formUrl":"https://www.gmp.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.gmp.police.uk/hyg/fpngmp/privacy-notice/","checked":"October 2026"},
+  "gwent": {"name":"Gwent Police","route":"subject-access","email":"dataprotection@gwent.police.uk","formUrl":"https://www.gwent.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.gwent.police.uk/hyg/fpngwent/privacy-notice/","checked":"October 2026"},
+  "hampshire": {"name":"Hampshire Constabulary","route":"subject-access","email":"public.access@hampshire.pnn.police.uk","formUrl":"https://www.hampshire.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.hampshire.police.uk/SysSiteAssets/media/downloads/central/services/request/information/hampshire/hc-subject-access-request-form.pdf","checked":"October 2026"},
+  "hertfordshire": {"name":"Hertfordshire Constabulary","route":"subject-access","email":null,"formUrl":"https://www.herts.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.herts.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","checked":"October 2026"},
+  "humberside": {"name":"Humberside Police","route":"subject-access","email":null,"formUrl":"https://www.humberside.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.humberside.police.uk/hyg/fpnhumberside/privacy-notice/","checked":"October 2026"},
+  "kent": {"name":"Kent Police","route":"legal-aid","email":"public.disclosure@kent.police.uk","formUrl":null,"sourceUrl":"https://www.kent.police.uk/hyg/fpnkent/other-useful-information/","checked":"October 2026"},
+  "lancashire": {"name":"Lancashire Constabulary","route":"subject-access","email":"data.protection@lancashire.police.uk","formUrl":"https://www.lancashire.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.lancashire.police.uk/hyg/fpnlancashire/privacy-notice/","checked":"October 2026"},
+  "leicestershire": {"name":"Leicestershire Police","route":"subject-access","email":"data.protection@leics.police.uk","formUrl":null,"sourceUrl":"https://www.leics.police.uk/hyg/fpnleic/privacy-notice/","checked":"October 2026"},
+  "lincolnshire": {"name":"Lincolnshire Police","route":"subject-access","email":"Dataprotection@lincs.police.uk","formUrl":"https://www.lincs.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.lincs.police.uk/hyg/lp/privacy-notice/","checked":"October 2026"},
+  "merseyside": {"name":"Merseyside Police","route":"subject-access","email":null,"formUrl":"https://www.merseyside.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.merseyside.police.uk/SysSiteAssets/media/downloads/central/services/request/information/merseyside/subject-access-request-form.doc","checked":"October 2026"},
+  "metropolitan": {"name":"Metropolitan Police Service","route":"subject-access","email":"DataRights@met.police.uk","formUrl":"https://www.met.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.met.police.uk/hyg/fpnm/privacy/","checked":"October 2026"},
+  "norfolk": {"name":"Norfolk Constabulary","route":"subject-access","email":null,"formUrl":"https://www.norfolk.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.norfolk.police.uk/about-us/our-data/accessing-your-personal-data","checked":"October 2026"},
+  "north-wales": {"name":"North Wales Police","route":"subject-access","email":"dataprotectionenqs@northwales.police.uk","formUrl":"https://www.northwales.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.northwales.police.uk/hyg/fpnnorthwales/privacy-notice/","checked":"October 2026"},
+  "north-yorkshire": {"name":"North Yorkshire Police","route":"legal-aid","email":null,"formUrl":"https://www.northyorkshire.police.uk/rqo/request/ri/request-information/rso/request-information-about-yourself-or-someone-else/legal-aid-application/form/","sourceUrl":"https://www.northyorkshire.police.uk/rqo/request/ri/request-information/rso/request-information-about-yourself-or-someone-else/legal-aid-application/","checked":"October 2026"},
+  "northamptonshire": {"name":"Northamptonshire Police","route":"subject-access","email":"dataprotection@northants.pnn.police.uk","formUrl":"https://www.northants.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.northants.police.uk/hyg/fpnnorth/your-data-rights/","checked":"October 2026"},
+  "northumbria": {"name":"Northumbria Police","route":"subject-access","email":"data.protection@northumbria.police.uk","formUrl":"https://www.northumbria.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/","sourceUrl":"https://www.northumbria.police.uk/hyg/fpnnorthum/privacy-notice/","checked":"October 2026"},
+  "nottinghamshire": {"name":"Nottinghamshire Police","route":"subject-access","email":"data.protection@notts.police.uk","formUrl":"https://www.nottinghamshire.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/","sourceUrl":"https://www.nottinghamshire.police.uk/foi-ai/nottinghamshire-police/publication/lists-and-registers/data-protection-act-2018---subject-access-request/","checked":"October 2026"},
+  "south-wales": {"name":"South Wales Police","route":"subject-access","email":"Dataprotection@south-wales.pnn.police.uk","formUrl":"https://www.south-wales.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.south-wales.police.uk/hyg/southwales/privacy-notice/","checked":"October 2026"},
+  "south-yorkshire": {"name":"South Yorkshire Police","route":"subject-access","email":null,"formUrl":"https://www.southyorkshire.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/","sourceUrl":"https://www.southyorkshire.police.uk/find-out/accessing-information/make-an-information-rights-request/","checked":"October 2026"},
+  "staffordshire": {"name":"Staffordshire Police","route":"subject-access","email":null,"formUrl":"https://www.staffordshire.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.staffordshire.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","checked":"October 2026"},
+  "suffolk": {"name":"Suffolk Constabulary","route":"subject-access","email":"compliance@suffolk.police.uk","formUrl":"https://www.suffolk.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.suffolk.police.uk/hyg/fpnsuffolk/privacy-notice/","checked":"October 2026"},
+  "surrey": {"name":"Surrey Police","route":"subject-access","email":"informationmanagement@surrey.police.uk","formUrl":"https://www.surrey.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.surrey.police.uk/hyg/fpnsurrey/privacy-notice/","checked":"October 2026"},
+  "sussex": {"name":"Sussex Police","route":"subject-access","email":"Information.Management@sussex.police.uk","formUrl":"https://www.sussex.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.sussex.police.uk/hyg/fpnsussex/privacy-notice/","checked":"October 2026"},
+  "thames-valley": {"name":"Thames Valley Police","route":"subject-access","email":null,"formUrl":"https://www.thamesvalley.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.thamesvalley.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","checked":"October 2026"},
+  "warwickshire": {"name":"Warwickshire Police","route":"subject-access","email":"subjectaccess@warwickshire.police.uk","formUrl":"https://www.warwickshire.police.uk/SysSiteAssets/media/downloads/central/services/request/information/warwickshire/subject-access-request-form.doc","sourceUrl":"https://www.warwickshire.police.uk/hyg/fpnwarwickshire/privacy-notice/","checked":"October 2026"},
+  "west-mercia": {"name":"West Mercia Police","route":"subject-access","email":"information@westmercia.police.uk","formUrl":"https://www.westmercia.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.westmercia.police.uk/hyg/fpnwestmercia/privacy-notice/","checked":"October 2026"},
+  "west-midlands": {"name":"West Midlands Police","route":"subject-access","email":"dataprotection@westmidlands.police.uk","formUrl":"https://www.westmidlands.police.uk/rqo/request/ri/request-information/ir/ask-for-delete-change-information/ask-for-information-about-yourself/","sourceUrl":"https://www.westmidlands.police.uk/hyg/fpnwestmids/privacy-notice/","checked":"October 2026"},
+  "west-yorkshire": {"name":"West Yorkshire Police","route":"subject-access","email":null,"formUrl":"https://www.westyorkshire.police.uk/form/right-of-access","sourceUrl":"https://www.westyorkshire.police.uk/advice/our-services/your-data/request-information-about-yourself-or-someone-else","checked":"October 2026"},
+  "wiltshire": {"name":"Wiltshire Police","route":"subject-access","email":"disclosure@wiltshire.police.uk","formUrl":"https://www.wiltshire.police.uk/rqo/request/ri/request-information/rso/right-of-access-request/right-of-access-request/","sourceUrl":"https://www.wiltshire.police.uk/hyg/fpnwiltshire/privacy-notice/","checked":"October 2026"},
 };
