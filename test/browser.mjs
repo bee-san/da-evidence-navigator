@@ -515,7 +515,7 @@ await step('letter checker: each requirement, a confidence score, what to ask fo
   assert.equal(await page.$eval('#input-view', (e) => e.hidden), true, 'the review replaces the form');
   assert.equal(await page.$('#type-group:not([hidden]), #client:not(#recheck #client)'), null, 'no type or name fields on the first screen');
   assert.match(await text('.app-score'), /^\d+% confidence score/);
-  assert.match(await text('.app-score'), /tested on 29 example letters/);
+  assert.doesNotMatch(await text('.app-score'), /How much to trust/);
   assert.match(await text('#result'), /What to ask for:.*registering body/);
   assert.ok(await page.$('.app-markup .app-mark--missing, .app-markup .app-mark--unclear'), 'problem sentences are highlighted');
   assert.deepEqual(await page.$$eval('.app-markup .app-mark-word', (m) => m.map((x) => x.textContent.toLowerCase())), ['might'], 'the hedged word is marked');
@@ -537,7 +537,7 @@ await step('letter checker: check again as another type, with the names it needs
   await page.type('#client', 'Jane Doe');
   await page.type('#other', 'John Doe');
   await page.click('#recheck-form button[type=submit]');
-  assert.match(await text('.app-score'), /low – these rules come from the guidance/);
+  assert.match(await text('#result'), /have not been tested against example letters/);
   assert.doesNotMatch(await text('#result'), /We worked out the type/);
   assert.equal(await page.$eval('#client', (e) => e.value), 'Jane Doe', 'names are kept for the next check');
   await audit('check again');

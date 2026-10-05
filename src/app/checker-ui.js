@@ -33,11 +33,7 @@ export function confidence(r) {
   const check = counted.filter((c) => c.status === Status.UNCLEAR).length;
   const missing = counted.length - met - check;
   const score = counted.length ? Math.round((100 * (met + check / 2)) / counted.length) : 0;
-  const cat = CATEGORIES.find((c) => c.id === r.category);
-  const tested = cat?.examples >= 8 ? `high – these rules were tested on ${cat.examples} example letters`
-    : cat?.examples > 0 ? `medium – these rules were tested on only ${cat.examples} example letters`
-      : 'low – these rules come from the guidance and have not been tested on example letters';
-  return { score, met, check, missing, total: counted.length, tested };
+  return { score, met, check, missing, total: counted.length };
 }
 
 // Words worth a second look: hedged wording and template text that was never filled in.
@@ -130,7 +126,7 @@ const OUTCOMES = {
 function scoreHtml(r) {
   const c = confidence(r);
   return `<div class="app-score"><p class="govuk-body govuk-!-margin-bottom-1"><span class="govuk-!-font-size-48 govuk-!-font-weight-bold">${c.score}%</span> confidence score</p>
-<p class="govuk-body">${c.met} of ${c.total} requirements met${c.check ? `, ${c.check} to check` : ''}${c.missing ? `, ${c.missing} missing` : ''}. How much to trust the rules for this type of evidence: ${escapeHtml(c.tested)}.</p>
+<p class="govuk-body">${c.met} of ${c.total} requirements met${c.check ? `, ${c.check} to check` : ''}${c.missing ? `, ${c.missing} missing` : ''}.</p>
 <p class="govuk-body-s govuk-!-margin-bottom-0">The score shows how complete the letter looks to these rules. It does not predict whether legal aid will be granted.</p></div>`;
 }
 
