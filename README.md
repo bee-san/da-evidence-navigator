@@ -2,8 +2,6 @@
 
 A victim-facing prototype for the 10 Downing Street data science hackathon, built for the Ministry of Justice **Domestic Abuse Gateway** challenge. It is not a government service.
 
-Live: https://bee-san.github.io/da-evidence-navigator/
-
 To get legal aid for a private family matter on the basis of domestic abuse, applicants need evidence that meets Schedule 1 of the Civil Legal Aid (Procedure) Regulations 2012. Evidence letters are often returned because of one or two words. This prototype helps at the points where that can be prevented.
 
 For victims:
@@ -12,7 +10,7 @@ For victims:
 - **Request notes** – a note for each professional with the wording the Legal Aid Agency needs, to copy, print or show as a QR code.
 - **Check a letter** – paste it, or add a photo or PDF, and see whether it is likely to be accepted, with a message to send back if not. An optional AI second opinion runs in the browser after consent.
 - **Track progress** – a checklist for each letter. Nothing is saved unless the user chooses.
-- **Ask the helper** – a scripted chatbot for process questions.
+- **Ask the helper** – an AI chatbot for process questions, with scripted rules for emergencies, privacy and pasted letters.
 - **Easy read** and a draft **Welsh** page.
 
 For professionals:
@@ -24,10 +22,12 @@ And a **demo** page with a before-and-after story, accuracy results and an impac
 
 ## Safety and privacy
 
-- Static site with no server, analytics or cookies. Typed text is cleared on exit. The only storage is the progress tracker, and only if the user ticks "Save".
+- No analytics or cookies. Typed text is cleared on exit. The only storage is the progress tracker, and only if the user ticks "Save". Only helper questions leave the browser.
 - Photos and PDFs are read on the device by Tesseract.js and PDF.js, served from this site (`assets/vendor/`). The browser test checks that no request leaves the site while a photo is read.
 - The AI second opinion downloads a model from Hugging Face and its runtime from jsDelivr, only after the user agrees. The letter is not sent. Nothing is cached.
-- GOV.UK **Exit this page** on every page (Shift ×3) and a stay safe online page.
+- GOV.UK **Exit this page** on every page (Shift ×3) and a [stay safe online](src/pages/safety.html) page adapted from Check if you can get legal aid.
+- Points to 999 (Silent Solution 55), the National Domestic Abuse Helpline and the Civil Legal Advice harm fast-track.
+- The helper sends questions to `api/chat.js`, a Vercel function that calls `gpt-5-mini` (override with `CHAT_MODEL`) with the OpenAI API when `OPENAI_API_KEY` is set, or through the Vercel AI Gateway with `AI_GATEWAY_API_KEY`. Danger, privacy and pasted letters are always answered by the rules in the browser, which are also the fallback when the API is unavailable.
 
 ## How the checks work
 
@@ -63,7 +63,19 @@ npm run test:browser    # Chrome: axe-core WCAG 2.2 AA on every page, keyboard, 
 RUN_MODEL=1 npm run test:browser   # also downloads and runs the AI model
 ```
 
-Set `CHROME_PATH` if Chrome is not in the default place. Pull requests run the tests; pushes to `main` also deploy to GitHub Pages (`.github/workflows/pages.yml`).
+Set `CHROME_PATH` if Chrome is not in the default place. `.github/workflows/ci.yml` runs the unit and browser tests on every pull request and push to `main`.
+
+## Deploy
+
+The site is hosted on Vercel, which deploys every push to `main`. `vercel.json` runs the tests, builds the static site into `_site/` and serves `api/chat.js` as a function. Set `OPENAI_API_KEY` (or `AI_GATEWAY_API_KEY`) in the project's environment variables. To deploy by hand:
+
+```bash
+vercel deploy --prod
+```
+
+Vercel Authentication protects every deployment, including production, so only members of the Vercel team can open it.
+
+The endpoint spends the project's OpenAI or AI Gateway credit and sits behind Vercel Authentication; it caps each request at 12 messages of 4,000 characters.
 
 ## Credits
 

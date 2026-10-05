@@ -35,5 +35,4 @@ for (const file of readdirSync('src/pages')) {
     .replace('{{content}}', src.replace(/<!-- \w+: .+? -->\n/g, ''));
   writeFileSync(`${out}/${file}`, html);
 }
-writeFileSync(`${out}/.nojekyll`, '');
 console.log(`Built ${readdirSync('src/pages').length} pages into ${out}/`);
