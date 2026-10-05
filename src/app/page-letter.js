@@ -1,8 +1,8 @@
-import { checkLetter, LETTER_TYPES } from './rules.js';
+import { check, getCategory, Label } from './checker/index.js';
+import { categoryOptions, guessCategory, reviewHtml, OLD_TYPES, NEEDS_DATE } from './checker-ui.js';
 import { SAMPLES } from './samples.js';
 import { SYNTHETIC } from './synthetic.js';
 import { escapeHtml } from './chat.js';
-import { resultHtml } from './render.js';
 import { extractText } from './ocr.js';
 import { mountCamera } from './camera.js';
 import { secondOpinion, MODEL, MEASURED } from './model.js';
@@ -13,9 +13,19 @@ const letter = document.getElementById('letter');
 const result = document.getElementById('result');
 const file = document.getElementById('file');
 const fileStatus = document.getElementById('file-status');
+const inputView = document.getElementById('input-view');
+// letter-checker-ai.html is the same page, but GPT-6 Sol checks the letter (api/check-ai.js)
+// instead of the rules in src/app/checker/.
+const AI = inputView.dataset.engine === 'ai';
 const examples = [...SAMPLES, ...SYNTHETIC];
 
-type.insertAdjacentHTML('beforeend', Object.entries(LETTER_TYPES).map(([k, v]) => `<option value="${k}">${escapeHtml(v)}</option>`).join(''));
+type.insertAdjacentHTML('beforeend', categoryOptions());
+
+// The type of evidence to check as: from a link (?type=) or "Check again", otherwise worked out
+// from the letter. The type list on the first screen only appears if it cannot be worked out.
+let chosenType = '';
+// Names and dates from "Check again", kept for the next check.
+let lastOptions = {};
 sample.insertAdjacentHTML('beforeend', `<optgroup label="From the hackathon evidence pack">${SAMPLES.map((s) => `<option value="${s.id}">${escapeHtml(s.label)}</option>`).join('')}</optgroup>
 <optgroup label="Written for this prototype">${SYNTHETIC.map((s) => `<option value="${s.id}">${escapeHtml(s.label)}</option>`).join('')}</optgroup>`);
 
@@ -23,8 +33,8 @@ sample.addEventListener('change', () => {
   const s = examples.find((x) => x.id === sample.value);
   if (!s) return;
   letter.value = s.text;
-  type.value = '';
-  result.innerHTML = '';
+  chosenType = '';
+  lastOptions = {};
 });
 
 // Photos taken with the camera, page by page, read into the letter text.
@@ -73,15 +83,20 @@ function setError(msg) {
   if (msg) letter.focus();
 }
 
-document.getElementById('letter-form').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const text = letter.value.trim();
-  if (!text) return setError('Paste the text of the letter');
-  const r = checkLetter(text, type.value || undefined);
-  if (r.outcome === 'unknown') return setError('We could not tell what type of letter this is. Choose the type of letter');
-  setError('');
-  result.innerHTML = `${resultHtml(r)}
-<details class="govuk-details app-no-print" id="opinion">
+// Asks GPT-6 Sol to check the letter. Returns a result in the same shape as check().
+async function checkWithAi(text, category) {
+  const res = await fetch('api/check-ai', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    credentials: 'omit',
+    body: JSON.stringify({ text, category }),
+  });
+  const r = await res.json().catch(() => ({}));
+  if (!res.ok || !r.criteria) throw new Error(r.error || (res.status === 404 ? 'The AI check needs the site’s server (api/check-ai.js), for example on Vercel.' : 'The AI check did not work. Try again.'));
+  return r;
+}
+
+const SECOND_OPINION = () => `<details class="govuk-details app-no-print" id="opinion">
   <summary class="govuk-details__summary"><span class="govuk-details__summary-text">Get a second opinion from an AI model (optional)</span></summary>
   <div class="govuk-details__text">
     <p class="govuk-body">A small AI model can read the key sentences and say whether each one sounds definite or uncertain. It is a general model, not trained on legal aid letters. In our tests it spotted ${MEASURED.hedgedCaught} of ${MEASURED.hedged} letters with uncertain wording, and did not wrongly flag any of ${MEASURED.firm} letters with firm wording. The check above spotted all of them.</p>
@@ -97,9 +112,90 @@ document.getElementById('letter-form').addEventListener('submit', (e) => {
     <div id="model-result"></div>
   </div>
 </details>
-<div class="govuk-inset-text">This is a screening check based on example letters. It does not decide whether you get legal aid.</div>`;
-  wireModel(text, r);
+`;
+
+// Runs the check and shows the review in place of the form.
+async function review(text, category, guessed, options = {}) {
+  let r;
+  const button = document.querySelector('#letter-form button[type=submit], #recheck-form button[type=submit]');
+  try {
+    if (AI) {
+      if (button) { button.disabled = true; button.textContent = 'Checking with GPT-6 Sol…'; }
+      fileStatus.textContent = 'Checking with GPT-6 Sol. This can take up to a minute.';
+      r = await checkWithAi(text, category);
+      fileStatus.textContent = '';
+    } else {
+      r = check(text, category, options);
+    }
+  } catch (err) {
+    if (AI) { editLetter(); fileStatus.textContent = ''; }
+    return setError(err.message);
+  } finally {
+    const reset = document.querySelector('#letter-form button[type=submit]');
+    if (reset) { reset.disabled = false; reset.textContent = 'Check the letter'; }
+  }
+  setError('');
+  inputView.hidden = true;
+  result.hidden = false;
+  result.innerHTML = `${reviewHtml(text, r, { guessed, ai: AI })}
+${AI ? '' : SECOND_OPINION()}
+<div class="govuk-inset-text">${AI
+    ? 'This is a demo. An AI model checked this letter against the LAA guidance, and it can be wrong. It does not decide whether you get legal aid.'
+    : 'This is a screening check. It matches wording, so it can be wrong in both directions. It does not decide whether you get legal aid.'}</div>`;
+  if (!AI) wireModel(text, r);
+  wireReview(text);
+  window.scrollTo(0, 0);
   result.focus();
+}
+
+// Edit the letter: back to the first screen with the text, ready to change and check again.
+function editLetter() {
+  result.hidden = true;
+  result.innerHTML = '';
+  inputView.hidden = false;
+  window.scrollTo(0, 0);
+  letter.focus();
+}
+
+function wireReview(text) {
+  document.getElementById('edit-letter').addEventListener('click', editLetter);
+  const recheckType = document.getElementById('recheck-type');
+  const showFields = () => {
+    if (AI) return; // the AI finds names in the letter itself
+    const cat = getCategory(recheckType.value);
+    document.getElementById('other-group').hidden = !cat.inputs.includes('other_party');
+    document.getElementById('child-group').hidden = !cat.inputs.includes('child');
+    document.getElementById('appdate-group').hidden = !NEEDS_DATE.has(cat.id);
+  };
+  for (const [id, key] of [['client', 'client'], ['other', 'other_party'], ['child', 'child'], ['appdate', 'application_date']]) {
+    document.getElementById(id).value = lastOptions[key] || '';
+  }
+  recheckType.addEventListener('change', showFields);
+  showFields();
+  document.getElementById('recheck-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const value = (id) => (document.getElementById(`${id}-group`).hidden ? '' : document.getElementById(id).value.trim());
+    chosenType = recheckType.value;
+    lastOptions = { client: value('client'), other_party: value('other'), child: value('child'), application_date: value('appdate') };
+    review(text, chosenType, false, lastOptions);
+  });
+}
+
+document.getElementById('letter-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = letter.value.trim();
+  if (!text) return setError('Paste the text of the letter');
+  const typeGroup = document.getElementById('type-group');
+  const picked = !typeGroup.hidden && type.value;
+  const category = chosenType || picked || (AI ? '' : guessCategory(text));
+  if (!category && !AI) {
+    setError('');
+    typeGroup.hidden = false;
+    type.focus();
+    return;
+  }
+  typeGroup.hidden = true;
+  review(text, category, !chosenType && !picked, lastOptions);
 });
 
 function wireModel(text, r) {
@@ -113,7 +209,7 @@ function wireModel(text, r) {
     status.textContent = 'Starting the model';
     try {
       const opinions = await secondOpinion(text, (m) => { status.textContent = m; });
-      const rulesFail = r.checks.some((c) => c.status === 'fail' && /hedged/.test(c.detail));
+      const rulesFail = r.label !== Label.COMPLETE;
       const modelUnsure = opinions.some((o) => o.label === 'uncertain');
       status.textContent = !opinions.length ? 'The model did not find any key sentences to read.'
         : rulesFail === modelUnsure ? 'The model agrees with the check above.'
@@ -133,6 +229,8 @@ if (new URLSearchParams(location.search).get('sample')) {
   sample.dispatchEvent(new Event('change'));
 }
 
-// Links in evidence request emails choose the letter type: ?type=p11
+// Links in evidence request emails choose the type: ?type=p11 (older keys) or ?type=sch1-para11
 const typeParam = new URLSearchParams(location.search).get('type');
-if (typeParam && LETTER_TYPES[typeParam]) type.value = typeParam;
+if (typeParam) {
+  try { chosenType = getCategory(OLD_TYPES[typeParam] || typeParam).id; } catch { /* unknown type: leave it to be worked out */ }
+}

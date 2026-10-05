@@ -506,19 +506,52 @@ await step('find evidence: choose a local support service to fill in the email',
   }
 });
 
-await step('letter checker: rejected example needs changes, with a message', async () => {
+await step('letter checker: each requirement, a confidence score, what to ask for and the letter marked up', async () => {
   await go('letter-checker.html?sample=p11-bad-5');
   await page.click('#letter-form button[type=submit]');
-  assert.equal(await text('.govuk-notification-banner__heading'), 'This letter needs changes');
-  assert.match(await text('#result pre'), /consistent with domestic abuse/);
+  assert.equal(await text('.govuk-notification-banner__heading'), 'This letter is missing something it needs');
+  assert.match(await text('#result'), /Paragraph 11: Letter or report from an appropriate health professional/);
+  assert.match(await text('#result'), /We worked out the type from the letter/);
+  assert.equal(await page.$eval('#input-view', (e) => e.hidden), true, 'the review replaces the form');
+  assert.equal(await page.$('#type-group:not([hidden]), #client:not(#recheck #client)'), null, 'no type or name fields on the first screen');
+  assert.match(await text('.app-score'), /^\d+% confidence score/);
+  assert.doesNotMatch(await text('.app-score'), /How much to trust/);
+  assert.match(await text('#result'), /What to ask for:.*registering body/);
+  assert.ok(await page.$('.app-markup .app-mark--missing, .app-markup .app-mark--unclear'), 'problem sentences are highlighted');
+  assert.deepEqual(await page.$$eval('.app-markup .app-mark-word', (m) => m.map((x) => x.textContent.toLowerCase())), ['might'], 'the hedged word is marked');
   await audit('letter result');
+  await page.click('#edit-letter');
+  assert.equal(await page.$eval('#input-view', (e) => e.hidden), false, 'Edit goes back to the letter');
+  assert.equal(await page.$eval('#result', (e) => e.hidden), true);
+  assert.match(await page.$eval('#letter', (e) => e.value), /might be consistent/, 'with the text kept to edit');
 });
 
-await step('letter checker: guidance-only types are labelled', async () => {
+await step('letter checker: check again as another type, with the names it needs', async () => {
   await go('letter-checker.html?sample=social-ok');
   await page.click('#letter-form button[type=submit]');
-  assert.equal(await text('.govuk-notification-banner__heading'), 'This letter looks ready');
-  assert.match(await text('#result'), /based on GOV.UK guidance only/);
+  await page.click('#recheck summary');
+  assert.equal(await page.$eval('#child-group', (e) => e.hidden), true);
+  await page.select('#recheck-type', 'sch2-para7');
+  assert.equal(await page.$eval('#child-group', (e) => e.hidden), false, 'Schedule 2 asks for the child');
+  await page.select('#recheck-type', 'sch1-para19');
+  await page.type('#client', 'Jane Doe');
+  await page.type('#other', 'John Doe');
+  await page.click('#recheck-form button[type=submit]');
+  assert.match(await text('#result'), /have not been tested against example letters/);
+  assert.doesNotMatch(await text('#result'), /We worked out the type/);
+  assert.equal(await page.$eval('#client', (e) => e.value), 'Jane Doe', 'names are kept for the next check');
+  await audit('check again');
+});
+
+await step('letter checker: asks for the type only when it cannot be worked out', async () => {
+  await go('letter-checker.html');
+  await page.type('#letter', 'Thank you for your recent letter about the parking permit renewal for the residents of Example Road.');
+  await page.click('#letter-form button[type=submit]');
+  assert.equal(await page.$eval('#type-group', (e) => e.hidden), false);
+  await page.select('#type', 'sch1-para17');
+  await page.click('#letter-form button[type=submit]');
+  assert.equal(await page.$eval('#input-view', (e) => e.hidden), true);
+  assert.match(await text('#result'), /Paragraph 17/);
 });
 
 const tmp = await mkdtemp(join(tmpdir(), 'da-files-'));
@@ -567,6 +600,42 @@ await step('compare text readers: Tesseract scores an example letter, offline', 
   await audit('compare results');
 });
 
+await step('letter checker (AI demo): same page, checked by GPT-6 Sol through api/check-ai', async () => {
+  await go('index.html');
+  let posted;
+  const answer = (r) => {
+    if (!r.url().endsWith('/api/check-ai')) return r.continue();
+    posted = JSON.parse(r.postData());
+    r.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      category: 'sch1-para11', category_name: 'Letter or report from an appropriate health professional', label: 'Incomplete', tested_against_examples: false,
+      detected: { client: 'Jane Doe', client_source: 'found in the text' },
+      criteria: [
+        { id: 'GP1', label: 'Written by an appropriate health professional', status: 'missing', note: 'No profession is given.', evidence: [], ref: 'guidance 2.52', ask_for: 'Ask for their profession.' },
+        { id: 'GP4', label: 'Professional judgement', status: 'missing', note: 'The judgement is hedged.', evidence: ['I can confirm that I have examined Jane Doe and in my reasonable professional judgement, the condition that the applicant has might be consistent with domestic abuse.'], ref: 'guidance 2.55', ask_for: 'Ask for a firm judgement.' },
+      ],
+      warnings: ['Checked by an AI model (gpt-6-sol) reading the LAA guidance, not by fixed rules.'],
+    }) });
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await go('letter-checker-ai.html?sample=p11-bad-5');
+    assert.match(await text('#input-view'), /sends the letter’s text to OpenAI/);
+    await page.click('#letter-form button[type=submit]');
+    await until(() => !document.getElementById('result').hidden, 5000);
+    assert.equal(posted.category, '', 'the AI works out the type');
+    assert.match(posted.text, /might be consistent/);
+    assert.equal(await text('.govuk-notification-banner__heading'), 'This letter is missing something it needs');
+    assert.match(await text('#result'), /GPT-6 Sol worked out the type from the letter/);
+    assert.ok(await page.$('.app-markup .app-mark--missing'), 'the sentence the AI quoted is highlighted');
+    assert.equal(await page.$('#opinion'), null, 'no separate AI second opinion on the AI page');
+    await audit('AI demo result');
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+});
+
 await step('letter checker: reads a photo of a letter on the device', async () => {
   await go('letter-checker.html');
   // Draw the rejected example as an image, the way a phone photo would arrive.
@@ -590,21 +659,22 @@ await step('letter checker: reads a photo of a letter on the device', async () =
   page.off('request', watch);
   assert.deepEqual(external, [], 'no requests leave the site while reading the photo');
   await page.click('#letter-form button[type=submit]');
-  assert.equal(await text('.govuk-notification-banner__heading'), 'This letter needs changes');
-  assert.match(await text('#result'), /hedged \("might"\)/);
+  assert.equal(await text('.govuk-notification-banner__heading'), 'This letter is missing something it needs');
+  assert.match(await page.$eval('.app-markup', (e) => e.textContent), /might/);
 });
 
 await step('letter checker: reads a text-layer PDF', async () => {
   await go('letter-checker.html');
   const pdfPage = await browser.newPage();
-  await pdfPage.setContent('<p style="font:16px Arial">I understand that Jane Doe wishes to access legal aid. I have been asked to provide a letter in accordance with regulation 33 of the Civil Legal Aid (Procedure) Regulations 2012. I can confirm that I have examined Jane Doe and in my reasonable professional judgement, the condition that the applicant has is consistent with domestic abuse.</p>');
+  await pdfPage.setContent('<p style="font:16px Arial">Re: Jane Doe</p><p style="font:16px Arial">I am a general practitioner registered with the General Medical Council. I examined Jane Doe in person at the surgery on 2 September 2026. In my reasonable professional judgement, the injuries that Jane Doe has are consistent with domestic abuse.</p><p style="font:16px Arial">Dr Asha Patel, GMC 7654321</p>');
   const file = join(tmp, 'letter.pdf');
   await writeFile(file, await pdfPage.pdf({ format: 'A4' }));
   await pdfPage.close();
   await (await page.$('#file')).uploadFile(file);
   await until(() => /Text added/.test(document.getElementById('file-status').textContent));
   await page.click('#letter-form button[type=submit]');
-  assert.equal(await text('.govuk-notification-banner__heading'), 'This letter looks ready');
+  assert.equal(await text('.govuk-notification-banner__heading'), 'Nothing obviously missing');
+  assert.match(await text('.app-score'), /^100% confidence score/);
 });
 
 await step('letter checker: AI second opinion needs consent first', async () => {

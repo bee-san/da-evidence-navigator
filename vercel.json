@@ -1,4 +1,7 @@
 {
   "buildCommand": "npm test && npm run build",
-  "outputDirectory": "_site"
+  "outputDirectory": "_site",
+  "functions": {
+    "api/check-ai.js": { "maxDuration": 120, "includeFiles": "reference/evidence-guidance-v15.txt" }
+  }
 }

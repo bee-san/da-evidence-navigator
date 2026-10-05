@@ -106,3 +106,16 @@
 .app-camera__list { display: flex; flex-wrap: wrap; gap: 15px; }
 .app-camera__item { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; margin: 0; }
 .app-camera__thumb { width: 110px; height: 150px; object-fit: cover; border: 1px solid #b1b4b6; }
+
+/* Evidence checker: score and marked-up letter */
+.app-score { border-left: 5px solid #1d70b8; padding-left: 15px; margin-bottom: 30px; }
+.app-quote { border-left: 3px solid #b1b4b6; padding-left: 10px; color: #0b0c0c; }
+.app-markup { border: 1px solid #b1b4b6; padding: 15px 15px 0; margin-bottom: 20px; background: #fff; }
+.app-markup p { line-height: 1.6; }
+.app-mark { padding: 1px 2px; border-bottom: 3px solid transparent; }
+.app-mark--pass { background: #cce2d8; border-bottom-color: #00703c; color: #0b0c0c; }
+.app-mark--unclear { background: #fff7bf; border-bottom-color: #c28100; color: #0b0c0c; }
+.app-mark--missing { background: #f4cdc6; border-bottom-color: #d4351c; color: #0b0c0c; }
+.app-mark-word { background: #ffdd00; color: #0b0c0c; outline: 2px solid #0b0c0c; padding: 0 2px; }
+.app-mark-key { display: flex; flex-wrap: wrap; gap: 10px 20px; }
+.app-mark-key li { margin: 0; }
