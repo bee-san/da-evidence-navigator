@@ -1,11 +1,13 @@
 // Reads text from a letter file entirely in the browser.
-// Text files are read directly. PDFs use their text layer, and scanned
-// pages are rendered and passed to the text reader. Photos go straight to it.
+// Text files are read directly, and Word (.docx) files are unzipped (docx.js).
+// PDFs use their text layer, and scanned pages are rendered and passed to the
+// text reader. Photos go straight to it.
 // The text reader is PaddleOCR (paddleocr.js on ONNX Runtime Web) with the
 // PP-OCRv6 models. All libraries and models are served from this site, and
 // nothing is cached or sent anywhere.
 
 import { OCR_MODEL } from './ocr-model.js';
+import { docxText } from './docx.js';
 
 export { OCR_MODEL };
 const vendor = (p) => new URL(`../assets/vendor/${p}`, import.meta.url).href;
@@ -80,14 +82,16 @@ async function pdfText(file, onProgress) {
     const page = await doc.getPage(n);
     const content = await page.getTextContent();
     let text = content.items.map((i) => i.str + (i.hasEOL ? '\n' : ' ')).join('').trim();
-    if (text.length < 40) {
-      // No text layer: this page is a scan.
+    // Read the page with the text reader if it has no text layer (a scan), or if it has a picture
+    // and only a little real text, like a scan with a typed header added. Keep whichever is longer.
+    if (text.length < 40 || (text.length < 400 && await hasPicture(page, pdfjs.OPS))) {
       const viewport = page.getViewport({ scale: 2 });
       const canvas = document.createElement('canvas');
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       await page.render({ canvas, viewport }).promise;
-      text = await ocr(canvas, (m) => onProgress?.(`Page ${n} of ${doc.numPages}: ${m}`));
+      const read = await ocr(canvas, (m) => onProgress?.(`Page ${n} of ${doc.numPages}: ${m}`));
+      if (read.trim().length > text.length) text = read;
     }
     pages.push(text);
   }
@@ -95,12 +99,22 @@ async function pdfText(file, onProgress) {
   return pages.join('\n\n');
 }
 
+async function hasPicture(page, OPS) {
+  const { fnArray } = await page.getOperatorList();
+  return fnArray.some((op) => op === OPS.paintImageXObject || op === OPS.paintInlineImageXObject || op === OPS.paintImageMaskXObject);
+}
+
+export const UNSUPPORTED = 'Choose a photo, PDF, Word (.docx) or text file';
+const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
 export async function extractText(file, onProgress) {
   const name = file.name.toLowerCase();
   if (file.type === 'application/pdf' || name.endsWith('.pdf')) return pdfText(file, onProgress);
+  if (file.type === DOCX || name.endsWith('.docx')) return docxText(file);
+  if (name.endsWith('.doc') || file.type === 'application/msword') throw new Error('Older Word (.doc) files cannot be read. Save it as .docx or PDF and try again.');
   if (file.type.startsWith('image/')) return ocr(file, onProgress);
   if (file.type.startsWith('text/') || /\.(txt|md)$/.test(name)) return file.text();
-  throw new Error('Choose a photo, PDF or text file');
+  throw new Error(UNSUPPORTED);
 }
 
 export async function stopOcr() {

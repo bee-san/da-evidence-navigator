@@ -12,6 +12,7 @@ import { readFile, readdir, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import assert from 'node:assert/strict';
+import { makeDocx } from './docx-fixture.mjs';
 
 const root = new URL('../_site/', import.meta.url).pathname;
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.wasm': 'application/wasm', '.gz': 'application/gzip' };
@@ -708,6 +709,45 @@ await step('letter checker: reads a text-layer PDF', async () => {
   await page.click('#letter-form button[type=submit]');
   assert.equal(await text('.govuk-notification-banner__heading'), 'Nothing obviously missing');
   assert.match(await text('.app-score'), /^100% confidence score/);
+});
+
+await step('letter checker: reads a Word (.docx) letter, with the letterhead from its header', async () => {
+  await go('letter-checker.html');
+  const file = join(tmp, 'letter.docx');
+  await writeFile(file, await makeDocx({
+    header: ['Dr Asha Patel, General Practitioner, GMC 7654321'],
+    paragraphs: ['Re: Jane Doe', 'I am a general practitioner registered with the General Medical Council. I examined Jane Doe in person at the surgery on 2 September 2026. In my reasonable professional judgement, the injuries that Jane Doe has are consistent with domestic abuse.'],
+  }));
+  await (await page.$('#file')).uploadFile(file);
+  await until(() => /Text added/.test(document.getElementById('file-status').textContent), 10000);
+  const letterText = await page.$eval('#letter', (e) => e.value);
+  assert.match(letterText, /^Dr Asha Patel, General Practitioner, GMC 7654321/, 'the header comes first');
+  assert.match(letterText, /consistent with domestic abuse/);
+  await page.click('#letter-form button[type=submit]');
+  assert.equal(await text('.govuk-notification-banner__heading'), 'Nothing obviously missing');
+});
+
+await step('letter checker: a scanned PDF with a typed header is still read with the text reader', async () => {
+  await go('letter-checker.html');
+  // A scan (an image of the letter) with a short line of real text added above it.
+  const png = await page.evaluate(async () => {
+    const { SAMPLES } = await import('./app/samples.js');
+    const lines = SAMPLES.find((s) => s.id === 'p11-bad-5').text.split('\n').flatMap((l) => l.match(/.{1,70}(\s|$)/g));
+    const c = Object.assign(document.createElement('canvas'), { width: 1400, height: 60 + lines.length * 40 });
+    const x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = '#000'; x.font = '28px Arial';
+    lines.forEach((l, i) => x.fillText(l, 30, 50 + i * 40));
+    return c.toDataURL('image/png');
+  });
+  const pdfPage = await browser.newPage();
+  await pdfPage.setContent(`<p style="font:14px Arial">Scanned by Example Surgery on 3 October 2026</p><img src="${png}" style="width:100%">`);
+  const file = join(tmp, 'scan.pdf');
+  await writeFile(file, await pdfPage.pdf({ format: 'A4' }));
+  await pdfPage.close();
+  await (await page.$('#file')).uploadFile(file);
+  await until(() => /Text added/.test(document.getElementById('file-status').textContent), 120000);
+  const scanned = await page.$eval('#letter', (e) => e.value);
+  assert.match(scanned, /might\s+be\s+consistent/, `the scanned part was read: ${scanned.slice(0, 300)}`);
 });
 
 await step('letter checker: AI second opinion needs consent first', async () => {
