@@ -119,10 +119,6 @@ export function mailtoUrl({ to, cc, subject, body }) {
   return `mailto:${to.split(',').map((a) => enc(a.trim())).join(',')}?${q}`;
 }
 
-export const gmailUrl = ({ to, cc, subject, body }) => `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(to)}${cc ? `&cc=${enc(cc)}` : ''}&su=${enc(subject)}&body=${enc(body)}`;
-
-export const outlookUrl = ({ to, cc, subject, body }) => `https://outlook.live.com/mail/0/deeplink/compose?to=${enc(to)}${cc ? `&cc=${enc(cc)}` : ''}&subject=${enc(subject)}&body=${enc(body)}`;
-
 // Some desktop email apps cut off mailto links longer than about 2,000 characters.
 export const MAILTO_SAFE_LENGTH = 2000;
 

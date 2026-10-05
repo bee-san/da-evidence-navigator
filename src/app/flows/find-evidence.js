@@ -1,9 +1,10 @@
-// "Find evidence" flow: asks, one question at a time, which services already
-// know about the abuse, in the order of Schedule 1 of the Civil Legal Aid
-// (Procedure) Regulations 2012 – police (paragraphs 1 to 6A), courts (7 to 10),
-// health (11 and 12), support services (13 to 19), immigration (20) and money
-// (21). The first answer that applies leads to a page explaining that evidence,
-// with a form that writes the request email on the device.
+// "Find evidence" flow: asks whether someone has a solicitor, then, one
+// question at a time, which services already know about the abuse, in the
+// order of Schedule 1 of the Civil Legal Aid (Procedure) Regulations 2012 –
+// police (paragraphs 1 to 6A), courts (7 to 10), health (11 and 12), support
+// services (13 to 19), immigration (20) and money (21). The first answer that
+// applies leads to a page explaining that evidence, with a form that writes
+// the request email.
 //
 // We never ask what happened, only who already knows.
 
@@ -19,11 +20,11 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
 // Paths that answer "No" up to each section, used by "look for more evidence".
 const NEXT_SECTION = {
-  police: 'police/court',
-  court: 'police/court/health',
-  health: 'police/court/health/services',
-  services: 'police/court/health/services/immigration',
-  immigration: 'police/court/health/services/immigration/money',
+  police: 'solicitor/police/court',
+  court: 'solicitor/police/court/health',
+  health: 'solicitor/police/court/health/services',
+  services: 'solicitor/police/court/health/services/immigration',
+  immigration: 'solicitor/police/court/health/services/immigration/money',
   money: null,
 };
 
@@ -94,6 +95,15 @@ const COURT_RESULTS = {
 };
 
 const steps = {
+  solicitor: {
+    title: 'Do you have a solicitor for your family case?',
+    hint: 'If you do, we can ask for the evidence to be sent straight to them.',
+    options: [
+      { label: 'Yes', next: 'police', remember: { hasSolicitor: 'yes' } },
+      { label: 'No', next: 'police', remember: { hasSolicitor: 'no' } },
+      { label: 'I’m not sure', next: 'police', remember: { hasSolicitor: 'unsure' } },
+    ],
+  },
   police: {
     title: 'Have the police been involved?',
     hint: 'For example, you reported the abuse, the police came to your home, or the person who abused you was arrested. It does not matter how long ago.',
@@ -237,10 +247,11 @@ for (const [id, [event, title, intro]] of Object.entries(COURT_RESULTS)) {
   steps[id] = recordsStep('court', event, COURT_EVENTS, 'court', title, intro);
 }
 
-export default { start: 'police', steps };
+const flow = { start: 'solicitor', steps, answers: {} };
+export default flow;
 
 export function onRender(root) {
-  mountAll(root);
+  mountAll(root, flow.answers);
   // After the contact form, so the council's name can be added to the email.
   for (const el of root.querySelectorAll('[data-local]')) mountLocal(el, root);
 }

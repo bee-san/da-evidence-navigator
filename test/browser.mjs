@@ -130,6 +130,8 @@ await step('find evidence: no police or court, GP letter, email written on the d
     await page.click('form[data-step] button');
     await page.waitForFunction((prev) => document.querySelector('h1')?.textContent.trim() !== prev, { timeout: 5000 }, h1);
   };
+  assert.equal(await text('h1'), 'Do you have a solicitor for your family case?');
+  await answer('No');
   assert.equal(await text('h1'), 'Have the police been involved?');
   await answer('No');
   await answer('No');
@@ -146,7 +148,7 @@ await step('find evidence: no police or court, GP letter, email written on the d
   await page.type('#profEmail', 'surgery@example.nhs.uk');
   await page.click('#contact-form button[type=submit]');
   await until(() => document.querySelector('#email-body'), 5000);
-  const body = await page.$eval('#email-body', (e) => e.value);
+  const body = await page.$eval('#email-body', (e) => e.textContent);
   assert.match(body, /^Dear Dr Patel,/);
   assert.match(body, /I can confirm that I have examined Jane Doe/);
   assert.match(body, /letter-checker\.html\?type=p11/);
@@ -156,8 +158,24 @@ await step('find evidence: no police or court, GP letter, email written on the d
   await audit('evidence email');
 });
 
+await step('find evidence: a solicitor mentioned at the start is used, not asked about again', async () => {
+  await go('index.html');
+  await go('check.html');
+  for (const label of ['Yes', 'No', 'No', 'Yes, they examined or treated me']) {
+    const h1 = await text('h1');
+    const [radio] = await page.$$(`xpath/.//label[normalize-space()="${label}"]/preceding-sibling::input`);
+    await radio.click();
+    await page.click('form[data-step] button');
+    await page.waitForFunction((prev) => document.querySelector('h1')?.textContent.trim() !== prev, { timeout: 5000 }, h1);
+  }
+  assert.equal(await page.$eval('#replyTo-solicitor', (e) => e.checked), true);
+  assert.equal(await page.$eval('#solicitor-details', (e) => e.hidden), false);
+  assert.match(await text('#contact-form'), /Where should they send the letter\?/);
+  assert.doesNotMatch(await text('#contact-form'), /Straight to my solicitor/);
+});
+
 await step('find evidence: police caution, sent straight to a solicitor', async () => {
-  await go('check.html#police/policeWhat/evCautioned');
+  await go('check.html#solicitor/police/policeWhat/evCautioned');
   assert.equal(await text('h1'), 'Ask the police to confirm the caution');
   await page.type('#applicant', 'Jane Doe');
   await page.type('#other', 'John Doe');
@@ -165,7 +183,7 @@ await step('find evidence: police caution, sent straight to a solicitor', async 
   await page.type('#solicitorEmail', 'family@solicitors.example');
   await page.click('#contact-form button[type=submit]');
   await until(() => document.querySelector('#email-body'), 5000);
-  const body = await page.$eval('#email-body', (e) => e.value);
+  const body = await page.$eval('#email-body', (e) => e.textContent);
   assert.match(body, /paragraph 2 /);
   assert.match(body, /John Doe was given a police caution/);
   assert.match(body, /send it to my solicitor at family@solicitors\.example/);
@@ -173,7 +191,7 @@ await step('find evidence: police caution, sent straight to a solicitor', async 
 });
 
 await step('find evidence: police force found from the first half of the postcode only', async () => {
-  await go('check.html#police/policeWhat/evArrested');
+  await go('check.html#solicitor/police/policeWhat/evArrested');
   const sent = [];
   const answer = (r) => {
     const u = r.url();
@@ -202,7 +220,7 @@ await step('find evidence: police force found from the first half of the postcod
 });
 
 await step('find evidence: MARAC and council pages show who to ask locally', async () => {
-  await go('check.html#police/court/health/services/evMarac');
+  await go('check.html#solicitor/police/court/health/services/evMarac');
   const sent = [];
   const answer = (r) => {
     const u = r.url();
@@ -226,7 +244,7 @@ await step('find evidence: MARAC and council pages show who to ask locally', asy
   await audit('MARAC local help');
 
   // Next page on the same visit: the area is remembered and the council named in the email.
-  await page.evaluate(() => { location.hash = 'police/court/health/services/evP19'; });
+  await page.evaluate(() => { location.hash = 'solicitor/police/court/health/services/evP19'; });
   await until(() => document.querySelector('#localDetail'), 5000);
   await page.click('#council-1');
   assert.match(await text('#localDetail'), /Vale of White Horse District Council/);
@@ -250,20 +268,20 @@ await step('find evidence: send it for me, with a phone call back instead of a r
   await page.setRequestInterception(true);
   page.on('request', answer);
   try {
-    await go('check.html#police/court/health/services/evP17');
+    await go('check.html#solicitor/police/court/health/services/evP17');
     await page.type('#applicant', 'Jane Doe');
     await page.type('#profEmail', 'support@service.example');
+    await until(() => document.querySelector('#method-phone'), 5000);
+    await page.click('#method-phone');
+    await page.click('#contact-form button[type=submit]');
+    assert.match(await text('#contact-errors'), /Enter a phone number/);
+    await page.type('#phone', '07700 900982');
     await page.click('#contact-form button[type=submit]');
     await until(() => document.querySelector('#send-for-me'), 5000);
-    const headings = await page.$$eval('#contact-preview h2', (hs) => hs.map((h) => h.textContent.trim()));
-    assert.deepEqual(headings.slice(0, 2), ['Send it for me', 'Or send it from your own email']);
-    await page.click('#contactBy-phone');
-    await page.click('#send-for-me button[type=submit]');
-    assert.match(await text('#phone-error'), /Enter a phone number/);
-    await page.type('#phone', '07700 900982');
-    assert.match(await page.$eval('#sfm-preview', (e) => e.textContent), /Please call me on 07700 900982/);
+    assert.match(await page.$eval('#email-body', (e) => e.textContent), /Please call me on 07700 900982/);
+    assert.equal(await page.$('#send-app'), null, 'the own-email buttons are not shown');
     await audit('send it for me');
-    await page.click('#send-for-me button[type=submit]');
+    await page.click('#send-for-me');
     await until(() => document.querySelector('#sfm-sent'), 5000);
     assert.match(await text('#sfm-sent'), /asked to call you on 07700 900982/);
     assert.equal(posted.contactBy, 'phone');

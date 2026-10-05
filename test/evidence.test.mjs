@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { validateFlow, readPath, stepHtml } from '../src/app/flow.js';
 import flow from '../src/app/flows/find-evidence.js';
 import { EVIDENCE, POLICE_EVENTS, COURT_EVENTS, needsOtherParty } from '../src/app/evidence.js';
-import { buildRequest, personalise, mailtoUrl, gmailUrl } from '../src/app/contact.js';
+import { buildRequest, personalise, mailtoUrl } from '../src/app/contact.js';
 
 const results = Object.entries(flow.steps).filter(([, s]) => s.body);
 
@@ -11,8 +11,8 @@ test('find-evidence flow: every step exists and can be reached', () => {
   assert.deepEqual(validateFlow(flow), []);
 });
 
-test('questions follow the order of Schedule 1', () => {
-  const order = ['police', 'court', 'health', 'services', 'immigration', 'money', 'none'];
+test('questions ask about a solicitor, then follow the order of Schedule 1', () => {
+  const order = ['solicitor', 'police', 'court', 'health', 'services', 'immigration', 'money', 'none'];
   assert.deepEqual(readPath(flow, `#${order.join('/')}`), order, 'answering "no" to each section reaches the next');
 });
 
@@ -49,7 +49,7 @@ test('no question asks what happened', () => {
 });
 
 test('someone with no evidence is pointed to support services and a solicitor', () => {
-  const html = stepHtml(flow, readPath(flow, '#police/court/health/services/immigration/money/none'));
+  const html = stepHtml(flow, readPath(flow, '#solicitor/police/court/health/services/immigration/money/none'));
   assert.match(html, /0808 2000 247/);
   assert.match(html, /find-solicitor\.html/);
 });
@@ -99,5 +99,4 @@ test('the other party is asked for only when the evidence must name them', () =>
 test('email links are encoded', () => {
   const email = { to: 'a@b.com', cc: 'c@d.com', subject: 'A & B', body: 'Line 1\nLine 2 & ?' };
   assert.equal(mailtoUrl(email), 'mailto:a%40b.com?cc=c%40d.com&subject=A%20%26%20B&body=Line%201%0ALine%202%20%26%20%3F');
-  assert.match(gmailUrl(email), /&su=A%20%26%20B&body=Line%201%0A/);
 });
