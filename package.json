@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/rules.test.mjs test/flow.test.mjs test/evidence.test.mjs test/police.test.mjs test/location.test.mjs test/send.test.mjs test/gp.test.mjs",
+    "test": "node --test test/rules.test.mjs test/flow.test.mjs test/evidence.test.mjs test/police.test.mjs test/location.test.mjs test/send.test.mjs test/gp.test.mjs test/services.test.mjs",
     "build": "node build.mjs",
     "test:browser": "node test/browser.mjs",
     "serve": "npm run build && node scripts/serve.mjs"

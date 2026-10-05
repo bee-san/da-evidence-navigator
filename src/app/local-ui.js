@@ -6,6 +6,7 @@
 import { findPlace, rememberedPlace, socialServicesCouncil } from './location.js';
 import { forceForPlace, FORCES } from './police.js';
 import { escapeHtml } from './chat.js';
+import { servicesFor, hasServiceList } from './services-lookup.js';
 
 const link = (url, text) => `<a class="govuk-link" href="${escapeHtml(url)}" target="_blank" rel="noreferrer noopener">${escapeHtml(text)} (opens in new tab)</a>`;
 const DIRECTORY = link('https://www.womensaid.org.uk/domestic-abuse-directory/', 'Find a local domestic abuse service on Women’s Aid');
@@ -22,8 +23,8 @@ const LOCAL = {
   <li>${escapeHtml(upper.name)} – ask for the domestic abuse or community safety team (${link(upper.url, 'website')})</li>
 </ul>`;
   },
-  p14: (c) => `<p class="govuk-body">If you are no longer in touch with your IDVA, ${escapeHtml(socialServicesCouncil(c).name)} can tell you who runs the IDVA service in ${area(c)} (${link(socialServicesCouncil(c).url, 'website')}). You can also call the National Domestic Abuse Helpline on 0808 2000 247.</p>`,
-  p17: (c) => `<p class="govuk-body">Local services in ${area(c)} are listed by ${escapeHtml(socialServicesCouncil(c).name)} (${link(socialServicesCouncil(c).url, 'website')}). ${DIRECTORY}.</p>`,
+
+
   p19: (c) => `<p class="govuk-body">Your council is <strong>${escapeHtml(c.name)}</strong>. Ask the officer who dealt with you, or the housing or homeless team.</p>
 <p class="govuk-body">${link(`https://www.gov.uk/homelessness-help-from-council/${c.slug}`, `Contact ${c.name} about housing on GOV.UK`)}</p>
 <p class="govuk-body">If it was a housing association, ask your housing officer there instead.</p>`,
@@ -33,12 +34,55 @@ const LOCAL = {
   },
 };
 
+// Local services the person can choose, to fill in who the email goes to.
+function servicesHtml(c, key) {
+  const list = servicesFor(c, key);
+  if (!list.length) return `<p class="govuk-body">We did not find services in ${area(c)} listed for this. ${DIRECTORY}.</p>`;
+  const line = (s) => [s.phone && `Phone ${escapeHtml(s.phone)}`, s.email ? escapeHtml(s.email) : 'No email listed', s.for && `For ${escapeHtml(s.for.toLowerCase())}`].filter(Boolean).join(' · ');
+  return `<div class="govuk-form-group govuk-!-margin-top-4"><fieldset class="govuk-fieldset" aria-describedby="service-hint">
+  <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Services in ${area(c)}</legend>
+  <div class="govuk-hint" id="service-hint">Choose the one you have been in contact with, and we will add their details to your email.</div>
+  <div class="govuk-radios govuk-radios--small">
+    ${list.map((sv, i) => `<div class="govuk-radios__item">
+      <input class="govuk-radios__input" id="service-${i}" name="service" type="radio" value="${escapeHtml(sv.id)}" aria-describedby="service-${i}-hint">
+      <label class="govuk-label govuk-radios__label" for="service-${i}">${escapeHtml(sv.name)}</label>
+      <div class="govuk-hint govuk-radios__hint" id="service-${i}-hint">${line(sv)}${sv.website ? ` · ${link(sv.website, 'website')}` : ''}</div>
+    </div>`).join('')}
+    <div class="govuk-radios__divider">or</div>
+    <div class="govuk-radios__item">
+      <input class="govuk-radios__input" id="service-none" name="service" type="radio" value="">
+      <label class="govuk-label govuk-radios__label" for="service-none">None of these</label>
+    </div>
+  </div>
+</fieldset></div>
+<p class="govuk-body-s">From the Women’s Aid directory, Routes to Support. Details can change, so check them on the service’s website.</p>
+<p class="govuk-body govuk-!-font-weight-bold" id="service-status" aria-live="polite"></p>`;
+}
+
+// Fills in the email with the chosen service, without overwriting anything
+// the person typed themselves.
+function useService(root, c, key, id) {
+  const sv = servicesFor(c, key).find((x) => x.id === id);
+  const status = root.querySelector('#service-status');
+  const set = (sel, value) => {
+    const el = root.querySelector(sel);
+    if (el && (!el.value || el.dataset.prefilled)) { el.value = value; el.dataset.prefilled = value ? 'true' : ''; }
+  };
+  set('#profName', sv ? sv.name : '');
+  set('#profEmail', sv?.email || '');
+  if (status) {
+    status.textContent = !sv ? ''
+      : sv.email ? `We have added ${sv.name} to your email below.`
+        : `${sv.name} does not list an email address.${sv.phone ? ` Call them on ${sv.phone} and ask where to send your request.` : ''}`;
+  }
+}
+
 // Name to put in the email, when the council is who they are writing to.
 const PREFILL = { p19: (c) => c.name, social: (c) => socialServicesCouncil(c).name };
 
 export function mountLocal(el, root) {
   const key = el.dataset.local;
-  if (!LOCAL[key]) return;
+  if (!LOCAL[key] && !hasServiceList(key)) return;
   el.innerHTML = `
 <div class="govuk-form-group govuk-!-margin-bottom-2">
   <label class="govuk-label govuk-label--s" for="localPostcode">Find who to ask near you</label>
@@ -64,7 +108,8 @@ export function mountLocal(el, root) {
 </fieldset></div>` : '';
     const show = (i) => {
       const c = place.councils[i];
-      result.querySelector('#localDetail').innerHTML = LOCAL[key](c, force);
+      result.querySelector('#localDetail').innerHTML = (LOCAL[key] ? LOCAL[key](c, force) : '') + (hasServiceList(key) ? servicesHtml(c, key) : '');
+      for (const r of result.querySelectorAll('input[name=service]')) r.addEventListener('change', () => useService(root, c, key, r.value));
       const name = root.querySelector('#profName');
       if (PREFILL[key] && name && (!name.value || name.dataset.prefilled)) {
         name.value = PREFILL[key](c);

@@ -14,7 +14,7 @@ import { mountAll } from '../contact-ui.js';
 import { mountLocal } from '../local-ui.js';
 
 // Evidence where knowing the person's area helps them find who to ask.
-const LOCAL = new Set(['marac', 'p14', 'p17', 'p19', 'social']);
+const LOCAL = new Set(['marac', 'p14', 'p15', 'p17', 'refugeStay', 'p18', 'p19', 'social']);
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
