@@ -347,6 +347,35 @@ await step('find evidence: find my GP and add their email', async () => {
   }
 });
 
+await step('find evidence: choose a local support service to fill in the email', async () => {
+  await go('index.html');
+  const answer = (r) => {
+    if (r.url().startsWith('https://api.postcodes.io/')) {
+      r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ result: { latitude: 53.47, longitude: -2.23, country: ['England'], admin_district: ['Manchester'] } }) });
+    } else r.continue();
+  };
+  await page.setRequestInterception(true);
+  page.on('request', answer);
+  try {
+    await go('check.html#solicitor/police/court/health/services/evP17');
+    await page.$eval('#localPostcode', (e) => { e.value = ''; });
+    await page.type('#localPostcode', 'M1');
+    await page.click('#localFind');
+    await until(() => document.querySelector('input[name=service]'), 5000);
+    await audit('local services');
+    const id = await page.$eval('input[name=service]', (e) => e.id);
+    await page.click(`#${id}`);
+    const email = await page.$eval('#profEmail', (e) => e.value);
+    assert.match(email, /@/, 'the first service listed has an email, and it is added');
+    assert.match(await text('#service-status'), /added .* to your email/);
+    await page.click('#service-none');
+    assert.equal(await page.$eval('#profEmail', (e) => e.value), '', 'choosing none takes it out again');
+  } finally {
+    page.off('request', answer);
+    await page.setRequestInterception(false);
+  }
+});
+
 await step('letter checker: rejected example needs changes, with a message', async () => {
   await go('letter-checker.html?sample=p11-bad-5');
   await page.click('#letter-form button[type=submit]');

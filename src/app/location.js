@@ -42,7 +42,7 @@ export async function findPlace(postcode, fetchFn = fetch) {
     outcode,
     latitude: area.latitude,
     longitude: area.longitude,
-    councils: (area.admin_district || []).map((d) => COUNCILS[d]).filter(Boolean),
+    councils: (area.admin_district || []).filter((d) => COUNCILS[d]).map((d) => ({ ...COUNCILS[d], area: d })),
   };
   cache.set(outcode, place);
   return (remembered = place);
