@@ -120,18 +120,54 @@ await step('find a solicitor: error, keyboard answers, back link, finder search'
   errors.splice(0, errors.length, ...errors.filter((e) => !e.includes('find-legal-advice')));
 });
 
-await step('find evidence: keyboard only, results include new routes', async () => {
+await step('find evidence: no police or court, GP letter, email written on the device', async () => {
   await go('check.html');
-  await page.focus('#route-0');
-  await page.keyboard.press('Space');
-  for (const v of ['marac', 'financial']) await page.click(`input[value=${v}]`);
-  await page.keyboard.press('Enter');
-  await until(() => !document.getElementById('results').hidden);
-  const titles = await page.$$eval('#results h3, #results dt', (els) => els.map((e) => e.textContent));
-  assert.ok(titles.includes('A letter from a health professional'));
-  assert.ok(titles.includes('A letter from a MARAC member'));
-  assert.ok(titles.includes('Financial documents'));
-  await audit('check results');
+  const answer = async (label) => {
+    const h1 = await text('h1');
+    const [radio] = await page.$$(`xpath/.//label[normalize-space()="${label}"]/preceding-sibling::input`);
+    assert.ok(radio, `"${label}" is an option on "${h1}"`);
+    await radio.click();
+    await page.click('form[data-step] button');
+    await page.waitForFunction((prev) => document.querySelector('h1')?.textContent.trim() !== prev, { timeout: 5000 }, h1);
+  };
+  assert.equal(await text('h1'), 'Have the police been involved?');
+  await answer('No');
+  await answer('No');
+  await answer('Yes, they examined or treated me');
+  assert.equal(await text('h1'), 'Ask the health professional for a letter');
+  await audit('evidence result');
+
+  const requests = [];
+  page.on('request', (r) => requests.push(r.url()));
+  await page.click('#contact-form button[type=submit]');
+  assert.match(await text('#contact-errors'), /Enter your full name/);
+  await page.type('#applicant', 'Jane Doe');
+  await page.type('#profName', 'Dr Patel');
+  await page.type('#profEmail', 'surgery@example.nhs.uk');
+  await page.click('#contact-form button[type=submit]');
+  const body = await page.$eval('#email-body', (e) => e.value);
+  assert.match(body, /^Dear Dr Patel,/);
+  assert.match(body, /I can confirm that I have examined Jane Doe/);
+  assert.match(body, /letter-checker\.html\?type=p11/);
+  const mailto = await page.$eval('#send-app', (a) => a.href);
+  assert.ok(mailto.startsWith('mailto:surgery%40example.nhs.uk?subject='), mailto);
+  assert.ok(!requests.some((u) => /Jane|Patel|surgery/.test(u)), 'nothing typed is sent anywhere');
+  await audit('evidence email');
+});
+
+await step('find evidence: police caution, sent straight to a solicitor', async () => {
+  await go('check.html#police/policeWhat/evCautioned');
+  assert.equal(await text('h1'), 'Ask the police to confirm the caution');
+  await page.type('#applicant', 'Jane Doe');
+  await page.type('#other', 'John Doe');
+  await page.click('#replyTo-solicitor');
+  await page.type('#solicitorEmail', 'family@solicitors.example');
+  await page.click('#contact-form button[type=submit]');
+  const body = await page.$eval('#email-body', (e) => e.value);
+  assert.match(body, /paragraph 2 /);
+  assert.match(body, /John Doe was given a police caution/);
+  assert.match(body, /send it to my solicitor at family@solicitors\.example/);
+  assert.match(await page.$eval('#send-app', (a) => a.href), /cc=family%40solicitors\.example/);
 });
 
 await step('letter checker: rejected example needs changes, with a message', async () => {

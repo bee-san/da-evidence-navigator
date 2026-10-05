@@ -11,6 +11,9 @@
 //   { title, body }                                        – a result (HTML)
 // Answers are not stored. The step path is kept in the address (#a/b/c) so
 // the browser back button works.
+//
+// A flow can also export onRender(root, step, path), called after each step is
+// shown, to add interactive parts to a result page.
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -98,7 +101,7 @@ export function stepHtml(flow, path, { error = false } = {}) {
 
 // Runs a flow inside `root`. `pageTitle` is the service name used in the
 // browser tab title.
-export function runFlow(root, flow, pageTitle = document.title) {
+export function runFlow(root, flow, pageTitle = document.title, { onRender } = {}) {
   const render = (error = false) => {
     const path = readPath(flow, location.hash);
     const step = flow.steps[path[path.length - 1]];
@@ -115,6 +118,7 @@ export function runFlow(root, flow, pageTitle = document.title) {
         if (input) { input.focus(); input.closest('fieldset').scrollIntoView(); }
       });
     }
+    if (onRender) onRender(root, step, path);
     const form = root.querySelector('form[data-step]');
     if (form) {
       form.addEventListener('submit', (e) => {

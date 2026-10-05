@@ -1,26 +1,10 @@
-<!-- title: Which services have you been in contact with? -->
+<!-- title: Find evidence -->
 <!-- nav: check -->
-<!-- script: app/page-check.js -->
-<div class="govuk-grid-row">
-  <div class="govuk-grid-column-two-thirds">
-    <a href="index.html" class="govuk-back-link">Back</a>
-
-    <div id="question">
-      <form id="routes-form" novalidate>
-        <div class="govuk-form-group" id="routes-group">
-          <fieldset class="govuk-fieldset" aria-describedby="routes-hint">
-            <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
-              <h1 class="govuk-fieldset__heading">Which of these have you been in contact with about the abuse?</h1>
-            </legend>
-            <div id="routes-hint" class="govuk-hint">Select all that apply. You do not need to say what happened.</div>
-            <p id="routes-error" class="govuk-error-message" hidden><span class="govuk-visually-hidden">Error:</span> Select at least one option, or select "None of these"</p>
-            <div class="govuk-checkboxes" id="routes-options"></div>
-          </fieldset>
-        </div>
-        <button type="submit" class="govuk-button" data-module="govuk-button">Continue</button>
-      </form>
-    </div>
-
-    <div id="results" data-wipe hidden tabindex="-1"></div>
-  </div>
+<!-- script: app/flow-page.js -->
+<div id="flow" data-flow="find-evidence">
+  <noscript>
+    <h1 class="govuk-heading-l">Find evidence</h1>
+    <p class="govuk-body">If you are in immediate danger, call 999.</p>
+    <p class="govuk-body">Evidence can come from the police, a court, a health professional, a domestic abuse support service, a refuge, your council, social services, the Home Office, or your bank. GOV.UK has <a class="govuk-link" href="https://www.gov.uk/government/collections/sample-letters-to-get-evidence-of-domestic-violence" rel="noreferrer">sample letters you can send</a>.</p>
+  </noscript>
 </div>

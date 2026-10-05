@@ -111,3 +111,7 @@ if (new URLSearchParams(location.search).get('sample')) {
   sample.value = new URLSearchParams(location.search).get('sample');
   sample.dispatchEvent(new Event('change'));
 }
+
+// Links in evidence request emails choose the letter type: ?type=p11
+const typeParam = new URLSearchParams(location.search).get('type');
+if (typeParam && LETTER_TYPES[typeParam]) type.value = typeParam;

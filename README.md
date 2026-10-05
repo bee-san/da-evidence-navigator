@@ -6,7 +6,7 @@ To get legal aid for a private family matter on the basis of domestic abuse, app
 
 For victims:
 
-- **Find evidence** – tick which services you have been in contact with (never what happened) and see the evidence that may apply.
+- **Find evidence** – one question at a time, in the order of Schedule 1: police (paragraphs 1–6A), courts (7–10), health (11–12), support services (13–19), immigration (20) and money (21). It asks who already knows, never what happened. Each answer leads to what that evidence must show and a form that writes the request email on the device, opened in the person's own email app with a link for the professional to build or check the letter (`src/app/flows/find-evidence.js`, `evidence.js`, `contact.js`). Nothing typed is sent to the site or an AI model. If nothing applies, it points to support services.
 - **Request notes** – a note for each professional with the wording the Legal Aid Agency needs, to copy, print or show as a QR code.
 - **Check a letter** – paste it, or add a photo or PDF, and see whether it is likely to be accepted, with a message to send back if not. An optional AI second opinion runs in the browser after consent.
 - **Track progress** – a checklist for each letter. Nothing is saved unless the user chooses.
