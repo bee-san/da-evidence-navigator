@@ -101,13 +101,60 @@ test('a local service is called only on the number in the directory, and helplin
   assert.equal(vars.organisation_type, 'domestic abuse support service');
 });
 
-test('the call script is short and never gives the person away', async () => {
+test('the call script asks for the email only, and never gives the person away', async () => {
   const { script } = await import('../api/call.js');
   for (const kind of ['gp', 'court', 'service']) {
     const s = script(kind, 'Test Org');
-    // About 10 seconds of speech at ~2.5 words a second.
-    assert.ok(s.first_message.split(/\s+/).length <= 30, kind);
+    // About 10 seconds of speech at ~2.5 words a second, with room to spare.
+    assert.ok(s.first_message.split(/\s+/).length <= 20, kind);
     assert.match(s.first_message, /AI assistant/);
+    assert.match(s.first_message, /email address\?$/);
+    assert.doesNotMatch(s.first_message, /address(ed)? (it )?to/i);
+    assert.match(s.prompt, /Do not ask who to address it to/);
     assert.match(s.prompt, /Never give the person's name/);
   }
+  assert.match(script('gp', 'Test Org').first_message, /a patient at the surgery/);
+});
+
+test('the voice is sped up, and the overrides fall back one by one', async (t) => {
+  const { VOICE } = await import('../api/call.js');
+  assert.ok(VOICE.speed > 1 && VOICE.speed <= 1.2, 'within the 0.7 to 1.2 ElevenLabs allows');
+
+  const calls = withElevenLabs(t);
+  await post({ code: 'K84010', phone: '01993 850257' });
+  const first = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call'));
+  assert.equal(first.length, 1, 'one attempt when the agent accepts everything');
+  const override = first[0].body.conversation_initiation_client_data.conversation_config_override;
+  assert.equal(override.tts.speed, VOICE.speed);
+  assert.match(override.agent.first_message, /email address/);
+
+  // An agent that has not enabled the speed override rejects the first attempt.
+  calls.length = 0;
+  t.mock.method(globalThis, 'fetch', async (url, init) => {
+    const body = init?.body ? JSON.parse(init.body) : null;
+    calls.push({ url, body });
+    if (String(url).includes('nhs.uk')) return new Response(PAGE);
+    const o = body?.conversation_initiation_client_data?.conversation_config_override;
+    if (o?.tts) return new Response('{"detail":"tts overrides not allowed"}', { status: 400 });
+    return new Response('{"success":true,"conversation_id":"conv_abc"}');
+  });
+  assert.equal((await (await post({ code: 'K84010', phone: '01993 850257' })).json()).id, 'conv_abc');
+  const tries = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call')).map((c) => c.body.conversation_initiation_client_data.conversation_config_override);
+  assert.equal(tries.length, 2);
+  assert.ok(tries[0].tts && tries[0].agent, 'script and voice first');
+  assert.ok(!tries[1].tts && tries[1].agent, 'then the script on its own');
+
+  // An agent that allows no overrides at all still gets called with its own script.
+  calls.length = 0;
+  t.mock.method(globalThis, 'fetch', async (url, init) => {
+    const body = init?.body ? JSON.parse(init.body) : null;
+    calls.push({ url, body });
+    if (String(url).includes('nhs.uk')) return new Response(PAGE);
+    if (body?.conversation_initiation_client_data?.conversation_config_override) return new Response('{"detail":"overrides not allowed"}', { status: 400 });
+    return new Response('{"success":true,"conversation_id":"conv_abc"}');
+  });
+  assert.equal((await (await post({ code: 'K84010', phone: '01993 850257' })).json()).id, 'conv_abc');
+  const plain = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call'));
+  assert.equal(plain.length, 3);
+  assert.equal(plain[2].body.conversation_initiation_client_data.conversation_config_override, undefined);
 });
