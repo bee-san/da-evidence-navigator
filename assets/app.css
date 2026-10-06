@@ -65,6 +65,8 @@
 
 /* Rules page: on narrow screens each check becomes a block with labelled lines. */
 @media (max-width: 40.0525em) {
+  /* Narrow columns on small phones: break long words rather than scroll sideways. */
+  .govuk-table__header, .govuk-table__cell { overflow-wrap: anywhere; }
   .app-rules-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .app-rules-table tr, .app-rules-table th, .app-rules-table td { display: block; }
   .app-rules-table tr { border-bottom: 1px solid #b1b4b6; padding: 10px 0; }
