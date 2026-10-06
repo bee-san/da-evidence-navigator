@@ -100,3 +100,14 @@ test('a local service is called only on the number in the directory, and helplin
   assert.equal(vars.organisation_name, "Barnsley IDAS - Refuge and Community Service");
   assert.equal(vars.organisation_type, 'domestic abuse support service');
 });
+
+test('the call script is short and never gives the person away', async () => {
+  const { script } = await import('../api/call.js');
+  for (const kind of ['gp', 'court', 'service']) {
+    const s = script(kind, 'Test Org');
+    // About 10 seconds of speech at ~2.5 words a second.
+    assert.ok(s.first_message.split(/\s+/).length <= 30, kind);
+    assert.match(s.first_message, /AI assistant/);
+    assert.match(s.prompt, /Never give the person's name/);
+  }
+});

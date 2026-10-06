@@ -96,6 +96,25 @@ const ABOUT = {
   service: { type: 'domestic abuse support service', onBehalfOf: 'someone the service has supported', default: 'the service' },
 };
 
+// A short script, so the call takes about ten seconds of the assistant talking.
+// Sent as a per-call override; if the agent does not allow overrides (Security
+// tab: "First message" and "System prompt"), the dashboard script is used.
+export function script(kind, name) {
+  const about = ABOUT[kind] || ABOUT.gp;
+  const who = { gp: 'a patient', court: 'someone who needs a court document', service: 'someone you have supported' }[kind] || 'a patient';
+  return {
+    first_message: `Hi, I'm an AI assistant calling for ${who}. What email should they send a letter request to, and who should it be addressed to?`,
+    prompt: `You are an AI assistant on a phone call to ${name}, a ${about.type}, calling on behalf of ${about.onBehalfOf}.
+You only need two things: the email address to send a request for a letter or records to, and who to address it to.
+Rules:
+- Be very brief. One short sentence per turn. No small talk, no explanations, no repeating yourself.
+- Never give the person's name or say why they need it. If asked, say: "I'm not able to share that, sorry. They'll explain in the email."
+- If they spell the email, read it back once to confirm.
+- If they cannot give an email, ask once if there is another way to send it, then stop.
+- As soon as you have the answer, say "Thanks, bye." and end the call.`,
+  };
+}
+
 // "01865 240501", "+44 1865 240501" -> "+441865240501". Returns '' if it is
 // not a UK number.
 export function ukE164(phone) {
@@ -157,7 +176,7 @@ export async function POST(request) {
     return json({ error: 'Choose your GP practice first' }, 400);
   }
 
-  const res = await fetch(`${API}/twilio/outbound-call`, {
+  const start = (override) => fetch(`${API}/twilio/outbound-call`, {
     method: 'POST',
     headers: { 'xi-api-key': e.key, 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -166,9 +185,13 @@ export async function POST(request) {
       to_number: to,
       conversation_initiation_client_data: {
         dynamic_variables: { practice_name: name, organisation_name: name, organisation_type: about.type, on_behalf_of: about.onBehalfOf },
+        ...(override ? { conversation_config_override: { agent: script(kind, name) } } : {}),
       },
     }),
   });
+  let res = await start(true);
+  // The agent may not allow overrides; fall back to its own script.
+  if (!res.ok) res = await start(false);
   const r = await res.json().catch(() => ({}));
   if (!res.ok || !r.conversation_id) return json({ error: 'The call could not be started. Try again, or call them yourself.' }, 502);
   return json({ id: r.conversation_id, demo: !!e.demo });
