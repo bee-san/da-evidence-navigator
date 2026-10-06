@@ -326,7 +326,10 @@ export async function mountCall(box, target, set) {
         if (r.name) set('#profName', r.name);
         status.textContent = `They said to send it to ${r.email}${r.name ? `, for ${r.name}` : ''}. We have added this below – check it before you send.`;
       } else {
-        status.textContent = 'The call ended without an email address. Try again later, or call them yourself.';
+        // A call that ends in a few seconds with nothing said is usually the
+        // agent's own settings, so say what ElevenLabs gave as the reason.
+        const why = [r.seconds ? `after ${r.seconds}s` : null, r.turns ? `${r.turns} turns` : 'nothing was said', r.reason].filter(Boolean).join(', ');
+        status.textContent = `The call ended without an email address${why ? ` (${why})` : ''}. Try again later, or call them yourself.`;
       }
       button.disabled = false;
       return;
