@@ -1,6 +1,5 @@
 // Local server: the built site plus the api/ functions, as on Vercel.
 //   npm run build && node scripts/serve.mjs
-// Set EMAIL_DRY_RUN=1 to try "send it for me" without sending anything.
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
@@ -32,4 +31,4 @@ createServer(async (req, res) => {
     res.writeHead(200, { 'content-type': types[extname(file)] || 'application/octet-stream' });
     res.end(body);
   } catch { res.writeHead(404); res.end(); }
-}).listen(port, '127.0.0.1', () => console.log(`http://127.0.0.1:${port}/check.html${process.env.EMAIL_DRY_RUN === '1' ? ' (email dry run)' : ''}`));
+}).listen(port, '127.0.0.1', () => console.log(`http://127.0.0.1:${port}/check.html`));
