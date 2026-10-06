@@ -5,6 +5,10 @@ import { GET, POST } from '../api/ocr-openai.js';
 const IMAGE = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
 const post = (body) => POST(new Request('https://x/api/ocr-openai', { method: 'POST', body: JSON.stringify(body) }));
 
+// Vercel runs these tests during the build, where the deployed settings are set.
+delete process.env.OPENAI_API_KEY;
+delete process.env.OCR_OPENAI_MODEL;
+
 test('not available without OPENAI_API_KEY', async () => {
   assert.equal((await GET().json()).enabled, false);
   assert.equal((await post({ image: IMAGE })).status, 503);
