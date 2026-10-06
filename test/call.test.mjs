@@ -42,7 +42,7 @@ test('only the number the NHS lists for the practice is called', async (t) => {
   const calls = withElevenLabs(t);
   assert.equal((await post({ code: 'K84010', phone: '07700 900982' })).status, 400);
   const res = await post({ code: 'K84010', phone: '01993 850257' });
-  assert.deepEqual(await res.json(), { id: 'conv_abc', demo: false });
+  assert.deepEqual(await res.json(), { id: 'conv_abc', demo: false, script: true, speed: 1.2 });
   const call = calls.find((c) => String(c.url).endsWith('/twilio/outbound-call'));
   assert.equal(call.body.to_number, '+441993850257');
   assert.equal(call.body.conversation_initiation_client_data.dynamic_variables.practice_name, 'Bampton Surgery');
@@ -51,7 +51,7 @@ test('only the number the NHS lists for the practice is called', async (t) => {
 test('demo mode sends every call to the test phone', async (t) => {
   const calls = withElevenLabs(t, '07415 000000');
   const res = await post({ code: 'K84010', phone: '01993 850257', name: 'Bampton Surgery' });
-  assert.deepEqual(await res.json(), { id: 'conv_abc', demo: true });
+  assert.deepEqual(await res.json(), { id: 'conv_abc', demo: true, script: true, speed: 1.2 });
   assert.ok(!calls.some((c) => String(c.url).includes('nhs.uk')));
   assert.equal(calls.at(-1).body.to_number, '+447415000000');
 });
@@ -78,7 +78,7 @@ test('courts and services are only called with a general agent, never with the G
   assert.deepEqual((await (await GET(new Request('https://x/api/call'))).json()).kinds, ['gp', 'court', 'service']);
   assert.equal((await post({ kind: 'court', slug: 'oxford-combined-court-centre', phone: '07700 900982' })).status, 400, 'only the listed court number');
   const res = await post({ kind: 'court', slug: 'oxford-combined-court-centre', phone: '01865 264200' });
-  assert.deepEqual(await res.json(), { id: 'conv_abc', demo: false });
+  assert.deepEqual(await res.json(), { id: 'conv_abc', demo: false, script: true, speed: 1.2 });
   const call = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call')).at(-1).body;
   assert.equal(call.agent_id, 'agent_general');
   assert.equal(call.to_number, '+441865264200');
@@ -106,43 +106,63 @@ test('the call script asks for the email only, and never gives the person away',
   for (const kind of ['gp', 'court', 'service']) {
     const s = script(kind, 'Test Org');
     // About 10 seconds of speech at ~2.5 words a second, with room to spare.
-    assert.ok(s.first_message.split(/\s+/).length <= 20, kind);
-    assert.match(s.first_message, /AI assistant/);
+    assert.ok(s.first_message.split(/\s+/).length <= 14, kind);
+    assert.match(s.first_message, /I'm an AI/, `${kind} still says it is an AI`);
     assert.match(s.first_message, /email address\?$/);
     assert.doesNotMatch(s.first_message, /address(ed)? (it )?to/i);
-    assert.match(s.prompt, /Do not ask who to address it to/);
-    assert.match(s.prompt, /Never give the person's name/);
+    assert.match(s.prompt.prompt, /Do not ask who to address it to/);
+    assert.match(s.prompt.prompt, /Never give the person's name/);
   }
-  assert.match(script('gp', 'Test Org').first_message, /a patient at the surgery/);
+  assert.equal(script('gp', 'Test Org').first_message, "Hi, I'm an AI calling for a patient. What's your email address?");
 });
 
 test('the voice is sped up, and the overrides fall back one by one', async (t) => {
-  const { VOICE } = await import('../api/call.js');
-  assert.ok(VOICE.speed > 1 && VOICE.speed <= 1.2, 'within the 0.7 to 1.2 ElevenLabs allows');
+  const { voice, MAX_SPEED } = await import('../api/call.js');
+  assert.equal(voice().speed, MAX_SPEED);
+  assert.ok(MAX_SPEED > 1 && MAX_SPEED <= 1.2, 'within the 0.7 to 1.2 ElevenLabs allows');
+  process.env.CALL_VOICE_SPEED = '5';
+  assert.equal(voice().speed, 1.2, 'clamped, so ElevenLabs never 422s on it');
+  process.env.CALL_VOICE_SPEED = '0.9';
+  assert.equal(voice().speed, 0.9);
+  delete process.env.CALL_VOICE_SPEED;
 
   const calls = withElevenLabs(t);
   await post({ code: 'K84010', phone: '01993 850257' });
   const first = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call'));
   assert.equal(first.length, 1, 'one attempt when the agent accepts everything');
   const override = first[0].body.conversation_initiation_client_data.conversation_config_override;
-  assert.equal(override.tts.speed, VOICE.speed);
+  assert.equal(override.tts.speed, MAX_SPEED);
   assert.match(override.agent.first_message, /email address/);
 
-  // An agent that has not enabled the speed override rejects the first attempt.
+  // An agent that has not enabled the speed override 422s on the first attempt.
   calls.length = 0;
   t.mock.method(globalThis, 'fetch', async (url, init) => {
     const body = init?.body ? JSON.parse(init.body) : null;
     calls.push({ url, body });
     if (String(url).includes('nhs.uk')) return new Response(PAGE);
     const o = body?.conversation_initiation_client_data?.conversation_config_override;
-    if (o?.tts) return new Response('{"detail":"tts overrides not allowed"}', { status: 400 });
+    if (o?.tts) return new Response('{"detail":"tts overrides not allowed"}', { status: 422 });
     return new Response('{"success":true,"conversation_id":"conv_abc"}');
   });
-  assert.equal((await (await post({ code: 'K84010', phone: '01993 850257' })).json()).id, 'conv_abc');
-  const tries = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call')).map((c) => c.body.conversation_initiation_client_data.conversation_config_override);
+  let r = await (await post({ code: 'K84010', phone: '01993 850257' })).json();
+  assert.deepEqual(r, { id: 'conv_abc', demo: false, script: true, speed: null }, 'the script still applies');
+  let tries = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call')).map((c) => c.body.conversation_initiation_client_data.conversation_config_override);
   assert.equal(tries.length, 2);
   assert.ok(tries[0].tts && tries[0].agent, 'script and voice first');
   assert.ok(!tries[1].tts && tries[1].agent, 'then the script on its own');
+
+  // An agent with only the voice override enabled still gets the faster voice.
+  calls.length = 0;
+  t.mock.method(globalThis, 'fetch', async (url, init) => {
+    const body = init?.body ? JSON.parse(init.body) : null;
+    calls.push({ url, body });
+    if (String(url).includes('nhs.uk')) return new Response(PAGE);
+    const o = body?.conversation_initiation_client_data?.conversation_config_override;
+    if (o?.agent) return new Response('{"detail":"prompt overrides not allowed"}', { status: 422 });
+    return new Response('{"success":true,"conversation_id":"conv_abc"}');
+  });
+  r = await (await post({ code: 'K84010', phone: '01993 850257' })).json();
+  assert.deepEqual(r, { id: 'conv_abc', demo: false, script: false, speed: MAX_SPEED });
 
   // An agent that allows no overrides at all still gets called with its own script.
   calls.length = 0;
@@ -150,11 +170,27 @@ test('the voice is sped up, and the overrides fall back one by one', async (t) =
     const body = init?.body ? JSON.parse(init.body) : null;
     calls.push({ url, body });
     if (String(url).includes('nhs.uk')) return new Response(PAGE);
-    if (body?.conversation_initiation_client_data?.conversation_config_override) return new Response('{"detail":"overrides not allowed"}', { status: 400 });
+    if (body?.conversation_initiation_client_data?.conversation_config_override) return new Response('{"detail":"overrides not allowed"}', { status: 422 });
     return new Response('{"success":true,"conversation_id":"conv_abc"}');
   });
-  assert.equal((await (await post({ code: 'K84010', phone: '01993 850257' })).json()).id, 'conv_abc');
-  const plain = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call'));
-  assert.equal(plain.length, 3);
-  assert.equal(plain[2].body.conversation_initiation_client_data.conversation_config_override, undefined);
+  r = await (await post({ code: 'K84010', phone: '01993 850257' })).json();
+  assert.deepEqual(r, { id: 'conv_abc', demo: false, script: false, speed: null });
+  tries = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call'));
+  assert.equal(tries.length, 4);
+  assert.equal(tries[3].body.conversation_initiation_client_data.conversation_config_override, undefined);
+});
+
+// The override is dropped whole if its shape is wrong, which is how the first
+// go at this shipped a call that used none of it: prompt was a bare string.
+test('the override has the shape ElevenLabs documents', async (t) => {
+  const calls = withElevenLabs(t);
+  await post({ code: 'K84010', phone: '01993 850257' });
+  const o = calls.at(-1).body.conversation_initiation_client_data.conversation_config_override;
+  assert.deepEqual(Object.keys(o).sort(), ['agent', 'tts']);
+  // AgentConfigOverride: first_message is a string, prompt is PromptAgentAPIModelOverride.
+  assert.equal(typeof o.agent.first_message, 'string');
+  assert.equal(typeof o.agent.prompt, 'object', 'prompt is an object, not the prompt string itself');
+  assert.equal(typeof o.agent.prompt.prompt, 'string');
+  // TTSConversationalConfigOverride.
+  assert.equal(typeof o.tts.speed, 'number');
 });

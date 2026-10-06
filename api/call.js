@@ -9,7 +9,8 @@
 // (the NHS website for a GP practice, HMCTS Find a Court or Tribunal for a court,
 // the bundled directory for a service), so this cannot be used to call anyone
 // else. Calls go through ElevenLabs (ELEVENLABS_API_KEY, ELEVENLABS_AGENT_ID,
-// ELEVENLABS_PHONE_NUMBER_ID). ELEVENLABS_AGENT_ID's script is for GP practices
+// ELEVENLABS_PHONE_NUMBER_ID, and CALL_VOICE_SPEED for how fast the voice
+// talks). ELEVENLABS_AGENT_ID's script is for GP practices
 // ("on behalf of a patient"); courts and services are only called when
 // ELEVENLABS_GENERAL_AGENT_ID is set to an agent whose script uses the
 // organisation_type and on_behalf_of variables.
@@ -19,7 +20,7 @@
 //
 // GET  /api/call            -> { enabled, demo, kinds }
 // POST /api/call {kind: 'gp', code, phone} | {kind: 'court', slug, phone} | {kind: 'service', id, phone}
-//                            -> { id, demo }
+//                            -> { id, demo, script, speed }
 // GET  /api/call?id=conv_…  -> { status, email, name }
 
 import { practiceDetails } from './gp.js';
@@ -96,36 +97,41 @@ const ABOUT = {
   service: { type: 'domestic abuse support service', onBehalfOf: 'someone the service has supported', default: 'the service' },
 };
 
-// A short script: one question, the email address, so the call takes about
-// ten seconds. Sent as a per-call override; if the agent does not allow
-// overrides (Security tab: "First message" and "System prompt"), the dashboard
-// script is used.
+// One question, the email address, so the assistant talks for about four
+// seconds. Returned in the shape ElevenLabs wants for an agent override:
+// the system prompt goes in prompt.prompt, not prompt (a bare string is a
+// 422 and the whole override is dropped).
 export function script(kind, name) {
   const about = ABOUT[kind] || ABOUT.gp;
-  const who = { gp: 'a patient at the surgery', court: 'someone who needs a court document', service: 'someone you have supported' }[kind] || 'a patient at the surgery';
+  const who = { gp: 'a patient', court: 'a court user', service: 'someone you support' }[kind] || 'a patient';
   return {
-    first_message: `Hi, I'm an AI assistant calling for ${who}. What's your email address?`,
-    prompt: `You are an AI assistant on a phone call to ${name}, a ${about.type}, calling on behalf of ${about.onBehalfOf}.
+    first_message: `Hi, I'm an AI calling for ${who}. What's your email address?`,
+    prompt: {
+      prompt: `You are an AI assistant on a phone call to ${name}, a ${about.type}, calling on behalf of ${about.onBehalfOf}.
 You need one thing only: the email address to send a request for a letter or records to. Do not ask who to address it to, or anything else.
 Rules:
-- Be very brief. One short sentence per turn. No small talk, no explanations, no repeating yourself.
+- Talk fast and keep it short. One short sentence per turn. No small talk, no explanations, no repeating yourself.
 - Never give the person's name or say why they need it. If asked, say: "I'm not able to share that, sorry. They'll explain in the email."
 - If they spell the email, read it back once to confirm.
 - If they cannot give an email, ask once if there is another way to send it, then stop.
 - As soon as you have the email, say "Thanks, bye." and end the call.`,
+    },
   };
 }
 
-// The voice talks faster than the default, to keep the call short. 1.2 is the
-// most ElevenLabs allows (0.7 to 1.2). Needs "Speed" enabled in the agent's
-// Security tab, otherwise the call is retried without it.
-export const VOICE = { speed: 1.2 };
+// How fast the voice talks. ElevenLabs allows 0.7 to 1.2, and anything outside
+// that is a 422 that would lose the override, so CALL_VOICE_SPEED is clamped.
+export const MAX_SPEED = 1.2;
+export const voice = () => ({ speed: Math.min(MAX_SPEED, Math.max(0.7, Number(process.env.CALL_VOICE_SPEED) || MAX_SPEED)) });
 
-// The overrides to try, most complete first: script and voice, script only,
-// none. An agent rejects overrides it has not enabled, so each is a fallback.
+// The overrides to try, most complete first. An agent 422s on any override it
+// has not enabled under Security, so each line is a fallback for the one above:
+// the script and the faster voice, then each on its own, then the agent's own
+// settings.
 export const overrides = (kind, name) => [
-  { agent: script(kind, name), tts: VOICE },
+  { agent: script(kind, name), tts: voice() },
   { agent: script(kind, name) },
+  { tts: voice() },
   null,
 ];
 
@@ -203,13 +209,19 @@ export async function POST(request) {
       },
     }),
   });
-  // The agent may not allow some overrides; fall back step by step to its own script.
+  // The agent 422s on any override it has not enabled; fall back step by step
+  // to its own settings. Log what was refused, so a dropped override (which
+  // leaves the call on the dashboard's script and speed) is not silent.
   let res;
-  for (const override of overrides(kind, name)) {
+  let used = -1;
+  const tries = overrides(kind, name);
+  for (const [i, override] of tries.entries()) {
     res = await start(override);
-    if (res.ok) break;
+    if (res.ok) { used = i; break; }
+    console.warn(`api/call: ElevenLabs refused override ${i + 1}/${tries.length} with ${res.status}: ${(await res.clone().text()).slice(0, 300)}`);
   }
   const r = await res.json().catch(() => ({}));
   if (!res.ok || !r.conversation_id) return json({ error: 'The call could not be started. Try again, or call them yourself.' }, 502);
-  return json({ id: r.conversation_id, demo: !!e.demo });
+  if (used > 0) console.warn(`api/call: calling with override ${used + 1}/${tries.length} (${JSON.stringify(Object.keys(tries[used] || {}))}); enable the rest under the agent's Security tab`);
+  return json({ id: r.conversation_id, demo: !!e.demo, script: !!tries[used]?.agent, speed: tries[used]?.tts?.speed || null });
 }
