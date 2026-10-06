@@ -129,23 +129,59 @@ const off = (v) => /^(off|no|false)$/i.test(String(v || ''));
 export const voice = () => (off(process.env.CALL_VOICE_SPEED) ? null
   : { speed: Math.min(MAX_SPEED, Math.max(0.7, Number(process.env.CALL_VOICE_SPEED) || MAX_SPEED)) });
 
-// The overrides to try, most complete first. An agent 422s on any override it
-// has not enabled under Security, so each line is a fallback for the one above,
-// down to the agent's own settings. CALL_SCRIPT=off keeps the agent's own
-// system prompt and only replaces the opening question; CALL_FIRST_MESSAGE=off
-// leaves the script alone altogether.
-export function overrides(kind, name) {
-  const tts = voice();
+// What the agent allows us to override, from its Security tab.
+//
+// This has to be asked for, because sending a field the agent has not enabled
+// is not refused: the outbound-call request returns 200 and a conversation id,
+// and then the conversation is killed the moment it starts, with
+// 1008 "Override for field 'first_message' is not allowed by config". The
+// phone rings once and hangs up, and nothing in the HTTP response says why.
+const NOTHING = { first_message: false, prompt: false, speed: false };
+const allowCache = new Map();
+const ALLOW_TTL = 5 * 60 * 1000;
+export const forgetAgents = () => allowCache.clear();
+
+export async function allowed(agentId, key) {
+  const hit = allowCache.get(agentId);
+  if (hit && Date.now() - hit.at < ALLOW_TTL) return hit.allow;
+  let allow = null;
+  try {
+    const res = await fetch(`${API}/agents/${agentId}`, { headers: { 'xi-api-key': key } });
+    if (res.ok) {
+      const o = (await res.json())?.platform_settings?.overrides?.conversation_config_override || {};
+      allow = {
+        first_message: o.agent?.first_message === true,
+        prompt: o.agent?.prompt?.prompt === true,
+        speed: o.tts?.speed === true,
+      };
+      for (const [field, ok] of Object.entries(allow)) {
+        if (!ok) console.warn(`api/call: agent ${agentId} does not allow the ${field} override; enable it under the agent's Security tab`);
+      }
+    } else {
+      // Without the agent's settings, anything we send risks killing the call,
+      // so send nothing: a call with the agent's own script still gets there.
+      console.warn(`api/call: could not read agent ${agentId} (${res.status}); calling with no override`);
+    }
+  } catch (err) {
+    console.warn(`api/call: could not read agent ${agentId} (${err}); calling with no override`);
+  }
+  allow = allow || NOTHING;
+  allowCache.set(agentId, { at: Date.now(), allow });
+  return allow;
+}
+
+// The override to send: the short script and the faster voice, minus anything
+// the agent does not allow. CALL_SCRIPT=off keeps the agent's own system prompt
+// and only replaces the opening question; CALL_FIRST_MESSAGE=off leaves the
+// script alone altogether.
+export function override(kind, name, allow = NOTHING) {
   const s = script(kind, name);
-  const agent = off(process.env.CALL_FIRST_MESSAGE) ? null
-    : off(process.env.CALL_SCRIPT) ? { first_message: s.first_message } : s;
-  const steps = [
-    agent && tts && { agent, tts },
-    agent && { agent },
-    tts && { tts },
-    null,
-  ];
-  return steps.filter((step, i) => step || i === steps.length - 1);
+  const agent = {};
+  if (allow.first_message && !off(process.env.CALL_FIRST_MESSAGE)) agent.first_message = s.first_message;
+  if (allow.prompt && !off(process.env.CALL_SCRIPT) && !off(process.env.CALL_FIRST_MESSAGE)) agent.prompt = s.prompt;
+  const tts = allow.speed ? voice() : null;
+  const out = { ...(Object.keys(agent).length ? { agent } : {}), ...(tts ? { tts } : {}) };
+  return Object.keys(out).length ? out : null;
 }
 
 // "01865 240501", "+44 1865 240501" -> "+441865240501". Returns '' if it is
@@ -215,32 +251,28 @@ export async function POST(request) {
     return json({ error: 'Choose your GP practice first' }, 400);
   }
 
-  const start = (override) => fetch(`${API}/twilio/outbound-call`, {
+  const agentId = kind === 'gp' ? e.agent : e.general;
+  const start = (chosen) => fetch(`${API}/twilio/outbound-call`, {
     method: 'POST',
     headers: { 'xi-api-key': e.key, 'content-type': 'application/json' },
     body: JSON.stringify({
-      agent_id: kind === 'gp' ? e.agent : e.general,
+      agent_id: agentId,
       agent_phone_number_id: e.number,
       to_number: to,
       conversation_initiation_client_data: {
         dynamic_variables: { practice_name: name, organisation_name: name, organisation_type: about.type, on_behalf_of: about.onBehalfOf },
-        ...(override ? { conversation_config_override: override } : {}),
+        ...(chosen ? { conversation_config_override: chosen } : {}),
       },
     }),
   });
-  // The agent 422s on any override it has not enabled; fall back step by step
-  // to its own settings. Log what was refused, so a dropped override (which
-  // leaves the call on the dashboard's script and speed) is not silent.
-  let res;
-  let used = -1;
-  const tries = overrides(kind, name);
-  for (const [i, override] of tries.entries()) {
-    res = await start(override);
-    if (res.ok) { used = i; break; }
-    console.warn(`api/call: ElevenLabs refused override ${i + 1}/${tries.length} with ${res.status}: ${(await res.clone().text()).slice(0, 300)}`);
+  // Only ever send what this agent allows, or the call is killed as it starts.
+  const chosen = override(kind, name, await allowed(agentId, e.key));
+  let res = await start(chosen);
+  if (!res.ok) {
+    console.warn(`api/call: ElevenLabs refused the call with ${res.status}: ${(await res.clone().text()).slice(0, 300)}`);
+    if (chosen) res = await start(null);
   }
   const r = await res.json().catch(() => ({}));
   if (!res.ok || !r.conversation_id) return json({ error: 'The call could not be started. Try again, or call them yourself.' }, 502);
-  if (used > 0) console.warn(`api/call: calling with override ${used + 1}/${tries.length} (${JSON.stringify(Object.keys(tries[used] || {}))}); enable the rest under the agent's Security tab`);
-  return json({ id: r.conversation_id, demo: !!e.demo, script: !!tries[used]?.agent, speed: tries[used]?.tts?.speed || null });
+  return json({ id: r.conversation_id, demo: !!e.demo, script: !!chosen?.agent?.first_message, speed: chosen?.tts?.speed || null });
 }
