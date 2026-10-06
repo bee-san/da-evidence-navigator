@@ -62,12 +62,22 @@ test('bad practice codes and conversation ids are refused', async (t) => {
   assert.equal((await GET(new Request('https://x/api/call?id=../../agents'))).status, 400);
 });
 
-test('the result keeps only a valid email address and the addressee', () => {
+test('the result keeps only a valid email address and the addressee, and says why the call ended', () => {
   const conv = (email, status = 'done') => ({ status, analysis: { data_collection_results: { request_email: { value: email }, addressee: { value: ' Dr Patel ' } } } });
-  assert.deepEqual(callResult(conv('reception@nhs.net')), { status: 'done', email: 'reception@nhs.net', name: 'Dr Patel' });
+  assert.deepEqual(callResult(conv('reception@nhs.net')), { status: 'done', email: 'reception@nhs.net', name: 'Dr Patel', reason: '', seconds: 0, turns: 0 });
   assert.equal(callResult(conv('not an email')).email, '');
   assert.equal(callResult(conv('', 'in-progress')).status, 'calling');
   assert.equal(callResult({ status: 'failed' }).status, 'failed');
+
+  // An instant hangup: why it ended, how long it lasted and whether anything was said.
+  const hangup = callResult({
+    status: 'done',
+    transcript: [],
+    metadata: { termination_reason: 'agent_hangup', error: { code: 500, reason: 'tts failed' }, call_duration_secs: 1 },
+  });
+  assert.equal(hangup.reason, 'agent_hangup – tts failed');
+  assert.equal(hangup.seconds, 1);
+  assert.equal(hangup.turns, 0);
 });
 
 test('courts and services are only called with a general agent, never with the GP script', async (t) => {
@@ -193,4 +203,39 @@ test('the override has the shape ElevenLabs documents', async (t) => {
   assert.equal(typeof o.agent.prompt.prompt, 'string');
   // TTSConversationalConfigOverride.
   assert.equal(typeof o.tts.speed, 'number');
+});
+
+test('the script never lets the assistant hang up before it has asked', async () => {
+  const { script } = await import('../api/call.js');
+  const { prompt } = script('gp', 'Test Org').prompt;
+  assert.match(prompt, /Always start by asking the question/);
+  assert.match(prompt, /Never end the call before they have answered/);
+  assert.match(prompt, /Once you have the email, and only then/);
+  assert.doesNotMatch(prompt, /As soon as you have the email/);
+});
+
+test('each part of the override can be turned off without a deploy', async (t) => {
+  const { overrides } = await import('../api/call.js');
+  t.after(() => { for (const k of ['CALL_VOICE_SPEED', 'CALL_SCRIPT', 'CALL_FIRST_MESSAGE']) delete process.env[k]; });
+
+  process.env.CALL_VOICE_SPEED = 'off';
+  let steps = overrides('gp', 'X');
+  assert.ok(steps.every((s) => !s?.tts), 'no voice override anywhere');
+  assert.ok(steps[0].agent, 'the script still applies');
+
+  delete process.env.CALL_VOICE_SPEED;
+  process.env.CALL_SCRIPT = 'off';
+  steps = overrides('gp', 'X');
+  assert.equal(steps[0].agent.prompt, undefined, "the agent's own system prompt is kept");
+  assert.match(steps[0].agent.first_message, /email address/);
+  assert.equal(steps[0].tts.speed, 1.2);
+
+  delete process.env.CALL_SCRIPT;
+  process.env.CALL_FIRST_MESSAGE = 'off';
+  steps = overrides('gp', 'X');
+  assert.ok(steps.every((s) => !s?.agent), 'nothing of the script applies');
+  assert.equal(steps[0].tts.speed, 1.2);
+
+  process.env.CALL_VOICE_SPEED = 'off';
+  assert.deepEqual(overrides('gp', 'X'), [null], 'everything off is the agent as the dashboard has it');
 });

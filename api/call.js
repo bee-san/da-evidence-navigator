@@ -21,7 +21,7 @@
 // GET  /api/call            -> { enabled, demo, kinds }
 // POST /api/call {kind: 'gp', code, phone} | {kind: 'court', slug, phone} | {kind: 'service', id, phone}
 //                            -> { id, demo, script, speed }
-// GET  /api/call?id=conv_…  -> { status, email, name }
+// GET  /api/call?id=conv_…  -> { status, email, name, reason, seconds, turns }
 
 import { practiceDetails } from './gp.js';
 import { SERVICES } from '../src/app/services.js';
@@ -110,30 +110,43 @@ export function script(kind, name) {
       prompt: `You are an AI assistant on a phone call to ${name}, a ${about.type}, calling on behalf of ${about.onBehalfOf}.
 You need one thing only: the email address to send a request for a letter or records to. Do not ask who to address it to, or anything else.
 Rules:
+- Always start by asking the question. Never end the call before they have answered: not on the first turn, not while waiting for them to speak.
 - Talk fast and keep it short. One short sentence per turn. No small talk, no explanations, no repeating yourself.
 - Never give the person's name or say why they need it. If asked, say: "I'm not able to share that, sorry. They'll explain in the email."
 - If they spell the email, read it back once to confirm.
 - If they cannot give an email, ask once if there is another way to send it, then stop.
-- As soon as you have the email, say "Thanks, bye." and end the call.`,
+- Once you have the email, and only then, say "Thanks, bye." and end the call.`,
     },
   };
 }
 
 // How fast the voice talks. ElevenLabs allows 0.7 to 1.2, and anything outside
 // that is a 422 that would lose the override, so CALL_VOICE_SPEED is clamped.
+// CALL_VOICE_SPEED=off sends no voice override at all, to rule it out if a
+// call misbehaves.
 export const MAX_SPEED = 1.2;
-export const voice = () => ({ speed: Math.min(MAX_SPEED, Math.max(0.7, Number(process.env.CALL_VOICE_SPEED) || MAX_SPEED)) });
+const off = (v) => /^(off|no|false)$/i.test(String(v || ''));
+export const voice = () => (off(process.env.CALL_VOICE_SPEED) ? null
+  : { speed: Math.min(MAX_SPEED, Math.max(0.7, Number(process.env.CALL_VOICE_SPEED) || MAX_SPEED)) });
 
 // The overrides to try, most complete first. An agent 422s on any override it
-// has not enabled under Security, so each line is a fallback for the one above:
-// the script and the faster voice, then each on its own, then the agent's own
-// settings.
-export const overrides = (kind, name) => [
-  { agent: script(kind, name), tts: voice() },
-  { agent: script(kind, name) },
-  { tts: voice() },
-  null,
-];
+// has not enabled under Security, so each line is a fallback for the one above,
+// down to the agent's own settings. CALL_SCRIPT=off keeps the agent's own
+// system prompt and only replaces the opening question; CALL_FIRST_MESSAGE=off
+// leaves the script alone altogether.
+export function overrides(kind, name) {
+  const tts = voice();
+  const s = script(kind, name);
+  const agent = off(process.env.CALL_FIRST_MESSAGE) ? null
+    : off(process.env.CALL_SCRIPT) ? { first_message: s.first_message } : s;
+  const steps = [
+    agent && tts && { agent, tts },
+    agent && { agent },
+    tts && { tts },
+    null,
+  ];
+  return steps.filter((step, i) => step || i === steps.length - 1);
+}
 
 // "01865 240501", "+44 1865 240501" -> "+441865240501". Returns '' if it is
 // not a UK number.
@@ -144,16 +157,22 @@ export function ukE164(phone) {
   return /^0\d{9,10}$/.test(d) ? `+44${d.slice(1)}` : '';
 }
 
-// Pulls what the assistant was told out of a finished ElevenLabs conversation.
+// Pulls what the assistant was told out of a finished ElevenLabs conversation,
+// and why the call ended, so a call that hangs up on its own can be diagnosed.
 export function callResult(conv) {
   const status = conv?.status === 'done' ? 'done' : conv?.status === 'failed' ? 'failed' : 'calling';
   const data = conv?.analysis?.data_collection_results || {};
   const value = (k) => { const v = data[k]?.value; return typeof v === 'string' ? v.trim() : ''; };
   const email = value('request_email');
+  const meta = conv?.metadata || {};
+  const reason = [meta.termination_reason, meta.error?.reason].filter(Boolean).join(' – ').slice(0, 300);
   return {
     status,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '',
     name: value('addressee'),
+    reason,
+    seconds: Number(meta.call_duration_secs ?? conv?.call_duration_secs) || 0,
+    turns: Array.isArray(conv?.transcript) ? conv.transcript.length : 0,
   };
 }
 
