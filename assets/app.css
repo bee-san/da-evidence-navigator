@@ -98,6 +98,13 @@
 .app-inline-button { margin-left: 10px; vertical-align: top; }
 @media (max-width: 40.0625em) { .app-inline-button { margin-left: 0; margin-top: 10px; } }
 
+/* "Call them for me": space between the number, the button and the status */
+.app-gp-call { margin-top: 30px; }
+.app-gp-call #callPhone-group { margin-bottom: 30px; }
+.app-gp-call #callStart { margin-bottom: 30px; }
+.app-gp-call #callStatus { margin-top: 0; }
+.app-gp-call #callStatus:empty { display: none; }
+
 /* Camera for photographing a letter */
 .app-camera__frame { position: relative; max-width: 480px; background: #0b0c0c; }
 .app-camera__frame video { display: block; width: 100%; height: auto; }
