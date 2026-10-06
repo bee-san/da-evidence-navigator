@@ -47,7 +47,7 @@ for (const file of readdirSync('src/pages')) {
   const script = meta(src, 'script');
   const html = layout
     .replace('{{lang}}', meta(src, 'lang') || 'en')
-    .replace('{{title}}', meta(src, 'title'))
+    .replaceAll('{{title}}', meta(src, 'title'))
     .replace('{{menu}}', SHOW_MENU ? `<nav aria-label="Menu" class="govuk-service-navigation__wrapper">
           <button type="button" class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle" aria-controls="navigation" hidden>Menu</button>
           <ul class="govuk-service-navigation__list" id="navigation">
@@ -56,6 +56,7 @@ for (const file of readdirSync('src/pages')) {
         </nav>` : '')
     .replace('{{scripts}}', script ? `<script type="module" src="${script}"></script>` : '')
     .replace('{{content}}', src.replace(/<!-- \w+: .+? -->\n/g, ''));
-  writeFileSync(`${out}/${file}`, html);
+  // Vercel serves 404.html at any missing address, including nested ones, so its links start from the root.
+  writeFileSync(`${out}/${file}`, file === '404.html' ? html.replace(/\b(href|src)="(?![a-z]+:|\/|#)/g, '$1="/') : html);
 }
 console.log(`Built ${readdirSync('src/pages').length} pages into ${out}/`);
