@@ -529,14 +529,10 @@ async function sendForMe(preview, key, d) {
     const res = await fetch('api/send', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ ...d, key }) });
     const r = await res.json().catch(() => ({}));
     if (!res.ok || !r.sent) throw new Error(r.error || 'The email could not be sent. Try again, or send it from your own email.');
-    const how = d.replyTo === 'solicitor' ? `send the letter to your solicitor at ${d.solicitorEmail}`
-      : d.contactBy === 'phone' ? `call you on ${d.phone}` : `reply to ${d.altEmail}`;
     button.outerHTML = `<div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="sfm-sent-title" tabindex="-1" id="sfm-sent">
   <div class="govuk-notification-banner__header"><h2 class="govuk-notification-banner__title" id="sfm-sent-title">Success</h2></div>
   <div class="govuk-notification-banner__content">
-    <p class="govuk-notification-banner__heading">Your email has been sent${r.testTo ? '' : ` to ${escapeHtml(r.to)}`}</p>
-    ${r.testTo ? `<p class="govuk-body"><strong>Test mode:</strong> it went to ${escapeHtml(r.testTo)}, not to ${escapeHtml(r.to)}.</p>` : ''}
-    <p class="govuk-body">They have been asked to ${escapeHtml(how)}. We have not kept a copy, and nothing was sent to your inbox.</p>
+    <p class="govuk-notification-banner__heading">Email sent</p>
   </div>
 </div>`;
     status.textContent = '';
