@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { GET, POST, ukE164, callResult } from '../api/call.js';
+import { GET, POST, ukE164, callResult, forgetAgents } from '../api/call.js';
 
 const PAGE = '<script type="application/ld+json">{"@type":"Physician","name":"Bampton Surgery","telephone":"01993 850257","email":"","url":""}</script>';
 // A different address each time, so the per-person call limit does not apply.
@@ -10,16 +10,26 @@ const post = (body) => POST(new Request('https://example.org/api/call', { method
 // Vercel builds with the real settings, so every test starts from none.
 const KEYS = ['ELEVENLABS_API_KEY', 'ELEVENLABS_AGENT_ID', 'ELEVENLABS_PHONE_NUMBER_ID', 'CALL_DEMO_NUMBER', 'ELEVENLABS_GENERAL_AGENT_ID'];
 const saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]));
-test.beforeEach(() => { for (const k of KEYS) delete process.env[k]; });
+test.beforeEach(() => { for (const k of KEYS) delete process.env[k]; forgetAgents(); });
 test.after(() => { for (const k of KEYS) if (saved[k] !== undefined) process.env[k] = saved[k]; });
 
-function withElevenLabs(t, demo = '') {
+// What the agent's Security tab allows. Sending anything else does not fail
+// the request: the call is killed as the conversation starts.
+const agentConfig = (allow) => JSON.stringify({
+  platform_settings: { overrides: { conversation_config_override: {
+    agent: { first_message: allow.first_message !== false, prompt: { prompt: allow.prompt !== false } },
+    tts: { speed: allow.speed !== false },
+  } } },
+});
+
+function withElevenLabs(t, demo = '', allow = {}) {
   Object.assign(process.env, { ELEVENLABS_API_KEY: 'k', ELEVENLABS_AGENT_ID: 'agent_1', ELEVENLABS_PHONE_NUMBER_ID: 'phnum_1' });
   if (demo) process.env.CALL_DEMO_NUMBER = demo;
   const calls = [];
   t.mock.method(globalThis, 'fetch', async (url, init) => {
     calls.push({ url, body: init?.body ? JSON.parse(init.body) : null });
     if (String(url).includes('nhs.uk')) return new Response(PAGE);
+    if (/\/convai\/agents\//.test(String(url))) return new Response(agentConfig(allow));
     if (String(url).includes('find-court-tribunal')) return new Response(JSON.stringify({ name: 'Oxford Combined Court Centre', contacts: [{ description: 'Enquiries', number: '01865 264 200' }] }));
     return new Response('{"success":true,"conversation_id":"conv_abc"}');
   });
@@ -126,7 +136,7 @@ test('the call script asks for the email only, and never gives the person away',
   assert.equal(script('gp', 'Test Org').first_message, "Hi, I'm an AI calling for a patient. What's your email address?");
 });
 
-test('the voice is sped up, and the overrides fall back one by one', async (t) => {
+test('the voice is sped up, and only what the agent allows is sent', async (t) => {
   const { voice, MAX_SPEED } = await import('../api/call.js');
   assert.equal(voice().speed, MAX_SPEED);
   assert.ok(MAX_SPEED > 1 && MAX_SPEED <= 1.2, 'within the 0.7 to 1.2 ElevenLabs allows');
@@ -136,58 +146,94 @@ test('the voice is sped up, and the overrides fall back one by one', async (t) =
   assert.equal(voice().speed, 0.9);
   delete process.env.CALL_VOICE_SPEED;
 
-  const calls = withElevenLabs(t);
-  await post({ code: 'K84010', phone: '01993 850257' });
-  const first = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call'));
-  assert.equal(first.length, 1, 'one attempt when the agent accepts everything');
-  const override = first[0].body.conversation_initiation_client_data.conversation_config_override;
-  assert.equal(override.tts.speed, MAX_SPEED);
-  assert.match(override.agent.first_message, /email address/);
-
-  // An agent that has not enabled the speed override 422s on the first attempt.
-  calls.length = 0;
-  t.mock.method(globalThis, 'fetch', async (url, init) => {
-    const body = init?.body ? JSON.parse(init.body) : null;
-    calls.push({ url, body });
-    if (String(url).includes('nhs.uk')) return new Response(PAGE);
-    const o = body?.conversation_initiation_client_data?.conversation_config_override;
-    if (o?.tts) return new Response('{"detail":"tts overrides not allowed"}', { status: 422 });
-    return new Response('{"success":true,"conversation_id":"conv_abc"}');
-  });
+  // Everything enabled: the short script and the faster voice both go.
+  let calls = withElevenLabs(t);
   let r = await (await post({ code: 'K84010', phone: '01993 850257' })).json();
-  assert.deepEqual(r, { id: 'conv_abc', demo: false, script: true, speed: null }, 'the script still applies');
-  let tries = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call')).map((c) => c.body.conversation_initiation_client_data.conversation_config_override);
-  assert.equal(tries.length, 2);
-  assert.ok(tries[0].tts && tries[0].agent, 'script and voice first');
-  assert.ok(!tries[1].tts && tries[1].agent, 'then the script on its own');
+  assert.deepEqual(r, { id: 'conv_abc', demo: false, script: true, speed: MAX_SPEED });
+  let o = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call')).at(-1).body.conversation_initiation_client_data.conversation_config_override;
+  assert.match(o.agent.first_message, /email address/);
+  assert.equal(o.tts.speed, MAX_SPEED);
+  assert.ok(calls.some((c) => /\/convai\/agents\//.test(String(c.url))), "the agent's settings are read first");
+});
 
-  // An agent with only the voice override enabled still gets the faster voice.
-  calls.length = 0;
-  t.mock.method(globalThis, 'fetch', async (url, init) => {
-    const body = init?.body ? JSON.parse(init.body) : null;
-    calls.push({ url, body });
-    if (String(url).includes('nhs.uk')) return new Response(PAGE);
-    const o = body?.conversation_initiation_client_data?.conversation_config_override;
-    if (o?.agent) return new Response('{"detail":"prompt overrides not allowed"}', { status: 422 });
-    return new Response('{"success":true,"conversation_id":"conv_abc"}');
-  });
-  r = await (await post({ code: 'K84010', phone: '01993 850257' })).json();
-  assert.deepEqual(r, { id: 'conv_abc', demo: false, script: false, speed: MAX_SPEED });
+// The call that hung up: ElevenLabs returned 200 and a conversation id, then
+// killed the conversation with 1008 "Override for field 'first_message' is not
+// allowed by config". Nothing may be sent that the agent has not enabled.
+test('an override the agent has not enabled is never sent', async (t) => {
+  forgetAgents();
+  let calls = withElevenLabs(t, '', { first_message: false, prompt: false });
+  let r = await (await post({ code: 'K84010', phone: '01993 850257' })).json();
+  assert.deepEqual(r, { id: 'conv_abc', demo: false, script: false, speed: 1.2 }, 'the voice still speeds up');
+  let o = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call')).at(-1).body.conversation_initiation_client_data.conversation_config_override;
+  assert.equal(o.agent, undefined, 'no script override');
+  assert.equal(o.tts.speed, 1.2);
 
-  // An agent that allows no overrides at all still gets called with its own script.
-  calls.length = 0;
-  t.mock.method(globalThis, 'fetch', async (url, init) => {
-    const body = init?.body ? JSON.parse(init.body) : null;
-    calls.push({ url, body });
-    if (String(url).includes('nhs.uk')) return new Response(PAGE);
-    if (body?.conversation_initiation_client_data?.conversation_config_override) return new Response('{"detail":"overrides not allowed"}', { status: 422 });
-    return new Response('{"success":true,"conversation_id":"conv_abc"}');
-  });
+  // Only the system prompt refused: the opening question still applies.
+  forgetAgents();
+  calls = withElevenLabs(t, '', { prompt: false });
+  await post({ code: 'K84010', phone: '01993 850257' });
+  o = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call')).at(-1).body.conversation_initiation_client_data.conversation_config_override;
+  assert.match(o.agent.first_message, /email address/);
+  assert.equal(o.agent.prompt, undefined);
+
+  // Nothing allowed: the call goes ahead with the agent exactly as it is.
+  forgetAgents();
+  calls = withElevenLabs(t, '', { first_message: false, prompt: false, speed: false });
   r = await (await post({ code: 'K84010', phone: '01993 850257' })).json();
   assert.deepEqual(r, { id: 'conv_abc', demo: false, script: false, speed: null });
-  tries = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call'));
-  assert.equal(tries.length, 4);
-  assert.equal(tries[3].body.conversation_initiation_client_data.conversation_config_override, undefined);
+  o = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call')).at(-1).body.conversation_initiation_client_data;
+  assert.equal(o.conversation_config_override, undefined);
+});
+
+test("when the agent's settings cannot be read, no override is sent", async (t) => {
+  forgetAgents();
+  Object.assign(process.env, { ELEVENLABS_API_KEY: 'k', ELEVENLABS_AGENT_ID: 'agent_1', ELEVENLABS_PHONE_NUMBER_ID: 'phnum_1' });
+  const calls = [];
+  t.mock.method(globalThis, 'fetch', async (url, init) => {
+    calls.push({ url, body: init?.body ? JSON.parse(init.body) : null });
+    if (String(url).includes('nhs.uk')) return new Response(PAGE);
+    if (/\/convai\/agents\//.test(String(url))) return new Response('nope', { status: 500 });
+    return new Response('{"success":true,"conversation_id":"conv_abc"}');
+  });
+  const r = await (await post({ code: 'K84010', phone: '01993 850257' })).json();
+  assert.deepEqual(r, { id: 'conv_abc', demo: false, script: false, speed: null }, 'the call still happens');
+  const body = calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call')).at(-1).body;
+  assert.equal(body.conversation_initiation_client_data.conversation_config_override, undefined);
+});
+
+test("the agent's settings are read once, not on every call", async (t) => {
+  forgetAgents();
+  const calls = withElevenLabs(t);
+  await post({ code: 'K84010', phone: '01993 850257' });
+  await post({ code: 'K84010', phone: '01993 850257' });
+  assert.equal(calls.filter((c) => /\/convai\/agents\//.test(String(c.url))).length, 1);
+  assert.equal(calls.filter((c) => String(c.url).endsWith('/twilio/outbound-call')).length, 2);
+});
+
+test('each part of the override can be turned off without a deploy', async (t) => {
+  const { override } = await import('../api/call.js');
+  const all = { first_message: true, prompt: true, speed: true };
+  t.after(() => { for (const k of ['CALL_VOICE_SPEED', 'CALL_SCRIPT', 'CALL_FIRST_MESSAGE']) delete process.env[k]; });
+
+  assert.ok(override('gp', 'X', all).agent.prompt.prompt);
+  assert.equal(override('gp', 'X', all).tts.speed, 1.2);
+
+  process.env.CALL_VOICE_SPEED = 'off';
+  assert.equal(override('gp', 'X', all).tts, undefined, 'no voice override');
+  assert.ok(override('gp', 'X', all).agent, 'the script still applies');
+
+  delete process.env.CALL_VOICE_SPEED;
+  process.env.CALL_SCRIPT = 'off';
+  assert.equal(override('gp', 'X', all).agent.prompt, undefined, "the agent's own system prompt is kept");
+  assert.match(override('gp', 'X', all).agent.first_message, /email address/);
+
+  delete process.env.CALL_SCRIPT;
+  process.env.CALL_FIRST_MESSAGE = 'off';
+  assert.equal(override('gp', 'X', all).agent, undefined, 'nothing of the script applies');
+  assert.equal(override('gp', 'X', all).tts.speed, 1.2);
+
+  process.env.CALL_VOICE_SPEED = 'off';
+  assert.equal(override('gp', 'X', all), null, 'everything off is the agent as the dashboard has it');
 });
 
 // The override is dropped whole if its shape is wrong, which is how the first
@@ -212,30 +258,4 @@ test('the script never lets the assistant hang up before it has asked', async ()
   assert.match(prompt, /Never end the call before they have answered/);
   assert.match(prompt, /Once you have the email, and only then/);
   assert.doesNotMatch(prompt, /As soon as you have the email/);
-});
-
-test('each part of the override can be turned off without a deploy', async (t) => {
-  const { overrides } = await import('../api/call.js');
-  t.after(() => { for (const k of ['CALL_VOICE_SPEED', 'CALL_SCRIPT', 'CALL_FIRST_MESSAGE']) delete process.env[k]; });
-
-  process.env.CALL_VOICE_SPEED = 'off';
-  let steps = overrides('gp', 'X');
-  assert.ok(steps.every((s) => !s?.tts), 'no voice override anywhere');
-  assert.ok(steps[0].agent, 'the script still applies');
-
-  delete process.env.CALL_VOICE_SPEED;
-  process.env.CALL_SCRIPT = 'off';
-  steps = overrides('gp', 'X');
-  assert.equal(steps[0].agent.prompt, undefined, "the agent's own system prompt is kept");
-  assert.match(steps[0].agent.first_message, /email address/);
-  assert.equal(steps[0].tts.speed, 1.2);
-
-  delete process.env.CALL_SCRIPT;
-  process.env.CALL_FIRST_MESSAGE = 'off';
-  steps = overrides('gp', 'X');
-  assert.ok(steps.every((s) => !s?.agent), 'nothing of the script applies');
-  assert.equal(steps[0].tts.speed, 1.2);
-
-  process.env.CALL_VOICE_SPEED = 'off';
-  assert.deepEqual(overrides('gp', 'X'), [null], 'everything off is the agent as the dashboard has it');
 });
